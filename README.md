@@ -20,6 +20,13 @@ Open the URL printed by Vite (normally http://localhost:5173). To expose the dev
 
 ## Validation and production build
 
+For optional Supabase configuration, copy `.env.example` to `.env.local` beside
+`package.json` and set `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`.
+`.env.local` is ignored by Git; the example contains placeholders only. Restart
+Vite after local changes. For deployment, configure both variables in the **build
+environment** and rebuild/redeploy; Vite embeds them in the browser bundle.
+Use only the public publishable key. See [environment setup](docs/SUPABASE.md#deployment-environment).
+
 ```sh
 npm run typecheck
 npm test

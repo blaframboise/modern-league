@@ -8,6 +8,23 @@ No migrations have been applied remotely. No credentials, official data, storage
 2. Run `cp .env.example .env.local`. Replace both placeholders locally with `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`. Restart Vite (`npm run dev`). Vite embeds these public values at build time; configure the same two variables in the eventual build environment. Do not paste keys into issues or commit environment files. `.env`, `.env.*`, and `*.local` are ignored except `.env.example`.
 3. Missing configuration leaves all demonstrations working and shows a configuration notice on `/admin`. Partial/invalid configuration fails closed. Configuration never changes the demo into official data or triggers writes.
 
+### Deployment environment
+
+Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` in the hosting
+provider's build environment, or in the CI job that runs `npm run build`.
+Configure preview and production builds separately as appropriate. If you build
+locally and upload `dist/`, set them on the build machine instead.
+
+Vite embeds these public values into browser assets at build time. Runtime-only
+variables on a static host cannot update an existing bundle; rebuild and redeploy
+after changing either value. Never use secret/service-role keys, database
+passwords, or AI provider secrets in `VITE_*` variables. The placeholder-only
+`.env.example` is safe to track; `.env.local` belongs beside `package.json`, is
+ignored by Git, and must not be committed. Restart Vite after local changes.
+
+Environment configuration does not apply migrations, change database permissions,
+or enable official approval or publication.
+
 ## Review and apply migrations manually
 
 Use a current Supabase CLI on your workstation. Start with a disposable local database, not the live project:
