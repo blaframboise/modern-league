@@ -1,20 +1,61 @@
 # Modern League
 
-Development for a 2027 Magic: The Gathering Modern league. The initial repository
-contained only this heading: no React application, UI, importer, Supabase client,
-authentication, or tests were implemented.
+A responsive foundation for a Magic: The Gathering Modern tournament league, featuring the **2027 Modern Championship Series**.
 
-The current implementation adds a pure TypeScript regular-event scoring module
-in `src/scoring/regular.ts` and automated tests. Website development is still pending.
-Project requirements and unresolved league rules are recorded in `AGENTS.md`.
+## Requirements and installation
 
-Use Node.js 22.18+ (verified on Node 24), then run:
+Use Node.js 22.18+ (Node 24 LTS recommended) and npm.
 
 ```sh
 npm ci
-npm test
-npm run typecheck
 ```
+
+## Development
+
+```sh
+npm run dev
+```
+
+Open the URL printed by Vite (normally http://localhost:5173). To expose the development server on your local network, use `npm run dev -- --host 0.0.0.0`.
+
+## Validation and production build
+
+```sh
+npm run typecheck
+npm test
+npm run build
+npm run preview
+```
+
+The build runs strict TypeScript checks and creates optimized static assets in `dist/`. Preview serves that production build locally; it is not a production hosting server. For deployment, configure your static host to serve `index.html` for unknown paths so direct visits and refreshes on routes such as `/events` work.
+
+## Project structure
+
+```text
+public/             Original favicon and future static assets
+src/app/            Application shell, navigation, and route composition
+src/components/     Shared presentation components
+src/pages/          Home and section placeholder pages
+src/scoring/        Pure regular-event scoring, independent of UI and database
+tests/              Automated scoring and eligibility tests
+src/features/       Future results, standings, seasons, and championship modules
+src/lib/            Future shared services and Supabase integration boundary
+src/styles.css      Tailwind CSS entry, theme, and responsive styles
+```
+
+React 19, TypeScript, Vite, Tailwind CSS 4 (Vite plugin), React Router, and Lucide icons power the application. Tailwind utility classes can be used alongside the shared component styles and theme tokens.
+
+## Current scope
+
+- Home, Leaderboards, Events, Seasons, and Rules routes, plus a not-found page.
+- Dark charcoal and gold interface with original CSS card artwork, responsive navigation, active links, keyboard focus styles, and a skip link.
+- Explicit placeholder states; no fabricated standings, events, or published league rules.
+
+Tournament imports, player standings, seasonal championships, annual championships, and Supabase integration will be added in future work. The existing regular-event scoring module is preserved independently of the UI. Authentication, database access, and Supabase credentials are not included or required. Integration notes are in `src/features/README.md` and `src/lib/README.md`.
+
+Modern League is an independent community project and is not affiliated with Wizards of the Coast. No copyrighted Magic artwork or logos are included.
+
+## Existing scoring system
 
 `calculateRegularEventPoints` accepts official aggregate wins, draws, and scheduled
 rounds. It returns unrounded points; byes and intentional draws stay as officially
@@ -36,3 +77,5 @@ championship points, or calculate annual totals. Championship allocation rules a
 annual aggregation must be decided before those features are implemented.
 
 Supabase and authentication have not been connected or implemented.
+
+`npm run typecheck` validates the application with Vite bundler resolution and independently validates the scoring module and tests using the existing NodeNext configuration in `tsconfig.scoring.json`. See `AGENTS.md` for project requirements, assumptions, and unresolved league rules. The website pages remain placeholders and do not publish a completed ruleset.
