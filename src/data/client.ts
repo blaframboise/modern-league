@@ -4,7 +4,7 @@ import type { Database } from './database.ts';
 export function createBrowserClient(env: { VITE_SUPABASE_URL?: string; VITE_SUPABASE_PUBLISHABLE_KEY?: string } = {
   VITE_SUPABASE_URL: import.meta.env?.VITE_SUPABASE_URL,
   VITE_SUPABASE_PUBLISHABLE_KEY: import.meta.env?.VITE_SUPABASE_PUBLISHABLE_KEY,
-}) {
+}, recoveryOnly = false) {
   const url = env.VITE_SUPABASE_URL?.trim();
   const key = env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim();
   if (!url && !key) return null;
@@ -12,11 +12,11 @@ export function createBrowserClient(env: { VITE_SUPABASE_URL?: string; VITE_SUPA
   const parsed = new URL(url);
   if (parsed.protocol !== 'https:' && !(parsed.protocol === 'http:' && ['localhost', '127.0.0.1'].includes(parsed.hostname))) throw new Error('Supabase requires HTTPS.');
   // Recovery fragments are consumed explicitly before mounting HashRouter.
-  return createClient<Database>(url, key, { auth: { flowType: 'implicit', persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } });
+  return createClient<Database>(url, key, { auth: { flowType: 'implicit', persistSession: !recoveryOnly, autoRefreshToken: !recoveryOnly, ...(recoveryOnly ? { storageKey: 'modern-league-recovery' } : {}), detectSessionInUrl: false } });
 }
 // Invalid configuration fails closed without breaking the fictional demonstrations.
-export function configuredClient() {
-  try { return { client: createBrowserClient(), error: null }; }
+export function configuredClient(recoveryOnly = false) {
+  try { return { client: createBrowserClient(undefined, recoveryOnly), error: null }; }
   catch { return { client: null, error: 'Invalid Supabase configuration. Check your local environment settings.' }; }
 }
 export const supabaseConfiguration = configuredClient();
