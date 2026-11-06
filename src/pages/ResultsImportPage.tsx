@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { extractImages, MAX_IMAGES, metadataKeys, mockProvider, rowKeys, validateImageFiles } from '../extraction/index.ts';
 import type { Evidence, ExtractionReport, MetadataKey } from '../extraction/index.ts';
+import { canConfirmExtractionField, extractionFieldRequired, hasCurrentConfirmation } from '../results/extractionEvidence.ts';
 import { correctExtraction, extractionDraft } from '../extraction/draft.ts';
 import { decideImport, effectiveValues, markReady, potentialPlayers, validateImport } from '../results/index.ts';
 import type { ImportDraft, ImportValues } from '../results/index.ts';
@@ -66,7 +67,7 @@ export function ResultsImportPage() {
   }
   function edit(next: ImportValues, path?: string) {
     if (!draft) return;
-    try { setDraft(correctExtraction(draft, next, reason, path)); setMessage('Correction recorded. Readiness reset; review validation.'); }
+    try { setDraft(correctExtraction(draft, next, reason, path && canConfirmExtractionField(next, path) ? path : undefined)); setMessage('Correction recorded. Readiness reset; review validation.'); }
     catch (e) { setMessage(e instanceof Error ? e.message : 'Correction failed.'); }
   }
   function transition(action: 'ready' | 'approved' | 'rejected') {
@@ -77,11 +78,12 @@ export function ResultsImportPage() {
     } catch (e) { setMessage(e instanceof Error ? e.message : 'Transition failed.'); }
   }
   function evidence(e: Evidence<string | number>, path: string) {
-    const confirmed = values?.extraction?.confirmed.includes(path);
+    const confirmed = !!values && hasCurrentConfirmation(values, path);
+    const required = !!values && extractionFieldRequired(values, path);
     return <div className={confirmed ? 'evidence resolved' : 'evidence uncertain'}>
       <small>{e.status} · original: {e.value ?? 'undetermined'} · images: {e.sources.map(id => images.findIndex(i => i.id === id) + 1).join(', ') || 'none'}</small>
       {e.warnings.map((w, i) => <small key={i}>{w}</small>)}
-      {confirmed ? <small>Resolved / confirmed</small> : <button type="button" disabled={!editable || !reason.trim()} onClick={() => values && edit(values, path)}>Confirm {path}</button>}
+      {confirmed ? <small>Resolved / confirmed</small> : !required ? <small>Not required for this event</small> : <button type="button" disabled={!editable || !reason.trim() || !values || !canConfirmExtractionField(values, path)} onClick={() => values && edit(values, path)}>Confirm {path}</button>}
     </div>;
   }
   function metadata(key: MetadataKey, value: string) {
@@ -113,7 +115,7 @@ export function ResultsImportPage() {
       <section className="calendar-card"><h2>2. Review the draft</h2><p>State: <strong>{draft.state}</strong> · {report.provider}</p>
         {report.warnings.map((w, i) => <p className="calendar-notice" key={i}>{w}</p>)}
         <label>Correction / confirmation / decision reason<input value={reason} onChange={e => setReason(e.target.value)} placeholder="Explain your review against the source" /></label>
-        <p>Enter a reason to edit or confirm. Missing values stay blank. Select each registry identity explicitly, even when the name matches.</p>
+        <p>Enter a reason to edit or confirm. Editing a valid field corrects and confirms its new value in the same recorded action; clearing it leaves it unresolved. Select each registry identity explicitly, even when the name matches.</p>
       </section>
       <div className="import-review-layout">
         <aside id="import-source-images" className="import-sources"><h2>Source images</h2><p>Open an image to zoom in your browser.</p>{images.map((i, n) => <details className="calendar-card" key={i.id} open={n === 0}><summary>Image {n + 1}: {i.file.name}</summary><a href={i.url} target="_blank" rel="noreferrer"><img src={i.url} alt={`Original source image ${n + 1}`} /></a></details>)}</aside>
@@ -134,7 +136,7 @@ export function ResultsImportPage() {
         <div className="review-actions"><button disabled={draft.state !== 'draft' || issues.length > 0} onClick={() => transition('ready')}>Mark ready for approval</button><button disabled={draft.state !== 'ready for approval' || issues.length > 0 || !reason.trim()} onClick={() => transition('approved')}>Explicitly approve fictional draft</button><button disabled={!editable || !reason.trim()} onClick={() => transition('rejected')}>Reject fictional draft</button></div>
         {draft.decision && <p>{draft.decision.reviewer} · {draft.decision.at} · {draft.decision.reason}</p>}
       </section>
-      <details className="calendar-card"><summary>Original extraction and correction history ({draft.corrections.length})</summary><h3>Original extraction — preserved</h3><pre>{draft.original.extraction?.sourceReport}</pre>{draft.corrections.map((c, i) => <div key={i}><h3>Correction {i + 1}: {c.reason}</h3><pre>{JSON.stringify(c.values, null, 2)}</pre></div>)}</details>
+      <details className="calendar-card"><summary>Original extraction and correction history ({draft.corrections.length})</summary><h3>Original extraction — preserved</h3><pre>{draft.original.extraction?.sourceReport}</pre>{draft.corrections.map((c, i) => <div key={i}><h3>Correction {i + 1}: {c.reason}</h3><pre>{JSON.stringify(c, null, 2)}</pre></div>)}</details>
     </>}
   </div>;
 }

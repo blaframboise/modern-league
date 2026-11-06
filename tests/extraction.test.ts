@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { extractImages, MAX_IMAGE_BYTES, mockProvider, parseExtraction, validateImageFiles } from '../src/extraction/index.ts';
+import { extractionFieldRequired } from '../src/results/extractionEvidence.ts';
 import { correctExtraction, extractionDraft } from '../src/extraction/draft.ts';
 import { approvedStandingsInput, correctImport, decideImport, effectiveValues, markReady, potentialPlayers, validateImport } from '../src/results/index.ts';
 import { demoContext } from '../src/results/demo.ts';
@@ -37,7 +38,7 @@ test('observed/suggested/missing evidence stays separate from immutable correcti
   const report = await sample();
   report.tournament.name.status = 'observed';
   const d = extractionDraft('capture', report);
-  assert.ok(d.original.extraction?.confirmed.includes('tournament.name'));
+  assert.ok(d.original.extraction?.confirmed.some(c => c.path === 'tournament.name' && c.value === report.tournament.name.value));
   assert.equal(d.original.results[1].draws, null);
   assert.equal(d.original.results[0].playerId, null);
   assert.equal(potentialPlayers('Sample Copper', demoContext.players).length, 2);
@@ -57,7 +58,7 @@ test('all confirmation and identity checks precede Phase 6 calendar validation a
   const fixed = { ...v, results: v.results.map((r, i) => ({ ...r, playerId: `demo-00${i + 1}`, draws: r.draws ?? 0 })) };
   assert.equal(approvedStandingsInput([d], demoContext).regularEvents.length, 0);
   let resolved = correctExtraction(d, fixed, 'Compared all fields against fictional source');
-  for (const path of d.original.extraction!.required) resolved = correctExtraction(resolved, effectiveValues(resolved), 'Reviewed source', path);
+  for (const path of d.original.extraction!.required.filter(p => extractionFieldRequired(effectiveValues(resolved), p))) resolved = correctExtraction(resolved, effectiveValues(resolved), 'Reviewed source', path);
   assert.deepEqual(validateImport(resolved, demoContext), []);
   assert.throws(() => decideImport(resolved, 'approved', 'Reviewer', new Date().toISOString(), 'OK', demoContext));
   const ready = markReady(resolved, demoContext);
@@ -68,18 +69,17 @@ test('all confirmation and identity checks precede Phase 6 calendar validation a
   const approved = decideImport(ready, 'approved', 'Reviewer', new Date().toISOString(), 'Verified fictional import', demoContext);
   assert.equal(approvedStandingsInput([approved], demoContext).regularEvents.length, 1);
   assert.throws(() => correctExtraction(approved, fixed, 'cannot change'));
-  const tampered = correctExtraction(resolved, { ...effectiveValues(resolved), extraction: undefined }, 'Attempt to remove provenance');
-  // correctExtraction restores source audit; direct Phase 6 corrections cannot remove the original requirement.
-  assert.equal(effectiveValues(tampered).extraction?.sourceReport, d.original.extraction?.sourceReport);
+  assert.throws(() => correctExtraction(resolved, { ...effectiveValues(resolved), extraction: undefined }, 'Attempt to remove provenance'), /integrity/);
 });
 
 test('Phase 6 rejects source-audit removal and altered requirements, including after confirmations', async () => {
   const d = extractionDraft('capture', await sample());
   const v = effectiveValues(d);
   for (const audit of [undefined, { ...v.extraction!, required: [] }, { ...v.extraction!, sourceReport: '{}' }]) {
-    const changed = correctImport(d, { ...v, extraction: audit }, 'Attempted audit change');
-    assert.ok(validateImport(changed, demoContext).some(i => i.path === 'extraction'));
-    assert.throws(() => markReady(changed, demoContext));
+    assert.throws(() => correctImport(d, { ...v, extraction: audit }, 'Attempted audit change'), /integrity/);
+    const forged = { ...d, corrections: [{ values: { ...v, extraction: audit }, reason: 'Attempted audit change' }] };
+    assert.ok(validateImport(forged, demoContext).some(i => i.path === 'extraction'));
+    assert.throws(() => markReady(forged, demoContext));
   }
 });
 test('championship missing placements block readiness until corrected; missing metadata never inferred', async () => {

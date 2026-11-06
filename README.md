@@ -313,9 +313,32 @@ at least one valid source reference. Text, array lengths, numeric types, row IDs
 event kind and references are runtime-validated by `parseExtraction` before the
 Phase 6 adapter (`src/extraction/draft.ts`) creates a draft. Provider code never
 calculates scoring or standings. `ImportValues.extraction` retains the original
-report, required confirmation paths and human confirmations; Phase 6 validation
-checks these at readiness, approval and scoring, including attempts to remove audit
-provenance. Optional championship placement/season fields are applied by event kind.
+report, the exact allowed field paths and value-bound confirmations (`{ path, value }`).
+Unchanged observed source evidence is initially value-bound; suggested/missing values
+need explicit human review. Registry identity selection is always separate.
+
+`src/results/extractionEvidence.ts` manages this evidence through the shared Phase 6
+correction boundary. Generic `correctImport(draft, nextValues, reason)` requires the
+current audit unchanged as input and automatically invalidates confirmations for any
+changed values. Reverting a value does not resurrect an earlier confirmation.
+`correctExtraction(draft, nextValues, reason, path)` explicitly confirms the new value
+in the same correction; equivalently, the shared API accepts the documented fourth
+argument `{ confirmExtraction: [path] }`. Each such action is recorded in immutable
+`Correction.extractionConfirmations` with its exact reviewed values and reason.
+Do not write `extraction.confirmed` directly: audit injection/removal/replacement is
+rejected. Empty/missing fields, duplicate paths, unknown/nonexistent paths and registry
+ID paths cannot be confirmed. Extracted row identities and order stay fixed; changing
+the source row set requires a separate evidence policy.
+
+Readiness, approval and approved-only scoring independently re-parse the original
+report and replay every correction/confirmation action, checking snapshots and current
+values. A previously approved import with invalid evidence/history is rejected at the
+scoring boundary. Optional placements, annual season and absent DST offset fields are
+handled by event kind; missing required values still block validation. The UI explicitly describes valid field edits as correcting and confirming the new
+value in one recorded action; clearing a field leaves it unresolved. It shows
+current value confirmations, disables confirmation of missing values, and displays
+reviewed values/actions in the preserved correction history. These in-memory consistency
+checks are not authentication or cryptographic proof of a human review.
 
 This repository remains a **static Vite app with no server endpoint**. There is no
 live-provider configuration switch and no API key is needed for the demonstration.
