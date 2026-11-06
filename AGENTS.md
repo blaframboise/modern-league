@@ -20,8 +20,11 @@
 - Seasonal Tournament Champion: winner according to official championship standings.
 - Regular Season Champion: cumulative leader before the seasonal championship.
 - Overall Season Champion: cumulative leader after seasonal championship points.
-- Seasonal championship maximum: 40 points.
-- Annual championship maximum: undecided between 80 and 120; make configurable without silently choosing a value.
+- 2027 championship scoring: 75% Swiss match performance and 25% official final placement.
+- Match points = maximum × 0.75 × (3 × Swiss wins + Swiss draws) / (3 × scheduled Swiss rounds). Exclude elimination results; accept official byes and intentional draws without adjustments. Drops receive zero for unplayed rounds.
+- Placement points = maximum × 0.25 × (N − P) / (N − 1). Require N >= 2. Official ties average all occupied positions; use competition ranks (1, 2, 3, 3, 5). Reject invalid or inconsistent standings.
+- Total points are the sum of unrounded components. Display two decimal places only. Validate nonnegative safe integer Swiss wins/draws/losses and positive scheduled rounds; recorded rounds cannot exceed scheduled rounds.
+- 2027 annual championship maximum: 120 points; seasonal maximum: 40. Keep configuration explicit by year; reject unconfigured years.
 - Annual Tournament Champion and Annual Overall Champion are separate titles.
 - Annual championship participation is not automatically limited to the top eight or sixteen.
 
@@ -39,7 +42,7 @@ Apply in this order: championship points; number of perfect regular-event finish
 - Preserve working functionality. Keep scoring separate from UI and database code.
 - Add automated scoring and eligibility tests. Document assumptions and unresolved decisions; do not invent rules.
 - Do not connect Supabase or implement authentication yet.
-- Implement and test regular-event scoring and best-eight aggregation first. Report results and unresolved rules before implementing championship scoring.
+- Preserve regular-event scoring and best-eight aggregation. The approved 2027 championship rules are implemented independently in src/scoring/championship.ts; keep automated tests for both modules.
 
 ## Current assumptions and unresolved decisions
 - This repository initially contained only a README heading; no React application or database integration existed.
@@ -47,5 +50,7 @@ Apply in this order: championship points; number of perfect regular-event finish
 - A seasonal aggregation call receives regular results for exactly one player and season. The caller handles event classification, season assignment, official participation, and corrections. Duplicate event IDs are rejected to avoid double counting.
 - Every supplied distinct regular event counts toward attendance, including zero-point results; attendance includes results beyond the best eight. Confirm attendance handling for drops, disqualifications, and cancelled events before importing them.
 - Numerical calculations use unrounded JavaScript numbers. Equal-point results retain input order for selection only; this is not a standings tiebreaker.
-- Pending: championship placement-to-points schedules (including ties, cuts, Swiss versus elimination results, and non-finishers); annual maximum of 80 or 120; annual cumulative aggregation; exact season boundaries and event calendar; tournament admission criteria; scope/denominator for overall match-point percentage and perfect-finish counts (all events versus counted eight); optional playoff rules; award selection procedures.
-- Do not derive championship scoring from regular-event scoring or publish a completed league ruleset until these decisions are resolved.
+- Pending: annual cumulative aggregation; exact season boundaries and event calendar; tournament admission criteria; scope/denominator for overall match-point percentage and perfect-finish counts (all events versus counted eight); optional playoff rules; award selection procedures.
+- Championship input requires complete official standings, unique player IDs, explicit Swiss wins/draws/losses, and official competition ranks for every participant including drops. Fewer than two participants throws rather than awarding points. Do not infer missing ranks for disqualifications or non-finishers; official import policy remains unresolved.
+- Do not derive championship scoring from regular-event scoring or publish a completed league ruleset while remaining league decisions are unresolved.
+
