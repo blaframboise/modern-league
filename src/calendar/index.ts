@@ -77,34 +77,32 @@ export function validateCalendar(config: CalendarConfig, regularEvents: readonly
     if (event.start) startInstant(event.start);
   };
   let lastYear = 0;
-  let previousSeason = begins;
-  let previousAnnual: number | undefined;
+  // Keep one lower bound for the entire configured championship sequence:
+  // S1, S2, S3, S4, annual, next year's S1, ... . Missing starts do
+  // not reset it, so every known cutoff must follow every earlier known one.
+  let previousKnownCutoff = begins;
+  const validateCutoff = (event: CalendarEvent) => {
+    register(event);
+    if (!event.start) return;
+    const instant = startInstant(event.start);
+    if (instant <= previousKnownCutoff) {
+      throw new RangeError('Known championship cutoffs must be strictly chronological across league years');
+    }
+    previousKnownCutoff = instant;
+  };
   const seasonIds = new Set<string>();
   for (const year of config.years) {
     if (!Number.isSafeInteger(year.year) || year.year <= lastYear || (lastYear && year.year !== lastYear + 1)) throw new RangeError('Require consecutive ordered league years');
     lastYear = year.year;
     if (year.seasons.length !== 4) throw new RangeError('Require exactly four seasons');
-    let firstCutoff: number | undefined;
     for (const season of year.seasons) {
       // IDs are scoped to a year, matching the assignment pair (year, seasonId).
       const key = `${year.year}:${season.id}`;
       if (!season.id.trim() || seasonIds.has(key)) throw new RangeError('Require distinct season IDs within each year');
       seasonIds.add(key);
-      register(season.championship);
-      if (season.championship.start) {
-        const instant = startInstant(season.championship.start);
-        if (instant <= previousSeason) throw new RangeError('Seasonal championships must be strictly chronological');
-        firstCutoff ??= instant;
-        previousSeason = instant;
-      }
+      validateCutoff(season.championship);
     }
-    register(year.annualChampionship);
-    if (previousAnnual !== undefined && firstCutoff !== undefined && firstCutoff <= previousAnnual) throw new RangeError('Next year championships must follow the prior annual championship');
-    if (year.annualChampionship.start) {
-      const instant = startInstant(year.annualChampionship.start);
-      if (instant <= previousSeason || (previousAnnual !== undefined && instant <= previousAnnual)) throw new RangeError('Annual championship must follow seasonal championships');
-      previousAnnual = instant;
-    }
+    validateCutoff(year.annualChampionship);
   }
   if (!config.years.length) throw new RangeError('Require at least one league year');
   for (const event of regularEvents) {
@@ -126,6 +124,8 @@ export function assignRegularEvents(config: CalendarConfig, events: readonly Cal
       const fourth = year.seasons[3].championship.start;
       if ((annual && instant >= startInstant(annual)) || (fourth && instant >= startInstant(fourth))) continue;
       for (const season of year.seasons) {
+        // A later known date cannot locate this event relative to a missing
+        // boundary. Stop rather than guessing which season contains it.
         if (!season.championship.start) return unresolved('Missing seasonal championship cutoff');
         if (instant < startInstant(season.championship.start)) return { status: 'assigned', eventId: event.id, year: year.year, seasonId: season.id };
       }

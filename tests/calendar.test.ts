@@ -91,3 +91,67 @@ test('calendar assignments satisfy cumulative standings input without including 
   assert.equal(standings.seasons[0].beforeChampionship.standings[0].regularEventCount, 2);
   assert.equal(standings.seasons[1].beforeChampionship.standings[0].regularEventCount, 1);
 });
+
+/** Independent incomplete fixtures: dates are supplied only by each test. */
+function sparseCalendar(cutoffs: Readonly<Record<number, string>>): CalendarConfig {
+  const championship = (slot: number): CalendarEvent => ({
+    id: `cutoff-${slot}`, name: 'Championship fixture', source: 'sample',
+    ...(cutoffs[slot] ? { start: { date: cutoffs[slot], time: '12:00' } } : {}),
+  });
+  return {
+    begins: { date: '2027-01-04', time: '00:00' },
+    years: [2027, 2028, 2029].map((year, index) => ({
+      year,
+      seasons: [0, 1, 2, 3].map(season => ({ id: `s${season + 1}`, targetWindow: 'Fixture', championship: championship(index * 5 + season) })),
+      annualChampionship: championship(index * 5 + 4),
+    })),
+  };
+}
+
+test('every pair of known cutoffs stays ordered across missing dates and league years', () => {
+  // Covers seasonal/annual pairs, prior annual -> next first known season,
+  // and an entirely undated intervening league year. Equal instants also fail.
+  for (let earlier = 0; earlier < 15; earlier++) {
+    for (let later = earlier + 1; later < 15; later++) {
+      const ordered = sparseCalendar({ [earlier]: '2027-06-01', [later]: '2027-06-02' });
+      assert.doesNotThrow(() => validateCalendar(ordered), `ordered slots ${earlier}, ${later}`);
+      for (const date of ['2027-06-01', '2027-05-31']) {
+        const contradictory = sparseCalendar({ [earlier]: '2027-06-01', [later]: date });
+        assert.throws(() => validateCalendar(contradictory), /chronological/, `contradictory slots ${earlier}, ${later}`);
+        assert.throws(() => assignRegularEvents(contradictory, [event('2027-06-01')]), /chronological/);
+      }
+    }
+  }
+});
+
+test('annual rollover does not invent missing seasonal cutoffs on either side of a year boundary', () => {
+  // 2027 S4 is missing; annual is known. 2028 S1 is the next known cutoff.
+  const config = sparseCalendar({ 4: '2027-12-18', 5: '2028-03-25' });
+  const before = JSON.stringify(config);
+  const cases = [
+    ['2027-12-18', '11:59:59', undefined],
+    ['2027-12-18', '12:00', 's1'],
+    ['2027-12-18', '12:00:01', 's1'],
+    ['2028-03-25', '11:59:59', 's1'],
+    // At S1's cutoff S2 has no upper boundary, so keep it unresolved.
+    ['2028-03-25', '12:00', undefined],
+  ] as const;
+  for (const [date, time, seasonId] of cases) {
+    const assignment = assignRegularEvents(config, [event(date, time)])[0];
+    if (seasonId) assert.deepEqual(assignment, { status: 'assigned', eventId: 'test', year: 2028, seasonId });
+    else assert.equal(assignment.status, 'unresolved');
+  }
+  assert.equal(JSON.stringify(config), before);
+  // A known S2 cutoff cannot disambiguate S1 vs S2 when S1 is missing.
+  const missingFirst = sparseCalendar({ 4: '2027-12-18', 6: '2028-06-24' });
+  assert.equal(assignRegularEvents(missingFirst, [event('2027-12-18', '12:00')])[0].status, 'unresolved');
+});
+
+test('known Season 4 permits rollover without annual but unknown year transitions remain unresolved', () => {
+  const config = sparseCalendar({ 2: '2027-09-25', 3: '2027-12-11', 5: '2028-03-25' });
+  // Earlier missing seasons do not establish a definitive assignment before S4.
+  assert.equal(assignRegularEvents(config, [event('2027-12-11', '11:59:59')])[0].status, 'unresolved');
+  assert.deepEqual(assignRegularEvents(config, [event('2027-12-11', '12:00')])[0], { status: 'assigned', eventId: 'test', year: 2028, seasonId: 's1' });
+  const unknownRollover = sparseCalendar({ 2: '2027-09-25', 5: '2028-03-25' });
+  assert.equal(assignRegularEvents(unknownRollover, [event('2027-12-20')])[0].status, 'unresolved');
+});
