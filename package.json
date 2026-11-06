@@ -12,9 +12,10 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit && tsc --project tsconfig.scoring.json --noEmit",
     "test": "node --test --test-isolation=none tests/*.test.ts",
-    "test:browser": "node tests/browser/results-import.cjs"
+    "test:browser": "node tests/browser/results-import.cjs && node tests/browser/supabase-admin.cjs"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.15",
     "@tailwindcss/vite": "^4.1.17",
     "@types/node": "^26.6.6",
     "@types/react": "^19.2.0",
@@ -26,6 +27,7 @@
     "vite": "^7.2.0"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.119.0",
     "lucide-react": "^0.552.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

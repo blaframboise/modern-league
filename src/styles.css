@@ -95,3 +95,11 @@ h1, h2, h3, p { margin: 0; }h1 { font-size: clamp(42px, 4.6vw, 64px); font-weigh
   .results-import .review-fields { grid-template-columns: 1fr; }
   .results-import .review-actions { align-items: stretch; flex-direction: column; }
 }
+
+.admin-page { padding-block: 3rem; min-height: 60vh; }
+.admin-page h1 { margin-block: 1rem; }
+.admin-page p { margin-block: 1rem; max-width: 65ch; }
+.admin-page form { display: grid; gap: 1rem; max-width: 28rem; }
+.admin-page label { display: grid; gap: .5rem; }
+.admin-page input, .admin-page button { min-height: 44px; max-width: 100%; padding: .7rem; background: #24252a; color: #f4f1e9; border: 1px solid #777; border-radius: .35rem; }
+.admin-page button:disabled { opacity: .6; }

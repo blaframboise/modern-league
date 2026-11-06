@@ -394,3 +394,7 @@ Alternatively set `BROWSER_EXECUTABLE_PATH` to an installed Chromium executable.
 `BASE_URL` overrides `http://127.0.0.1:5173` (and can target `npm run preview`).
 Optional `BROWSER_SCREENSHOT_DIR=work/browser-import` saves full-page screenshots.
 These tests exercise three viewport sizes and the complete fictional review path.
+
+## Phase 8A — Supabase foundation
+
+Optional Supabase client, administrator password sign-in at `/admin`, private draft persistence API, RLS migrations and local PostgreSQL policy tests are now available. Existing demonstrations remain fictional and in-memory. Official approval, publication and uploads are disabled pending trusted server validation and governance decisions. See [Supabase setup and manual migration instructions](docs/SUPABASE.md).

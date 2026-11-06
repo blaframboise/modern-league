@@ -8,6 +8,7 @@ import { PlaceholderPage, sectionContent } from '../pages/PlaceholderPage';
 import { EventsPage, SeasonsPage } from '../pages/CalendarPages';
 import { ResultsReviewPage } from '../pages/ResultsReviewPage';
 import { ResultsImportPage } from '../pages/ResultsImportPage';
+import { AdminPage } from '../pages/AdminPage';
 import { navigation } from './navigation';
 
 export function App() {
@@ -18,7 +19,7 @@ export function App() {
   useEffect(() => {
     setMenuOpen(false);
     window.scrollTo(0, 0);
-    document.title = `${navigation.find(item => item.path === pathname)?.label ?? 'Page not found'} | Modern League`;
+    document.title = `${navigation.find(item => item.path === pathname)?.label ?? (pathname === '/admin' ? 'Administrator sign in' : 'Page not found')} | Modern League`;
     if (!firstRender.current) mainRef.current?.focus();
     firstRender.current = false;
   }, [pathname]);
@@ -34,6 +35,7 @@ export function App() {
     </div></header>
     <main id="main" tabIndex={-1} ref={mainRef}><Routes>
       <Route path="/" element={<HomePage />} />
+      <Route path="/admin" element={<AdminPage />} />
       <Route path="/results-import" element={<ResultsImportPage />} />
       <Route path="/results-review" element={<ResultsReviewPage />} />
       <Route path="/leaderboards" element={<LeaderboardPage />} />
@@ -42,6 +44,6 @@ export function App() {
       {Object.entries(sectionContent).filter(([path]) => !['/leaderboards', '/events', '/seasons'].includes(path)).map(([path, content]) => <Route key={path} path={path} element={<PlaceholderPage {...content} />} />)}
       <Route path="*" element={<PlaceholderPage eyebrow="404 / OFF THE MAP" title="Page not found" description="This page isn’t part of the league. Head home to find your next destination." icon="rules" />} />
     </Routes></main>
-    <footer className="site-footer container"><div><Link to="/" aria-label="Modern League home"><Brand /></Link><p>A community built for the competition.</p></div><div className="footer-right"><Link to="/rules">League rules <ArrowUpRight size={14} /></Link><p>Independent community league. Not affiliated with Wizards of the Coast.</p><span>© 2027 Modern League</span></div></footer>
+    <footer className="site-footer container"><div><Link to="/" aria-label="Modern League home"><Brand /></Link><p>A community built for the competition.</p></div><div className="footer-right"><Link to="/rules">League rules <ArrowUpRight size={14} /></Link><Link to="/admin">Administrator sign in</Link><p>Independent community league. Not affiliated with Wizards of the Coast.</p><span>© 2027 Modern League</span></div></footer>
   </div>;
 }
