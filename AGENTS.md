@@ -79,3 +79,15 @@ Apply in this order: championship points; number of perfect regular-event finish
 - Filter regular assignments by both league year and season before passing one player's official results to the existing scoring aggregator. Preserve the existing cumulative standings module and all scoring formulas.
 - Official schedule editing, persistence, corrections/cancellations, tournament imports, authentication, Supabase, admission policy, and 2028 scoring approval remain unresolved or out of scope.
 - The earlier pending item “exact season boundaries and event calendar” is superseded by championship-start boundaries above; actual official championship dates remain unconfirmed. Earlier wording “per calendar year” describes target windows, not strict competitive boundaries.
+
+
+## Results import foundation (Phase 6)
+- `src/results/index.ts` contains pure registry, tournament, import-state, correction, validation, and approval-gated standings adapters. React is confined to `ResultsReviewPage.tsx`; fixtures are explicitly fictional in `src/results/demo.ts`.
+- Stable player IDs identify people; names and aliases suggest candidates only. Equal names can represent distinct players and never cause automatic merges. Explicit registry selection resolves ambiguity.
+- Source snapshots and correction snapshots are independently copied and deeply frozen. Every correction needs a reason and resets readiness. Approved/rejected imports are terminal; replacement/revocation policy remains undecided.
+- Only valid ready imports can be explicitly approved. Revalidate duplicates against other imports at approval and against all approved records at scoring. Rejected imports do not reserve events. Never pass drafts, ready, or rejected records to official scoring.
+- Source key, event ID, same date/name, and championship period collisions block approval pending resolution. Heuristics are conservative, not evidence that two events are identical.
+- Tournament year/season assignment is explicit, not inferred from dates or quarters. Calendar reconciliation and provenance verification must precede operational imports; this demo is not an official schedule editor.
+- Regular and Swiss records require explicit wins/losses/draws and scheduled rounds; drops can have fewer recorded rounds. Championship complete-field rank validation delegates to the existing scorer. No scoring formulas or eligibility rules change.
+- `/results-review` is an in-memory fictional demonstration. No persistence, database writes, authentication, OCR, AI service, or official publication exists. Existing public demo standings remain independent.
+- Remaining decisions: durable source event keys and player ID allocation; identity merge/alias governance; trusted source formats and complete-field evidence; calendar reconciliation; authorization/audit retention; atomic duplicate reservation; correction/revocation of approved records; treatment of cancellations/disqualifications/unranked finishers. Pure state checks are not a security boundary.

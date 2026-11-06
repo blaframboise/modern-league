@@ -53,3 +53,18 @@ h1, h2, h3, p { margin: 0; }h1 { font-size: clamp(42px, 4.6vw, 64px); font-weigh
 .calendar-year { margin-top: 3rem; }
 .calendar-year > h2 { margin-bottom: 1.5rem; }
 .annual-card { margin-top: 1rem; }
+
+
+.results-review > section, .results-review > details { margin-top: 1.5rem; }
+.review-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 1rem; margin-top: 1rem; }
+.results-review label { display: grid; gap: .5rem; min-width: 0; }
+.results-review input, .results-review select, .results-review button { background: #24252a; color: #f4f1e9; border: 1px solid #777; border-radius: .35rem; padding: .7rem; max-width: 100%; min-width: 0; }
+.results-review button { cursor: pointer; border-color: #d6b66a; }
+.results-review button:disabled, .results-review fieldset:disabled { opacity: .55; cursor: default; }
+.review-actions, .review-fields { display: flex; flex-wrap: wrap; gap: 1rem; margin: 1rem 0; align-items: end; }
+.review-fields > label { flex: 1 1 130px; }
+.results-review fieldset { border: 1px solid #555; margin-top: 1rem; padding: 1rem; min-width: 0; }
+.results-review pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: .85rem; margin-top: 1rem; }
+.results-review li { margin: .5rem 0; }
+.results-review summary { cursor: pointer; }
+@media (max-width: 600px) { .review-actions > * { width: 100%; } }
