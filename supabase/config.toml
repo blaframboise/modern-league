@@ -1,0 +1,6 @@
+project_id = "modern-league-local"
+
+[functions.screenshot-import]
+# The handler validates JWT via auth.getUser and checks is_administrator on every request.
+# Supports current publishable keys; do not rely on gateway-only JWT checks.
+verify_jwt = false
