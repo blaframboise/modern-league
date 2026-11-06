@@ -24,7 +24,7 @@ export function App() {
     firstRender.current = false;
   }, [pathname]);
   return <div className="app-shell">
-    <a className="skip-link" href="#main">Skip to content</a>
+    <a className="skip-link" href="#main" onClick={event => { event.preventDefault(); document.getElementById('main')?.scrollIntoView(); document.getElementById('main')?.focus(); }}>Skip to content</a>
     <header className="site-header"><div className="container header-inner">
       <Link to="/" aria-label="Modern League home"><Brand /></Link>
       <button className="menu-toggle" aria-label={menuOpen ? 'Close navigation' : 'Open navigation'} aria-expanded={menuOpen} aria-controls="primary-nav" onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X /> : <Menu />}</button>
