@@ -34,7 +34,7 @@ npm run build
 npm run preview
 ```
 
-The build runs strict TypeScript checks and creates optimized static assets in `dist/`. Preview serves that production build locally; it is not a production hosting server. For deployment, configure your static host to serve `index.html` for unknown paths so direct visits and refreshes on routes such as `/events` work.
+The build runs strict TypeScript checks and creates optimized static assets in `dist/`. Preview serves that production build locally; it is not a production hosting server. Production builds use hash routing so static hosting supports direct visits and refreshes without a server rewrite. See the GitHub Pages instructions below.
 
 ## Project structure
 
@@ -405,3 +405,44 @@ These tests exercise three viewport sizes and the complete fictional review path
 ## Phase 8A — Supabase foundation
 
 Optional Supabase client, administrator password sign-in at `/admin`, private draft persistence API, RLS migrations and local PostgreSQL policy tests are now available. Existing demonstrations remain fictional and in-memory. Official approval, publication and uploads are disabled pending trusted server validation and governance decisions. See [Supabase setup and manual migration instructions](docs/SUPABASE.md).
+
+## GitHub Pages deployment
+
+The deployment target is https://blaframboise.github.io/modern-league/.
+
+1. In the repository's **Settings → Pages → Build and deployment**, select
+   **GitHub Actions** as the source.
+2. In **Settings → Secrets and variables → Actions → Variables**, add repository
+   variables `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` using your
+   project's URL and browser-safe publishable key. Never use a service-role key,
+   database password, or AI provider secret: Vite variables are public build inputs.
+3. Merge the deployment configuration into `main`. The **Deploy GitHub Pages**
+   workflow installs dependencies, typechecks, tests, builds and deploys `dist/`.
+   Subsequent pushes/merges to `main` deploy automatically; **Run workflow** also
+   supports manual deployment. Allow the `github-pages` environment to deploy from
+   `main` if repository environment protection rules require it.
+4. Follow the workflow's deployment URL after it succeeds. Changing build variables
+   requires another workflow run to rebuild the static site.
+
+Vite uses `/modern-league/` for production assets and `/` for local development.
+Production React Router navigation uses hashes: share internal links such as
+`https://blaframboise.github.io/modern-league/#/events` or
+`https://blaframboise.github.io/modern-league/#/results-import`. Opening or refreshing
+these URLs requests the site's root document, avoiding GitHub Pages 404s. Plain
+`/modern-league/events` URLs are not supported; no custom 404 redirect is needed.
+Local `npm run dev` retains paths such as `/events`. To check production routing,
+run `npm run build && npm run preview` and open the printed origin followed by
+`/modern-league/#/events`.
+
+The workflow passes both Supabase repository variables only to the production build.
+The existing optional Supabase client consumes these public build inputs. Database
+permissions, authentication requirements, and disabled official browser writes
+remain unchanged; configuration does not apply migrations or enable official
+publication or live extraction. Fictional demonstrations remain independent.
+
+Deployment configuration checks run with `npm test`. After `npm run build`, run
+`npm run test:deployment` to verify production direct visits, refreshes, assets,
+navigation, back history and skip links against a static server with no SPA
+fallback. This uses Playwright Chromium (install with
+`npx playwright-core install chromium`, or set `BROWSER_EXECUTABLE_PATH` to an
+installed Chromium executable). The test starts and stops its own static server.
