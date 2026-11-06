@@ -50,7 +50,20 @@ Apply in this order: championship points; number of perfect regular-event finish
 - A seasonal aggregation call receives regular results for exactly one player and season. The caller handles event classification, season assignment, official participation, and corrections. Duplicate event IDs are rejected to avoid double counting.
 - Every supplied distinct regular event counts toward attendance, including zero-point results; attendance includes results beyond the best eight. Confirm attendance handling for drops, disqualifications, and cancelled events before importing them.
 - Numerical calculations use unrounded JavaScript numbers. Equal-point results retain input order for selection only; this is not a standings tiebreaker.
-- Pending: annual cumulative aggregation; exact season boundaries and event calendar; tournament admission criteria; scope/denominator for overall match-point percentage and perfect-finish counts (all events versus counted eight); optional playoff rules; award selection procedures.
+- Pending: exact season boundaries and event calendar; tournament admission criteria; optional authorized playoff rules; award selection procedures.
 - Championship input requires complete official standings, unique player IDs, explicit Swiss wins/draws/losses, and official competition ranks for every participant including drops. Fewer than two participants throws rather than awarding points. Do not infer missing ranks for disqualifications or non-finishers; official import policy remains unresolved.
 - Do not derive championship scoring from regular-event scoring or publish a completed league ruleset while remaining league decisions are unresolved.
 
+
+## Approved cumulative standings implementation
+- `src/scoring/standings.ts` composes the existing scoring modules; do not alter approved formulas.
+- Count best eight regular scores per season; aggregate four seasons plus championships annually (maximum 600).
+- Every attended regular event counts toward eligibility, perfect finishes, and round-weighted match-point percentage, including results beyond the best eight. Exclude championship matches from regular statistics.
+- Perfect means all scheduled rounds won, no draws or unplayed rounds. Percentage is total earned match points / total possible match points. No appearances returns null, compared as zero; never NaN.
+- Rank all players by total, championship points, perfect finishes, then weighted percentage. Eligibility must never filter or reorder rankings. Unresolved ties use competition ranks and share cumulative titles among the highest-ranked eligible players.
+- Seasonal minimum is six appearances; annual minimum is 20. Engine returns eligibility and separate cumulative title recipient IDs; official tournament winners are independent of cumulative eligibility.
+- Presentation alone adds asterisks. Beneath every cumulative leaderboard show "* Has not yet met the participation requirement for the cumulative title." Explicitly completed periods may show "* Not eligible for the cumulative title." Never apply these markers to individual championship tournament standings.
+- Keep explicit player/year/season/event IDs; reject duplicates and inconsistent identifiers. Missing championships score zero with explicit recorded flags. No automatic season dates or completion detection.
+- Recipient lists describe each snapshot's current eligible leaders; final conferment requires externally confirmed period completion.
+- Demo standings are clearly labeled sample data; no official imports or live results are implied. No tournament admission criteria are inferred.
+- Preserve scoring tests and cover ineligible first-place players retaining rank while eligible players receive titles in seasonal and annual standings.
