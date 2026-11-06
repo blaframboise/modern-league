@@ -206,3 +206,69 @@ no scoring formulas, eligibility rules, or tiebreakers have been modified.
 Official schedule editing, persistence, cancellations/corrections, tournament
 imports, authentication, Supabase, admission policy, and 2028 scoring rules remain
 future work. Configuring a 2028 calendar does not approve 2028 championship scoring.
+
+
+## Phase 6: results import foundation
+
+Visit `/results-review` for a responsive **fictional demonstration** of regular,
+seasonal, and annual results review. It is not an operational administrator system.
+Load an example, enter a correction reason, explicitly select the ambiguous player's
+stable registry ID, and fill the missing draws with zero. Validation then permits
+“Mark ready for approval”; “Explicitly approve demo results” is a separate action.
+Rejecting an import locks it and excludes it from scoring. Reset or reload discards
+all in-memory changes. No official players or results are supplied or published.
+
+`src/results/index.ts` is pure TypeScript, independent of React and persistence.
+It defines a stable-ID player registry, name/alias candidate matching, tournament
+records, import drafts, structured validation issues, immutable original snapshots,
+reasoned correction history, and explicit `draft` → `ready for approval` →
+`approved` transitions. Editable imports can also become `rejected`; terminal
+records cannot be edited. Corrections reset readiness and retain source values.
+Duplicate IDs, player rows, event/source keys, same-date/name event candidates,
+and championship period collisions are checked before approval. Shared registry
+names are allowed and never merged automatically. IDs must be resolved explicitly.
+
+`approvedStandingsInput` accepts only approved imports and revalidates the entire
+approved batch before adapting it to `StandingsInput`. `importStandings` delegates
+to the existing cumulative standings engine. Regular scoring, championship scoring,
+best-eight selection, attendance, eligibility, and tiebreakers are unchanged. The
+review page reuses `CumulativeLeaderboard` for an isolated approved-sample preview;
+the existing Leaderboards, Events, and Seasons demonstrations remain independent.
+Full precision is preserved until display. Championship records contain Swiss
+results and complete official competition ranks; elimination records are excluded.
+
+The import year and season are explicit competitive assignments checked against
+`ReviewContext.calendar` using the existing pure calendar engine. Each tournament
+now includes `start` (local date/time, optional named time zone and DST-fold offset);
+the legacy `date` must match its local start date. Missing starts remain editable
+but block approval. The default zone is America/Detroit; DST gaps and ambiguous
+folds without a matching offset are rejected by `startInstant`.
+
+Regular events must match `assignRegularEvents` by both competitive year and season,
+including exact championship cutoffs, March rollover and December entry into the
+following league year. Seasonal and annual imports must match the configured
+championship ID, owner period and actual start instant. All four seasonal cutoffs
+and the annual start for the reviewed competitive year must be scheduled before
+approval, even when a partial calendar can locate an individual event. Unresolved
+assignments, invalid calendars and mismatches produce `tournament.calendar` issues;
+source snapshots and corrections remain available. The scoring adapter revalidates
+against the supplied calendar, so changed or incomplete schedules block previously
+approved records too. A 2028 calendar assignment does not configure 2028 scoring.
+
+The fictional review context supplies a complete compatible 2027–2028 calendar;
+regular, seasonal and annual review examples continue to support approval. No database writes, Supabase,
+authentication, external AI, image recognition, or file extraction are implemented.
+A future trusted parser should construct import values and retain source evidence;
+these TypeScript types are not an untrusted JSON parser or authorization boundary.
+
+Remaining decisions include stable source-key and player-ID allocation, identity
+merge governance, trusted import formats and complete-field verification, official calendar
+maintenance and schedule-change governance, approval authorization and audit retention, atomic duplicate
+reservation, approved-result replacement/revocation, and treatment of cancellations,
+disqualifications, and unranked finishers. Duplicate event heuristics deliberately
+block review until resolved; they do not establish official event identity.
+
+Run `npm run typecheck`, `npm test`, and `npm run build`. Import tests cover valid
+records, missing/invalid values, duplicate identities/events, source preservation,
+corrections, transitions, approval gating, calendar cutoffs/rollovers, championship
+identity, DST behavior, schedule revalidation, and compatibility with existing scoring.

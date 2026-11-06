@@ -6,6 +6,7 @@ import { LeaderboardPage } from '../pages/LeaderboardPage';
 import { HomePage } from '../pages/HomePage';
 import { PlaceholderPage, sectionContent } from '../pages/PlaceholderPage';
 import { EventsPage, SeasonsPage } from '../pages/CalendarPages';
+import { ResultsReviewPage } from '../pages/ResultsReviewPage';
 import { navigation } from './navigation';
 
 export function App() {
@@ -32,6 +33,7 @@ export function App() {
     </div></header>
     <main id="main" tabIndex={-1} ref={mainRef}><Routes>
       <Route path="/" element={<HomePage />} />
+      <Route path="/results-review" element={<ResultsReviewPage />} />
       <Route path="/leaderboards" element={<LeaderboardPage />} />
       <Route path="/events" element={<EventsPage />} />
       <Route path="/seasons" element={<SeasonsPage />} />
