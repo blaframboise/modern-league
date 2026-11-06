@@ -7,7 +7,14 @@
     "noEmit": true,
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
-    "types": ["node"]
+    "types": [
+      "node",
+      "vite/client"
+    ],
+    "skipLibCheck": true
   },
-  "include": ["src/scoring/**/*.ts", "tests/**/*.ts"]
+  "include": [
+    "src/scoring/**/*.ts",
+    "tests/**/*.ts"
+  ]
 }
