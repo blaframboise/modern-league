@@ -50,7 +50,8 @@ create table public.import_drafts (
   created_at timestamptz not null default now(),
   original jsonb not null check (jsonb_typeof(original) = 'object')
 );
--- Each revision stores the entire domain snapshot, including value-bound evidence.
+-- Each revision stores ONE Correction: {values, reason, extractionConfirmations?}.
+-- The immutable original is stored only in import_drafts.original.
 -- Browser data is untrusted; saving never establishes readiness or approval.
 create table public.import_corrections (
   id uuid primary key default gen_random_uuid(),

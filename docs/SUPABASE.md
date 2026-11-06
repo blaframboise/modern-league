@@ -54,7 +54,31 @@ values ('ACTUAL_AUTH_USER_UUID', 'Initial administrator authorized by league own
 
 UUID player IDs and a separate nonunique identity/alias table prevent name-based merges. Seasons have explicit competitive years/ordinals; events preserve local date/time, named zone, fold offset and actual instant. No official calendar, players or championship dates are seeded. Calendar consistency, DST and standings validation remain in the existing pure domain modules, not inferred in SQL.
 
-Draft originals and append-only correction snapshots preserve original extraction reports, value-bound confirmations and correction actions. Their JSON is **untrusted draft data**, never an attestation of readiness. The typed repository saves originals and full corrected domain snapshots, reads revisions in order, and propagates errors. It is intentionally separate from the fictional UI. Concurrent corrections use unique sequential revisions; a conflict requires reload/reconciliation rather than retrying over another administrator's work. A later trusted service must replay the complete persisted history using the existing domain validators before approving anything.
+### Draft correction storage and reconstruction
+
+`import_drafts.original` contains exactly one immutable Phase 6/7 `ImportValues`. Each `import_corrections.snapshot` contains **one individual `Correction`**, not an `ImportDraft` or cumulative history:
+
+```ts
+{
+  values: ImportValues,             // corrected values, including the resulting extraction audit
+  reason: string,                   // nonblank; must equal the row's reason column
+  extractionConfirmations?: [      // only explicit actions performed in THIS revision
+    { path: string, value: string | number }
+  ]
+}
+```
+
+Revision numbers start at 1. `values.extraction`, when present, retains the domain's source report, required field paths and resulting value-bound confirmations. This audit is part of the individual correction's values; neither the draft's `original` nor its cumulative `corrections` array is embedded in a correction row. The source original is never overwritten. Actor/time metadata stays in database columns under the existing authorization and append-only controls.
+
+`leagueRepository.loadDraft(id)` loads the immutable original, requests correction rows ordered by revision with an **exact database count**, and calls the typed `reconstructImportDraft(originalRow, correctionRows, expectedRevision)` in `src/data/reconstruction.ts`. The expected revision is the full database count, never the returned page length. A missing count or API page-limit truncation fails closed. The loader does not sort, deduplicate, skip or repair history: every row must have a unique row ID, the same draft ID, and the exact next revision `1..N`, with exactly N rows. Missing prefixes, gaps, duplicates, reordering and omitted trailing rows relative to the count all fail. A large history exceeding the API limit must be fetched in full with a reviewed consistent pagination implementation before it can be loaded; partial histories are never accepted.
+
+Every JSON object is parsed from untrusted data into the precise domain shape. Missing required fields, wrong types, unknown fields (including old cumulative draft payloads), blank/mismatched reasons and malformed confirmation actions are rejected. Editable null/missing-value sentinels remain editable: reconstruction does not claim the draft is ready. Parsing rebuilds audit object keys in domain order because PostgreSQL JSONB can reorder keys; arrays, row identities, revisions and actions retain their original order. `validateExtractionEvidence(draft, false)` replays the original evidence and **every** intermediate correction/action using the existing Phase 7 integrity rules. Removed/forged audits, altered action paths/values, duplicate actions and inconsistent intermediate confirmations fail closed. The resulting `ImportDraft` has `state: 'draft'`, no decision, and deeply frozen independently copied original/corrections. Persistence never restores approval or readiness.
+
+Before appending, `appendCorrection` validates the candidate history, reloads the persisted history, and compares its original and entire correction prefix with the candidate. Only the last individual correction is serialized. Stale or rewritten prefixes fail before insert; a race after comparison is rejected by the existing unique sequential revision constraint/policy. Reload and reconcile conflicts rather than silently overwriting or dropping another administrator's work. `createDraft` also validates the original's structure and source evidence before saving.
+
+These are consistency/integrity checks backed by database immutability, not cryptographic attestations: a database owner able to bypass those controls and rewrite an entire self-consistent history (or remove its tail and change its count) cannot be detected from that database alone. JSON also cannot prove that an administrator actually reviewed a source. Official authorization/publication remains disabled, and a later trusted service must perform full registry/calendar/duplicate/readiness validation before approval. The repository remains separate from the fictional UI.
+
+The pending foundation migration's comment now specifies this format; its SQL structure, RLS, grants and triggers are unchanged. No live migration or conversion was run. Any local experimental rows using the previous cumulative format are rejected and require explicit operator review/export and recreation in a disposable local database, never silent conversion or history loss.
 
 Approval history, normalized tournament/player records, evidence and screenshot metadata, and a separate public snapshot table establish future storage boundaries. Foreign keys require approved decisions for results; unique source/event identities prevent duplicate official events. Record counts are nonnegative and bounded by scheduled rounds. All audit/official rows are immutable. No browser grant enables approvals, publication, calendar/registry writes, extraction evidence writes or screenshot writes. Administrators can read those private records and create/append drafts only. This is a deliberate Phase 8A safety gate, not a complete operational import system.
 
