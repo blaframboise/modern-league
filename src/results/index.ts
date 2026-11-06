@@ -1,3 +1,5 @@
+import { assignRegularEvents, startInstant, validateCalendar } from '../calendar/index.ts';
+import type { CalendarConfig, ScheduledStart } from '../calendar/index.ts';
 import { calculateChampionshipPoints, CHAMPIONSHIP_RULES } from '../scoring/championship.ts';
 import { calculateStandings } from '../scoring/standings.ts';
 import type { StandingsInput, Championship, RegularEvent } from '../scoring/standings.ts';
@@ -10,6 +12,8 @@ export interface Tournament {
   readonly sourceKey: string;
   readonly name: string;
   readonly date: string;
+  /** Explicit local start plus named zone/optional DST-fold offset; null remains editable. */
+  readonly start: ScheduledStart | null;
   readonly year: number;
   readonly seasonId?: string;
   readonly kind: EventKind;
@@ -36,6 +40,7 @@ export interface ImportDraft {
   readonly decision?: { readonly reviewer: string; readonly at: string; readonly reason: string };
 }
 export interface ReviewContext {
+  readonly calendar: CalendarConfig;
   readonly players: readonly PlayerIdentity[];
   readonly year: number;
   readonly seasonIds: readonly string[];
@@ -81,12 +86,50 @@ function championship(values: ImportValues): Championship {
     scheduledSwissRounds: t.scheduledRounds!, participants: values.results.map(r => ({ playerId: r.playerId!,
       swiss: { wins: r.wins!, losses: r.losses!, draws: r.draws! }, finalPosition: r.finalPosition! })) };
 }
+/** Calendar failures are review issues, never a reason to discard source/corrections. */
+function reconcileCalendar(t: Tournament, context: ReviewContext): Issue[] {
+  const issues: Issue[] = [];
+  const add = (message: string) => issues.push({ path: 'tournament.calendar', message });
+  try {
+    validateCalendar(context.calendar);
+    const year = context.calendar.years.find(y => y.year === t.year);
+    if (!year) { add('Competitive year is not configured in the calendar.'); return issues; }
+    if (t.year === context.year && (year.seasons.length !== context.seasonIds.length ||
+        year.seasons.some((season, i) => season.id !== context.seasonIds[i]))) {
+      add('Review season IDs must match the configured calendar periods in order.');
+    }
+    // Approval requires a complete reviewed competitive year, even when a
+    // partial calendar could locate this particular event before a known cutoff.
+    if (year.seasons.some(s => !s.championship.start) || !year.annualChampionship.start) {
+      add('Missing championship cutoffs for the competitive year; complete the schedule before approval.');
+    }
+    if (!t.start) { add('Require an explicit event start date, time and named time zone before approval.'); return issues; }
+    const instant = startInstant(t.start);
+    if (t.date !== t.start.date) add('Tournament date must match the explicit local start date.');
+    if (t.kind === 'regular') {
+      const assignment = assignRegularEvents(context.calendar, [{ id: t.eventId, name: t.name, start: t.start, source: 'sample' }])[0];
+      if (assignment.status === 'unresolved') add(`Calendar assignment unresolved: ${assignment.reason}.`);
+      else if (assignment.year !== t.year || assignment.seasonId !== t.seasonId) {
+        add(`Calendar assigns this start to ${assignment.year} / ${assignment.seasonId}; correct the competitive year and season.`);
+      }
+    } else if (t.kind === 'seasonal' || t.kind === 'annual') {
+      const configured = t.kind === 'annual' ? year.annualChampionship : year.seasons.find(s => s.id === t.seasonId)?.championship;
+      if (!configured || configured.id !== t.eventId) add('Championship identity does not match the configured event for this competitive period.');
+      if (!configured?.start) add('Championship start is unconfirmed; approval is blocked.');
+      else if (startInstant(configured.start) !== instant) add('Imported championship start does not match the configured championship instant.');
+    }
+  } catch (error) {
+    add(`Calendar reconciliation failed: ${error instanceof Error ? error.message : 'Invalid calendar or event start'}`);
+  }
+  return issues;
+}
 export function validateImport(draft: ImportDraft, context: ReviewContext): Issue[] {
   const issues = validateRegistry(context.players);
   if (!count(context.year, 1) || !Object.hasOwn(CHAMPIONSHIP_RULES, context.year)) issues.push({ path: 'context.year', message: 'Require a configured scoring year.' });
   if (context.seasonIds.length !== 4 || new Set(context.seasonIds).size !== 4 || context.seasonIds.some(s => !nonempty(s))) issues.push({ path: 'context.seasonIds', message: 'Require four distinct configured season IDs.' });
   const add = (path: string, message: string) => issues.push({ path, message });
   const values = effectiveValues(draft); const t = values.tournament;
+  issues.push(...reconcileCalendar(t, context));
   for (const key of ['eventId', 'sourceKey', 'name'] as const) if (!nonempty(t[key]) || t[key] !== t[key].trim()) add(`tournament.${key}`, 'Require a nonempty trimmed value.');
   if (!/^\d{4}-\d{2}-\d{2}$/.test(t.date) || !Number.isFinite(Date.parse(t.date)) || new Date(t.date).toISOString().slice(0, 10) !== t.date) add('tournament.date', 'Require a valid ISO calendar date.');
   if (!count(t.year, 1) || t.year !== context.year) add('tournament.year', 'Require the configured competitive year.');

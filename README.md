@@ -237,20 +237,38 @@ the existing Leaderboards, Events, and Seasons demonstrations remain independent
 Full precision is preserved until display. Championship records contain Swiss
 results and complete official competition ranks; elimination records are excluded.
 
-The import year and season are explicit competitive assignments, not derived from
-calendar dates. Operational calendar reconciliation is still needed, particularly
-for championship cutoffs and December rollovers. No database writes, Supabase,
+The import year and season are explicit competitive assignments checked against
+`ReviewContext.calendar` using the existing pure calendar engine. Each tournament
+now includes `start` (local date/time, optional named time zone and DST-fold offset);
+the legacy `date` must match its local start date. Missing starts remain editable
+but block approval. The default zone is America/Detroit; DST gaps and ambiguous
+folds without a matching offset are rejected by `startInstant`.
+
+Regular events must match `assignRegularEvents` by both competitive year and season,
+including exact championship cutoffs, March rollover and December entry into the
+following league year. Seasonal and annual imports must match the configured
+championship ID, owner period and actual start instant. All four seasonal cutoffs
+and the annual start for the reviewed competitive year must be scheduled before
+approval, even when a partial calendar can locate an individual event. Unresolved
+assignments, invalid calendars and mismatches produce `tournament.calendar` issues;
+source snapshots and corrections remain available. The scoring adapter revalidates
+against the supplied calendar, so changed or incomplete schedules block previously
+approved records too. A 2028 calendar assignment does not configure 2028 scoring.
+
+The fictional review context supplies a complete compatible 2027–2028 calendar;
+regular, seasonal and annual review examples continue to support approval. No database writes, Supabase,
 authentication, external AI, image recognition, or file extraction are implemented.
 A future trusted parser should construct import values and retain source evidence;
 these TypeScript types are not an untrusted JSON parser or authorization boundary.
 
 Remaining decisions include stable source-key and player-ID allocation, identity
-merge governance, trusted import formats and complete-field verification, calendar
-reconciliation, approval authorization and audit retention, atomic duplicate
+merge governance, trusted import formats and complete-field verification, official calendar
+maintenance and schedule-change governance, approval authorization and audit retention, atomic duplicate
 reservation, approved-result replacement/revocation, and treatment of cancellations,
 disqualifications, and unranked finishers. Duplicate event heuristics deliberately
 block review until resolved; they do not establish official event identity.
 
 Run `npm run typecheck`, `npm test`, and `npm run build`. Import tests cover valid
 records, missing/invalid values, duplicate identities/events, source preservation,
-corrections, transitions, approval gating, and compatibility with existing scoring.
+corrections, transitions, approval gating, calendar cutoffs/rollovers, championship
+identity, DST behavior, schedule revalidation, and compatibility with existing scoring.
