@@ -7,11 +7,26 @@
     "node": ">=22.18.0"
   },
   "scripts": {
-    "test": "node --test --test-isolation=none tests/*.test.ts",
-    "typecheck": "tsc --noEmit"
+    "dev": "vite",
+    "build": "npm run typecheck && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit && tsc --project tsconfig.scoring.json --noEmit",
+    "test": "node --test --test-isolation=none tests/*.test.ts"
   },
   "devDependencies": {
-    "@types/node": "^26.6.6",
-    "typescript": "^7.0.2"
+    "@tailwindcss/vite": "^4.1.17",
+    "tailwindcss": "^4.1.17",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@vitejs/plugin-react": "^5.1.0",
+    "typescript": "^7.0.2",
+    "vite": "^7.2.0",
+    "@types/node": "^26.6.6"
+  },
+  "dependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-router-dom": "^7.9.5",
+    "lucide-react": "^0.552.0"
   }
 }
