@@ -29,7 +29,12 @@ export interface ImportedResult {
   /** Official championship competition rank; regular events do not need one. */
   readonly finalPosition: number | null;
 }
-export interface ImportValues { readonly tournament: Tournament; readonly results: readonly ImportedResult[] }
+export interface ImportValues {
+  readonly tournament: Tournament;
+  readonly results: readonly ImportedResult[];
+  /** In-memory extraction provenance. Source report and requirements remain in original. */
+  readonly extraction?: { readonly sourceReport: string; readonly required: readonly string[]; readonly confirmed: readonly string[] };
+}
 export type ImportState = 'draft' | 'ready for approval' | 'approved' | 'rejected';
 export interface Correction { readonly values: ImportValues; readonly reason: string }
 export interface ImportDraft {
@@ -129,6 +134,16 @@ export function validateImport(draft: ImportDraft, context: ReviewContext): Issu
   if (context.seasonIds.length !== 4 || new Set(context.seasonIds).size !== 4 || context.seasonIds.some(s => !nonempty(s))) issues.push({ path: 'context.seasonIds', message: 'Require four distinct configured season IDs.' });
   const add = (path: string, message: string) => issues.push({ path, message });
   const values = effectiveValues(draft); const t = values.tournament;
+  if (draft.original.extraction) {
+    const original = draft.original.extraction;
+    if (!values.extraction || values.extraction.sourceReport !== original.sourceReport ||
+        JSON.stringify(values.extraction.required) !== JSON.stringify(original.required)) add('extraction', 'Extraction provenance must remain unchanged.');
+    for (const path of original.required) {
+      if (path.endsWith('.finalPosition') && t.kind === 'regular') continue;
+      if (path === 'tournament.seasonId' && t.kind === 'annual') continue;
+      if (!values.extraction?.confirmed.includes(path)) add(`extraction.${path}`, 'Human confirmation or correction required.');
+    }
+  }
   issues.push(...reconcileCalendar(t, context));
   for (const key of ['eventId', 'sourceKey', 'name'] as const) if (!nonempty(t[key]) || t[key] !== t[key].trim()) add(`tournament.${key}`, 'Require a nonempty trimmed value.');
   if (!/^\d{4}-\d{2}-\d{2}$/.test(t.date) || !Number.isFinite(Date.parse(t.date)) || new Date(t.date).toISOString().slice(0, 10) !== t.date) add('tournament.date', 'Require a valid ISO calendar date.');

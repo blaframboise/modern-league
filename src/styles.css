@@ -68,3 +68,30 @@ h1, h2, h3, p { margin: 0; }h1 { font-size: clamp(42px, 4.6vw, 64px); font-weigh
 .results-review li { margin: .5rem 0; }
 .results-review summary { cursor: pointer; }
 @media (max-width: 600px) { .review-actions > * { width: 100%; } }
+
+/* Image import stays single-column on phones; originals remain accessible above records. */
+.results-import { overflow-wrap: anywhere; }
+.results-import button, .results-import input, .results-import select, .results-import summary { min-height: 44px; }
+.results-import input:not([type=checkbox]), .results-import select { width: 100%; max-width: 100%; }
+.results-import fieldset, .import-records, .import-sources { min-width: 0; }
+.import-thumbnails { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 1rem; margin: 1rem 0; }
+.import-thumbnails article { min-width: 0; padding: .75rem; border: 1px solid var(--border); }
+.import-thumbnails img { width: 100%; height: 160px; object-fit: contain; }
+.import-thumbnails input { font-size: .85rem; }
+.import-review-layout { display: grid; gap: 1.5rem; align-items: start; }
+.import-sources img { width: 100%; height: auto; max-height: 70vh; object-fit: contain; image-orientation: from-image; }
+.results-import .import-check { display: flex; gap: .75rem; align-items: center; margin: 1rem 0; }
+.import-check input { min-height: 24px; width: 24px; }
+.evidence { margin: .5rem 0 1rem; padding: .6rem; border-left: 3px solid #d6ae59; }
+.evidence small { display: block; line-height: 1.5; }
+.evidence.resolved { border-color: #7fb69a; }
+.results-import pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 28rem; overflow: auto; }
+.results-import .review-fields { grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); }
+@media (min-width: 1000px) {
+  .import-review-layout { grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); }
+  .import-sources { position: sticky; top: 1rem; max-height: 95vh; overflow: auto; }
+}
+@media (max-width: 600px) {
+  .results-import .review-fields { grid-template-columns: 1fr; }
+  .results-import .review-actions { align-items: stretch; flex-direction: column; }
+}
