@@ -40,3 +40,16 @@ h1, h2, h3, p { margin: 0; }h1 { font-size: clamp(42px, 4.6vw, 64px); font-weigh
 .standings-panel caption { text-align: left; padding: .8rem 0; color: #b9b5ab; }
 .standings-panel th, .standings-panel td { padding: .8rem .5rem; border-bottom: 1px solid #444; }
 .standings-panel p { margin-top: 1rem; line-height: 1.6; }
+
+
+.calendar-notice { border-left: 3px solid var(--color-gold, #d6b66a); padding: 1rem 1.25rem; background: #24231e; margin: 1.5rem 0; max-width: 76ch; }
+.calendar-filters { display: flex; flex-wrap: wrap; gap: 1.5rem; margin: 2rem 0; }
+.calendar-filters label { display: grid; gap: .5rem; }
+.calendar-filters select { padding: .75rem; background: #202124; color: #f4f1e9; border: 1px solid #666; border-radius: .4rem; max-width: 100%; }
+.calendar-list, .season-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 1rem; }
+.calendar-card { padding: 1.5rem; border: 1px solid #424247; border-radius: .7rem; background: #1b1c20; overflow-wrap: anywhere; }
+.calendar-card h2, .calendar-card h3 { margin: 1rem 0; }
+.calendar-card p { margin: .6rem 0; color: #c5c5cb; line-height: 1.65; }
+.calendar-year { margin-top: 3rem; }
+.calendar-year > h2 { margin-bottom: 1.5rem; }
+.annual-card { margin-top: 1rem; }
