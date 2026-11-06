@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Route, Routes, useLocation } from 'react-router-dom';
 import { ArrowUpRight, Menu, X } from 'lucide-react';
 import { Brand } from '../components/Brand';
+import { LeaderboardPage } from '../pages/LeaderboardPage';
 import { HomePage } from '../pages/HomePage';
 import { PlaceholderPage, sectionContent } from '../pages/PlaceholderPage';
 import { navigation } from './navigation';
@@ -30,7 +31,8 @@ export function App() {
     </div></header>
     <main id="main" tabIndex={-1} ref={mainRef}><Routes>
       <Route path="/" element={<HomePage />} />
-      {Object.entries(sectionContent).map(([path, content]) => <Route key={path} path={path} element={<PlaceholderPage {...content} />} />)}
+      <Route path="/leaderboards" element={<LeaderboardPage />} />
+      {Object.entries(sectionContent).filter(([path]) => path !== '/leaderboards').map(([path, content]) => <Route key={path} path={path} element={<PlaceholderPage {...content} />} />)}
       <Route path="*" element={<PlaceholderPage eyebrow="404 / OFF THE MAP" title="Page not found" description="This page isn’t part of the league. Head home to find your next destination." icon="rules" />} />
     </Routes></main>
     <footer className="site-footer container"><div><Link to="/" aria-label="Modern League home"><Brand /></Link><p>A community built for the competition.</p></div><div className="footer-right"><Link to="/rules">League rules <ArrowUpRight size={14} /></Link><p>Independent community league. Not affiliated with Wizards of the Coast.</p><span>© 2027 Modern League</span></div></footer>
