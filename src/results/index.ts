@@ -1,3 +1,5 @@
+import { extractionCorrection, validateExtractionEvidence } from './extractionEvidence.ts';
+import type { ExtractionAudit, FieldConfirmation } from './extractionEvidence.ts';
 import { assignRegularEvents, startInstant, validateCalendar } from '../calendar/index.ts';
 import type { CalendarConfig, ScheduledStart } from '../calendar/index.ts';
 import { calculateChampionshipPoints, CHAMPIONSHIP_RULES } from '../scoring/championship.ts';
@@ -29,9 +31,19 @@ export interface ImportedResult {
   /** Official championship competition rank; regular events do not need one. */
   readonly finalPosition: number | null;
 }
-export interface ImportValues { readonly tournament: Tournament; readonly results: readonly ImportedResult[] }
+export interface ImportValues {
+  readonly tournament: Tournament;
+  readonly results: readonly ImportedResult[];
+  /** In-memory extraction provenance. Source report and requirements remain in original. */
+  readonly extraction?: ExtractionAudit;
+}
 export type ImportState = 'draft' | 'ready for approval' | 'approved' | 'rejected';
-export interface Correction { readonly values: ImportValues; readonly reason: string }
+export interface Correction {
+  readonly values: ImportValues;
+  readonly reason: string;
+  /** Explicit review actions; replayed against this correction's values during validation. */
+  readonly extractionConfirmations?: readonly FieldConfirmation[];
+}
 export interface ImportDraft {
   readonly importId: string;
   readonly state: ImportState;
@@ -76,9 +88,10 @@ export function createImport(importId: string, original: ImportValues): ImportDr
   return snapshot({ importId, state: 'draft', original, corrections: [] });
 }
 export function effectiveValues(draft: ImportDraft): ImportValues { return draft.corrections.at(-1)?.values ?? draft.original; }
-export function correctImport(draft: ImportDraft, values: ImportValues, reason: string): ImportDraft {
+export function correctImport(draft: ImportDraft, values: ImportValues, reason: string, options?: { readonly confirmExtraction: readonly string[] }): ImportDraft {
   if (!['draft', 'ready for approval'].includes(draft.state) || !nonempty(reason)) throw new Error('Only editable imports with a correction reason may be corrected');
-  return snapshot({ ...draft, state: 'draft', corrections: [...draft.corrections, { values, reason }] });
+  const correction = extractionCorrection(draft, values, options?.confirmExtraction ?? []);
+  return snapshot({ ...draft, state: 'draft', corrections: [...draft.corrections, { ...correction, reason }] });
 }
 function championship(values: ImportValues): Championship {
   const t = values.tournament;
@@ -129,6 +142,7 @@ export function validateImport(draft: ImportDraft, context: ReviewContext): Issu
   if (context.seasonIds.length !== 4 || new Set(context.seasonIds).size !== 4 || context.seasonIds.some(s => !nonempty(s))) issues.push({ path: 'context.seasonIds', message: 'Require four distinct configured season IDs.' });
   const add = (path: string, message: string) => issues.push({ path, message });
   const values = effectiveValues(draft); const t = values.tournament;
+  issues.push(...validateExtractionEvidence(draft));
   issues.push(...reconcileCalendar(t, context));
   for (const key of ['eventId', 'sourceKey', 'name'] as const) if (!nonempty(t[key]) || t[key] !== t[key].trim()) add(`tournament.${key}`, 'Require a nonempty trimmed value.');
   if (!/^\d{4}-\d{2}-\d{2}$/.test(t.date) || !Number.isFinite(Date.parse(t.date)) || new Date(t.date).toISOString().slice(0, 10) !== t.date) add('tournament.date', 'Require a valid ISO calendar date.');

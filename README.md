@@ -272,3 +272,125 @@ Run `npm run typecheck`, `npm test`, and `npm run build`. Import tests cover val
 records, missing/invalid values, duplicate identities/events, source preservation,
 corrections, transitions, approval gating, calendar cutoffs/rollovers, championship
 identity, DST behavior, schedule revalidation, and compatibility with existing scoring.
+
+## Phase 7: mobile screenshot import demonstration
+
+Open `/results-import` (the **Import images** navigation link). Use **Take a photo**
+for the phone's rear-camera picker or **Choose photos or screenshots** for multiple
+existing images, or **Load fictional source image** for a generated sample without
+selecting a personal photo. Browser and device settings determine the actual picker; no native
+app is needed. JPEG, PNG and WebP are supported; convert HEIC first. Select up to
+eight images, at most 10 MiB each. Previews preserve orientation, and each image can
+be removed or replaced. Changing the selection discards the current extraction and
+review; originals remain accessible and open at full size throughout review.
+
+**Real:** browser capture/selection, local previews, file MIME/size/count checks,
+bounded runtime parsing, correction history, registry selection, calendar validation,
+and the existing Phase 6 readiness/approval state machine. **Simulated:** extraction
+is a fixed, explicitly fictional fixture; it does not read pixels, perform OCR, or
+interpret the contents of your photograph. All suggested fixture values require
+human confirmation or correction. Use **Simulate extraction failure** to exercise
+the failure/retry flow without credentials. The registry and calendar are fictional,
+and in-memory approvals do not publish or change public standings.
+
+Enter a correction reason before editing or confirming. Each field shows its original
+value, observed/suggested/missing status, source-image references and warnings. Blank
+records are not zero-filled. Choose a stable registry ID for every player, including
+exact name matches. Correct missing values, confirm suggestions, and reconcile the
+explicit tournament start/year/season with the calendar. Swiss totals and official
+competition placements are required for championships. Only then can you mark the
+draft ready and separately approve it. Every correction resets readiness. Terminal
+approved/rejected drafts cannot be edited. Original extraction and every correction
+snapshot remain separately available. Draft, ready and rejected imports remain
+excluded by the existing approval-gated standings adapter.
+
+### Provider integration boundary
+
+`src/extraction/index.ts` defines `ExtractionProvider.extract(images, signal)` and
+version 1 `ExtractionReport`. A value carries `value`, `status`, `sources` (image IDs),
+and `warnings`. Missing values use `null` with status `missing`; observed values need
+at least one valid source reference. Text, array lengths, numeric types, row IDs,
+event kind and references are runtime-validated by `parseExtraction` before the
+Phase 6 adapter (`src/extraction/draft.ts`) creates a draft. Provider code never
+calculates scoring or standings. `ImportValues.extraction` retains the original
+report, the exact allowed field paths and value-bound confirmations (`{ path, value }`).
+Unchanged observed source evidence is initially value-bound; suggested/missing values
+need explicit human review. Registry identity selection is always separate.
+
+`src/results/extractionEvidence.ts` manages this evidence through the shared Phase 6
+correction boundary. Generic `correctImport(draft, nextValues, reason)` requires the
+current audit unchanged as input and automatically invalidates confirmations for any
+changed values. Reverting a value does not resurrect an earlier confirmation.
+`correctExtraction(draft, nextValues, reason, path)` explicitly confirms the new value
+in the same correction; equivalently, the shared API accepts the documented fourth
+argument `{ confirmExtraction: [path] }`. Each such action is recorded in immutable
+`Correction.extractionConfirmations` with its exact reviewed values and reason.
+Do not write `extraction.confirmed` directly: audit injection/removal/replacement is
+rejected. Empty/missing fields, duplicate paths, unknown/nonexistent paths and registry
+ID paths cannot be confirmed. Extracted row identities and order stay fixed; changing
+the source row set requires a separate evidence policy.
+
+Readiness, approval and approved-only scoring independently re-parse the original
+report and replay every correction/confirmation action, checking snapshots and current
+values. A previously approved import with invalid evidence/history is rejected at the
+scoring boundary. Optional placements, annual season and absent DST offset fields are
+handled by event kind; missing required values still block validation. The UI explicitly describes valid field edits as correcting and confirming the new
+value in one recorded action; clearing a field leaves it unresolved. It shows
+current value confirmations, disables confirmation of missing values, and displays
+reviewed values/actions in the preserved correction history. These in-memory consistency
+checks are not authentication or cryptographic proof of a human review.
+
+This repository remains a **static Vite app with no server endpoint**. There is no
+live-provider configuration switch and no API key is needed for the demonstration.
+Do not add provider SDKs or secrets to browser code or `VITE_*` variables. A future
+provider must implement a same-origin server endpoint (for example
+`POST /api/results-extraction` with multipart images and their IDs), with a browser
+adapter implementing `ExtractionProvider`. The endpoint must return the version 1
+report; the browser still calls `parseExtraction`. Configure credentials such as
+`AI_VISION_API_KEY` and provider/model selection only in the chosen server runtime's
+secret environment. Actual variable names, model and vendor await a server/provider
+decision; none are read by this static app.
+
+The server must authorize administrators, enforce image count/byte and request-size
+limits, verify MIME **and file signatures**, safely decode images, impose pixel and
+time limits, and runtime-validate provider responses. Its extraction instruction
+must treat all image text as untrusted data, ignore instructions in images, never
+invent missing facts, and return evidence/warnings. No extracted text is rendered as
+HTML or executed. Do not log image data, extracted personal information or credentials.
+Browser MIME checks are usability checks, not a server security boundary. Images
+are local object URLs revoked on replacement/removal/unmount; neither images nor
+results use localStorage, a database, or durable uploads. Navigating away/reloading
+loses this session. No external provider receives images in this phase.
+
+### Phase 8 dependencies and verification
+
+A server/runtime and provider selection, administrator authorization, request abuse
+controls, source-event keys, registry governance, complete-field evidence, official
+calendar ownership, consent/retention and secure storage design, atomic duplicate
+checks, audit retention and approved-result revocation remain unresolved. Do not
+use this demonstration for official publication. Supabase, authentication and durable
+publication are deliberately deferred.
+
+Run the standard `npm run typecheck`, `npm test`, and `npm run build`. Extraction
+tests additionally cover image limits, multi-image references, provider failures and
+cancellation, malformed output, ambiguous names, missing fields, original values,
+confirmation history, calendar mismatches and approval-only scoring. Browser checks
+should exercise `/results-import` at 390×844, 844×390 and 1440×1000: camera input
+attributes, multi-selection, preview/remove/replace, invalid/oversized rejection,
+failure/retry, metadata/record corrections, identity matching, confirmations,
+approval, no horizontal overflow, single/dual-column layout and reload clearing.
+Real iOS/Android camera permission dialogs and hardware capture still require device
+verification; desktop emulation cannot establish those behaviors.
+
+The repeatable browser smoke test is included in `tests/browser/results-import.cjs`.
+With Vite running in another terminal, install Playwright's browser once and run:
+
+```sh
+npx playwright-core install chromium
+npm run test:browser
+```
+
+Alternatively set `BROWSER_EXECUTABLE_PATH` to an installed Chromium executable.
+`BASE_URL` overrides `http://127.0.0.1:5173` (and can target `npm run preview`).
+Optional `BROWSER_SCREENSHOT_DIR=work/browser-import` saves full-page screenshots.
+These tests exercise three viewport sizes and the complete fictional review path.
