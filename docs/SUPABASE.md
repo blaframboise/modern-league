@@ -55,7 +55,7 @@ Alternatively run the migration once through the project's SQL editor, using a c
 
 ## Configure administrator authentication
 
-1. In Authentication settings enable email/password sign-in. Disable public sign-ups for this administration-only flow. No signup/reset/email sending is invoked by the app. Configure the Site URL and allowed redirect URLs for the intended app origins before adding any future email/recovery flow. Configure a recovery procedure and MFA policy before production administration.
+1. In Authentication settings enable email/password sign-in. Disable public sign-ups for this administration-only flow. The app supports password recovery email requests and password updates; it does not offer signup. Configure the exact recovery URLs below and an MFA policy before production administration.
 2. Create the initial administrator account manually through the dashboard Authentication user management and set a strong password through your organization's approved process. Copy its Auth user UUID; do not confuse it with a player ID.
 3. A database operator, through the SQL editor with elevated privileges, grants access explicitly:
 
@@ -115,3 +115,30 @@ No Storage bucket or upload policy is created. Therefore the app uploads no scre
 - Drops, cancellations, disqualifications, unranked finishers, period completion and future-year scoring remain governed by existing unresolved rules.
 
 Do not remove the publication gate until these controls have a reviewed server implementation and authorization/integrity tests against actual Supabase. Scoring, calendar, confirmation and approval domain rules are unchanged by Phase 8A.
+
+## Password recovery on GitHub Pages
+
+In **Authentication → URL Configuration**, set:
+
+- **Site URL:** `https://blaframboise.github.io/modern-league/`
+- **Redirect URLs:** add exactly `https://blaframboise.github.io/modern-league/?recovery=1`
+- For local development only, optionally add `http://localhost:5173/?recovery=1` (or the exact origin/port used). Do not add broad production wildcards.
+
+Keep the Reset Password email template's Supabase `{{ .ConfirmationURL }}` link. It must go through Supabase verification, preserving the request's redirect target; do not replace it with a bare app URL, a hash route, or a custom token-hash template. The client explicitly uses the implicit flow. Successful verification returns to the root above with `#access_token=…&refresh_token=…&type=recovery`. Errors may return an error fragment. A `#/reset-password` redirect would compete for the same fragment and is not supported. PKCE `?code=` and custom token-hash callbacks are not implemented.
+
+The entrypoint captures and removes the callback fragment with `history.replaceState` **before mounting HashRouter**, then calls `auth.setSession` and server-verifies the user with `auth.getUser`. Only that successful recovery attempt displays the new-password form. A query marker, an existing login, or visiting the reset route alone does not unlock it. The form requires matching passwords of at least 12 characters; Supabase's configured password policy remains authoritative. `auth.updateUser({ password })` changes the password, then the app signs out the local session. Password recovery never grants administrator membership; existing database authorization and RLS remain unchanged. Other-device session revocation follows Supabase policy; local sign-out does not promise revocation of all sessions.
+
+At administrator sign-in, enter the account email and select **Send password recovery email**. The response avoids confirming account existence. Invalid/expired links require a new email. Refreshing the scrubbed reset page also requires a new link; recovery state is deliberately not persisted separately. Open the email in a trusted browser and avoid sharing recovery URLs. No application logs contain callback tokens or passwords.
+
+Audit: the original client disabled URL detection and had neither recovery handling nor a reset form, so email links could not complete recovery. Automatic URL detection stays disabled to prevent HashRouter races; the callback is handled explicitly instead. The Pages build retains its `/modern-league/` asset base and existing hash routes. Automated tests exercise the installed Supabase SDK with mocked Auth HTTP responses, including session verification, update, expiration and mismatch. No live Supabase dashboard settings were inspected or changed, and no real email was sent. An operator must apply the URL/template configuration above and smoke-test a real recovery email on staging/Pages after separately approving deployment. SMTP delivery, expiry/rate limits, MFA, and the live project's actual redirect allowlist remain operational checks.
+
+To reproduce the production callback browser tests without a live Auth account:
+
+```sh
+VITE_SUPABASE_URL=https://example.supabase.co VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_test npm run build -- --outDir work/recovery-dist
+npm exec vite preview -- --outDir work/recovery-dist --base /modern-league/ --host 127.0.0.1 --port 4174
+# In another terminal (set BROWSER_EXECUTABLE_PATH if Chromium is elsewhere):
+node tests/browser/password-recovery.cjs
+```
+
+The browser suite intercepts Auth requests and checks the real production entrypoint before HashRouter, password mismatch without a write, successful update, invalid/expired links, and refresh failure at 390px and 1440px. This test build uses placeholders and belongs only in `work/`; do not deploy it. The regular `npm test` includes SDK-level recovery tests.

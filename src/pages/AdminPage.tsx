@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabaseConfiguration } from '../data/client';
 import { leagueRepository } from '../data/repository';
+import { recoveryRedirect } from '../data/recovery';
 
 export function AdminPage() {
   const { client, error } = supabaseConfiguration;
@@ -40,6 +41,16 @@ export function AdminPage() {
         <label>Email <input type="email" autoComplete="username" required value={email} onChange={event => setEmail(event.target.value)} /></label>
         <label>Password <input type="password" autoComplete="current-password" required value={password} onChange={event => setPassword(event.target.value)} /></label>
         <button disabled={busy}>Sign in</button>
+        <button type="button" disabled={busy || !email} onClick={async () => {
+          setBusy(true);
+          try {
+            const result = await client.auth.resetPasswordForEmail(email, {
+              redirectTo: recoveryRedirect(window.location.origin, import.meta.env.BASE_URL),
+            });
+            setStatus(result.error ? 'Unable to request recovery. Please retry later.' : 'If this account can recover its password, a recovery email will arrive shortly.');
+          } catch { setStatus('Unable to request recovery. Please retry later.'); }
+          finally { setBusy(false); }
+        }}>Send password recovery email</button>
       </form>}
     </>}
   </section>;

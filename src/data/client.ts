@@ -11,7 +11,8 @@ export function createBrowserClient(env: { VITE_SUPABASE_URL?: string; VITE_SUPA
   if (!url || !key || !key.startsWith('sb_publishable_')) throw new Error('Configure the Supabase URL and publishable key together.');
   const parsed = new URL(url);
   if (parsed.protocol !== 'https:' && !(parsed.protocol === 'http:' && ['localhost', '127.0.0.1'].includes(parsed.hostname))) throw new Error('Supabase requires HTTPS.');
-  return createClient<Database>(url, key, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } });
+  // Recovery fragments are consumed explicitly before mounting HashRouter.
+  return createClient<Database>(url, key, { auth: { flowType: 'implicit', persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } });
 }
 // Invalid configuration fails closed without breaking the fictional demonstrations.
 export function configuredClient() {
