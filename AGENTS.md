@@ -67,3 +67,15 @@ Apply in this order: championship points; number of perfect regular-event finish
 - Recipient lists describe each snapshot's current eligible leaders; final conferment requires externally confirmed period completion.
 - Demo standings are clearly labeled sample data; no official imports or live results are implied. No tournament admission criteria are inferred.
 - Preserve scoring tests and cover ineligible first-place players retaining rank while eligible players receive titles in seasonal and annual standings.
+
+## Approved competitive calendar foundation
+- Four competitive seasons per league year target January–March, April–June, July–September, and October–December. These are flexible windows, never assignment boundaries.
+- Manually schedule named-zone championship starts; never infer weekends, quarter-end dates, or recurring Monday/Friday events. Regular tournaments generally begin January 4, 2027 and occur Mondays/Fridays when explicitly scheduled.
+- Seasonal regular scoring ends at the exact championship start. Events at or after that instant enter the next season even before quarter end. Championships retain their explicit owner year/season.
+- Season 4 and annual championships are distinct; Season 4 must precede annual. A regular event at or after either cutoff enters the next competitive league year, including December 2027 entering 2028 Season 1. No double counting or offseason classification.
+- `src/calendar/` is pure scheduling code plus separate fictional fixtures. Default zone is America/Detroit. Store local date/time/zone, compare actual instants, reject DST gaps and require matching explicit offsets for repeated times.
+- Competitive year/season IDs are separate from calendar dates. Supply an explicit initial lower bound, consecutive configured years, and four ordered seasons. Missing cutoffs yield unresolved assignments; do not invent dates.
+- Events and Seasons use clearly labeled fictional samples. Do not publish those as announcements. Status is shown only when explicitly supplied.
+- Filter regular assignments by both league year and season before passing one player's official results to the existing scoring aggregator. Preserve the existing cumulative standings module and all scoring formulas.
+- Official schedule editing, persistence, corrections/cancellations, tournament imports, authentication, Supabase, admission policy, and 2028 scoring approval remain unresolved or out of scope.
+- The earlier pending item “exact season boundaries and event calendar” is superseded by championship-start boundaries above; actual official championship dates remain unconfirmed. Earlier wording “per calendar year” describes target windows, not strict competitive boundaries.

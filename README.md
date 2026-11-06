@@ -49,7 +49,7 @@ React 19, TypeScript, Vite, Tailwind CSS 4 (Vite plugin), React Router, and Luci
 
 - Home, Leaderboards, Events, Seasons, and Rules routes, plus a not-found page.
 - Dark charcoal and gold interface with original CSS card artwork, responsive navigation, active links, keyboard focus styles, and a skip link.
-- Leaderboards use clearly labeled fictional sample data; Events, Seasons, and Rules retain placeholder states.
+- Leaderboards use clearly labeled fictional sample data; Events and Seasons show fictional scheduling records; Rules retains its placeholder.
 
 Official tournament imports, championship presentation, and Supabase integration remain future work. The existing regular-event scoring module is preserved independently of the UI. Authentication, database access, and Supabase credentials are not included or required. Integration notes are in `src/features/README.md` and `src/lib/README.md`.
 
@@ -149,7 +149,60 @@ Dates and period completion are not inferred. These markers do not apply to indi
 championship tournament standings. The demonstration page defaults to active-period wording,
 uses only fictional sample records, and has no live database or official results import.
 
-Remaining policy questions: exact season boundaries and event calendar; official import treatment
+Remaining policy questions: official championship dates and event records; official import treatment
 of cancellations, disqualifications, drops and unranked finishers; tournament admission criteria;
 and any future authorized playoff or non-scoring award procedures. No admission requirement,
 Top 8/16 restriction, playoff, Supabase connection, or authentication is implemented.
+
+## Competitive calendar and scheduling
+
+`src/calendar/index.ts` supplies pure scheduling logic; `src/calendar/demo.ts`
+contains separate, explicitly fictional records used by Events and Seasons.
+There are no official announcements, generated recurring tournaments, results,
+players, or winners in these fixtures. The existing sample leaderboard remains intact; Rules remains a placeholder.
+
+Each configured league year has exactly four distinct season IDs and a separate
+annual championship. Target windows are January–March, April–June,
+July–September, and October–December. These windows are scheduling targets only.
+Championship dates are entered manually, without selecting weekends or quarter ends.
+Season 4 and the annual championship are distinct events; Season 4 must precede
+annual. Regular tournaments generally occur Mondays and Fridays starting January
+4, 2027, but that pattern never creates an official event.
+
+A regular event starting strictly before its seasonal championship start counts
+in that season. At the exact cutoff it moves into the next season, including
+March dates entering Season 2 before April. Championship ownership is explicit
+in its containing year/season configuration and is never passed through the
+regular-event classifier. At or after the Season 4 cutoff or annual cutoff,
+regular events enter the next configured league year's Season 1. Consequently,
+a December 2027 event can belong exclusively to 2028 Season 1. League-year and
+season identifiers describe competition membership, not the event's calendar year.
+No events are classified as an unscored offseason.
+
+`CalendarConfig.begins` explicitly bounds the first configured season. Years must
+be consecutive and ordered, with four seasons in competitive order. IDs are
+unique across all championship and regular events; season IDs are scoped to a
+league year. Championships may omit `start` until scheduled. Invalid configuration
+throws; insufficient cutoff information yields `{ status: 'unresolved', eventId,
+reason }`. Unknown boundaries are never filled from calendar quarters. A known
+annual cutoff proves year rollover even when seasonal dates are missing, but the
+next year's Season 1 still needs its upper cutoff for a resolved assignment.
+
+Starts store ISO local `date`, `time` (HH:mm or HH:mm:ss), and an optional named
+`timeZone`, defaulting to `America/Detroit`. `startInstant` compares actual UTC
+milliseconds using the runtime's IANA zone data, independent of the browser's
+zone. Invalid dates and DST gaps are rejected. Repeated DST times require an
+explicit matching `offset`, such as `-04:00` or `-05:00`. Keep runtime time-zone
+data current. Dates before year 0100 are outside the supported scheduling range.
+
+`assignRegularEvents` returns one discriminated assignment per supplied regular
+event. Filter assigned records by **both** `year` and `seasonId`, then join official
+results by `eventId` for one player before calling `aggregateSeasonRegularResults`.
+The existing aggregator accepts only eventId and official record fields; it does
+not enforce calendar membership. Never feed unresolved records or 2028 records
+into 2027 aggregation. The assignments match `RegularEvent` in `src/scoring/standings.ts`;
+no scoring formulas, eligibility rules, or tiebreakers have been modified.
+
+Official schedule editing, persistence, cancellations/corrections, tournament
+imports, authentication, Supabase, admission policy, and 2028 scoring rules remain
+future work. Configuring a 2028 calendar does not approve 2028 championship scoring.
