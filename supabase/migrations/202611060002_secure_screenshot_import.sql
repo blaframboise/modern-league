@@ -44,7 +44,7 @@ grant execute on function public.can_read_tournament_source(text) to anon, authe
 create policy tournament_source_owner_read on storage.objects for select to authenticated
  using (bucket_id = 'tournament-sources' and public.can_read_tournament_source(name));
 
--- Create at most 100 drafts per administrator. The membership row lock serializes
+-- Create at most 500 drafts per administrator. The membership row lock serializes
 -- concurrent creates and attachment checks; existing same-owner IDs are idempotent.
 -- Only the trusted Edge handler may execute this function.
 create function public.create_screenshot_draft(p_draft uuid, p_actor uuid, p_original jsonb)
