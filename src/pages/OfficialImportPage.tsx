@@ -245,6 +245,7 @@ export function OfficialImportPage() {
             <p>{step==='saved'?'The reviewed draft is stored privately.':'Compare these values with your screenshot. Empty fields mean the image did not establish an answer.'}</p></div>
           {preview && <img className="import-thumb" src={preview} alt="Original screenshot for comparison"/>}
         </div>
+        {preview && <details className="import-original"><summary>View full screenshot for comparison</summary><img className="import-preview" src={preview} alt="Original uploaded tournament screenshot"/></details>}
         {assets.length>0 && step==='review' && <button type="button" disabled={busy} onClick={()=>void perform(()=>analyze(draft!.importId,assets[0]))}>Retry image analysis</button>}
         {values && <>
           <div className="import-event-fields">
