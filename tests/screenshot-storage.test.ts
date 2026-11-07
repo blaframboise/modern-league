@@ -190,6 +190,9 @@ test('Phase 8B real PostgreSQL: owner isolation, private storage, server-only wr
     await assert.rejects(db.exec("update private.screenshot_retention_events set reason='rewritten'"),/Immutable history/);
     await assert.rejects(db.exec("delete from private.screenshot_retention_events"),/Immutable history/);
     await assert.rejects(db.exec("truncate private.screenshot_retention_events"),/Immutable history/);
+    await assert.rejects(
+      db.query('select public.attach_screenshot($1,$2,$3,$4,$5)',
+        [d,a,'b'.repeat(64),'image/png',1]),/Source retained for deletion review/);
     // No byte removal happens by calling the retention journal.
     assert.equal((await db.query<{count:number}>(
       "select count(*)::int as count from storage.objects where name=$1",[orphanPath])).rows[0].count,1);
