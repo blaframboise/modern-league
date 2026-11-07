@@ -59,7 +59,7 @@ sending images externally. SVG/HEIC and arbitrary path/user-ID inputs are reject
 Server limits correction payloads to 1 MiB and reasons/field notes to 2,000 characters.
 Storage count enforcement locks the parent draft in `attach_screenshot`, rechecks
 administrator membership and ownership, and deduplicates `(draft_id, sha256)` atomically.
-A separate service-only `create_screenshot_draft` RPC now caps drafts at **100 per
+A separate service-only `create_screenshot_draft` RPC now caps drafts at **500 per
 administrator**. It locks the administrator membership row so concurrent create
 requests cannot bypass the limit, and it accepts identical same-owner retries.
 Direct authenticated/browser INSERT into `import_drafts` is revoked in the pending
