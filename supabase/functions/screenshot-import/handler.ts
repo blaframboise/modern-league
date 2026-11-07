@@ -14,7 +14,7 @@ export function importHandler(env: (name: string) => string | undefined, createC
   function checked(result: { data: any; error: any }) { if (result.error) throw new Error('Persistence failed. Retry the same request or reload before editing.'); return result.data; }
   return async (request: Request) => {
     const origin = request.headers.get('origin');
-    const allowed = env('IMPORT_ALLOWED_ORIGIN');
+    const allowed = env('IMPORT_ALLOWED_ORIGIN') ?? 'https://blaframboise.github.io';
     const headers = { 'Access-Control-Allow-Origin': allowed ?? 'null', 'Access-Control-Allow-Headers': 'authorization, apikey, content-type, x-client-info, x-draft-id', 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Cache-Control': 'no-store', 'Vary': 'Origin' };
     const reply = (value: unknown, status = 200) => new Response(JSON.stringify(value), { status, headers: { ...headers, 'Content-Type': 'application/json' } });
     if (!allowed || (origin && origin !== allowed)) return reply({ error: 'Origin not allowed.' }, 403);
