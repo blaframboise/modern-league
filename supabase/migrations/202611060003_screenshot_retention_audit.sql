@@ -64,7 +64,7 @@ grant execute on function public.record_screenshot_retention_event(uuid,text,tex
 -- A recorded successful purge permanently revokes source download authorization.
 -- Metadata is immutable and remains as an audit record, not a live file promise.
 create or replace function public.can_read_tournament_source(p_path text) returns boolean
-language sql stable security definer set search_path = '' as $
+language sql stable security definer set search_path = '' as $$
  select public.is_administrator() and exists (
    select 1 from public.screenshot_assets a
    join public.import_drafts d on d.id=a.draft_id
@@ -73,19 +73,19 @@ language sql stable security definer set search_path = '' as $
    select 1 from private.screenshot_retention_events e
    where e.object_path=p_path and e.event_type='delete_succeeded'
  )
-$;
+$$;
 
 -- Lock out relinking an object while a reviewed purge is pending or completed.
 -- An orphan upload retry must start a separately reviewed recovery rather than
 -- silently restoring old evidence after it entered a deletion workflow.
 create function private.reject_retired_source_link() returns trigger
-language plpgsql set search_path = '' as $
+language plpgsql set search_path = '' as $$
 begin
  if exists (
   select 1 from private.screenshot_retention_events e
   where e.object_path=new.object_path and e.event_type in ('delete_requested','delete_succeeded')
  ) then raise exception 'Source retained for deletion review; cannot relink'; end if;
  return new;
-end $;
+end $$;
 create trigger reject_retired_source_link before insert on public.screenshot_assets
  for each row execute function private.reject_retired_source_link();
