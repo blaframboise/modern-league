@@ -10,7 +10,7 @@ const actor = '00000000-0000-4000-8000-000000000001';
 const id = 'abcdefab-1234-4abc-8def-abcdef123456';
 const source = '00000000-0000-4000-8000-000000000003';
 const png = new Uint8Array([137,80,78,71,13,10,26,10,0]);
-function harness({ user = true, admin = true, owner = actor, failAttach = false, failUpload = false, rateLimited = false, rateUnavailable = false } = {}) {
+function harness({ user = true, admin = true, owner = actor, failAttach = false, failUpload = false, failRemove = false, rateLimited = false, rateUnavailable = false } = {}) {
   const original = { id, original: unresolvedOriginal(), created_by: owner };
   const rows: any[] = []; const assets: any[] = []; const objects = new Map();
   let attachments = 0; let uploads = 0; let reads = 0;
@@ -39,8 +39,23 @@ function harness({ user = true, admin = true, owner = actor, failAttach = false,
       uploads++; if (failUpload) return { error: { message: 'failed', statusCode: '503' } };
       if (objects.has(path)) return { error: { statusCode: '409' } };
       objects.set(path, bytes); return { error: null };
+    }, async remove(paths: string[]) {
+      if (failRemove) return { error: { message: 'storage unavailable' } };
+      for (const path of paths) objects.delete(path);
+      return { data: [], error: null };
+    }, async list(folder: string, options: any) {
+      const names=[...objects.keys()].filter(path=>path.startsWith(folder+'/')).map(path=>({name:path.slice(folder.length+1)}));
+      return { data:names.filter(item=>item.name.includes(options.search)),error:null };
     } }; } },
     async rpc(name: string, args: any) {
+      if (name === 'prepare_orphan_screenshot_cleanup') {
+        return objects.has(args.p_path) ? {data:'00000000-0000-4000-8000-000000000099',error:null}
+          : {data:null,error:{message:'not eligible'}};
+      }
+      if (name === 'finish_orphan_screenshot_cleanup') {
+        return !objects.has(args.p_path) ? {data:'00000000-0000-4000-8000-000000000098',error:null}
+          : {data:null,error:{message:'still present'}};
+      }
       if (name === 'preview_screenshot_retention') return { data: [{object_path: `${actor}/${id}/${'a'.repeat(64)}`,asset_id:null,draft_id:null,retention_reason:'orphan_24h',activity_at:'2026-10-01T00:00:00Z'}],error:null };
       if (name === 'consume_screenshot_request') return rateUnavailable ? { data: null, error: { message: 'unavailable' } } : { data: rateLimited ? 0 : 10, error: null };
       if (name === 'create_screenshot_draft') {
@@ -80,6 +95,23 @@ test('private retention preview uses verified administrator session and does not
   assert.equal(result.body.candidates[0].retention_reason,'orphan_24h');
   assert.deepEqual(h.stats(),{uploads:0,reads:0});
   assert.equal((await harness({admin:false}).request('retention-preview')).status,403);
+});
+test('confirmed orphan cleanup uses Storage API and returns audited success, or fails closed',async()=>{
+  const h=harness();
+  const path=`${actor}/${id}/${'c'.repeat(64)}`;
+  h.objects.set(path,png);
+  const missing=await h.request('retention-delete-orphan',{objectPath:path,reason:'Reviewed cleanup'});
+  assert.equal(missing.status,400);
+  assert.equal(h.objects.has(path),true);
+  const done=await h.request('retention-delete-orphan',{objectPath:path,reason:'Reviewed orphan source',confirm:true});
+  assert.equal(done.status,200,JSON.stringify(done));
+  assert.equal(done.body.deleted,true);
+  assert.equal(h.objects.has(path),false);
+  const failed=harness({failRemove:true});
+  failed.objects.set(path,png);
+  assert.equal((await failed.request('retention-delete-orphan',{objectPath:path,reason:'Reviewed orphan source',confirm:true})).status,503);
+  assert.equal(failed.objects.has(path),true);
+  assert.equal((await harness({admin:false}).request('retention-delete-orphan',{objectPath:path,reason:'Reviewed',confirm:true})).status,403);
 });
 test('draft creation calls the trusted service RPC and keeps the same request ID', async () => {
   const h = harness();
