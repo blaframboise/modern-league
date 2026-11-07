@@ -10,7 +10,7 @@ const actor = '00000000-0000-4000-8000-000000000001';
 const id = 'abcdefab-1234-4abc-8def-abcdef123456';
 const source = '00000000-0000-4000-8000-000000000003';
 const png = new Uint8Array([137,80,78,71,13,10,26,10,0]);
-function harness({ user = true, admin = true, owner = actor, failAttach = false, failUpload = false } = {}) {
+function harness({ user = true, admin = true, owner = actor, failAttach = false, failUpload = false, rateLimited = false, rateUnavailable = false } = {}) {
   const original = { id, original: unresolvedOriginal(), created_by: owner };
   const rows: any[] = []; const assets: any[] = []; const objects = new Map();
   let attachments = 0; let uploads = 0; let reads = 0;
@@ -41,7 +41,7 @@ function harness({ user = true, admin = true, owner = actor, failAttach = false,
       objects.set(path, bytes); return { error: null };
     } }; } },
     async rpc(name: string, args: any) {
-      if (name === 'consume_screenshot_request') return { data: 10, error: null };
+      if (name === 'consume_screenshot_request') return rateUnavailable ? { data: null, error: { message: 'unavailable' } } : { data: rateLimited ? 0 : 10, error: null };
       if (name === 'create_screenshot_draft') {
         if (args.p_actor !== owner) return { error: { message: 'Draft unavailable' } };
         return { data: args.p_draft, error: null };
@@ -90,6 +90,15 @@ test('actual server handler rejects anonymous/non-administrators before any data
   }
   const h = harness(); assert.equal((await h.request('upload', png, false)).status, 401);
   assert.equal((await harness({ owner: source }).request('upload', png)).status, 404);
+});
+test('durable per-operator rate boundary denies excess writes before any storage or table access', async () => {
+  const limited = harness({ rateLimited: true });
+  const response = await limited.request('upload', png);
+  assert.equal(response.status,429);
+  assert.deepEqual(limited.stats(),{uploads:0,reads:0});
+  const unavailable = harness({ rateUnavailable: true });
+  assert.equal((await unavailable.request('create')).status,503);
+  assert.deepEqual(unavailable.stats(),{uploads:0,reads:0});
 });
 test('server upload validates bytes, recovers partial failure, and deduplicates committed retries', async () => {
   const h = harness({ failAttach: true });
