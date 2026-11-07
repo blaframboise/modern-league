@@ -30,10 +30,11 @@ test('Phase 8B real PostgreSQL: owner isolation, private storage, server-only wr
     await db.exec(await readFile(new URL('../supabase/migrations/202611060003_screenshot_retention_audit.sql', import.meta.url), 'utf8'));
     await db.exec(await readFile(new URL('../supabase/migrations/202611060004_screenshot_retention_review.sql', import.meta.url), 'utf8'));
     await db.exec(await readFile(new URL('../supabase/migrations/202611060005_screenshot_orphan_cleanup.sql', import.meta.url), 'utf8'));
+    await db.exec(await readFile(new URL('../supabase/migrations/202611060006_ai_preview_budget.sql', import.meta.url), 'utf8'));
     // The administrator predicate remains available to signed-in users, but not anonymously.
     assert.equal((await db.query<{allowed:boolean}>("select has_function_privilege('anon','public.is_administrator()','EXECUTE') as allowed")).rows[0].allowed, false);
     assert.equal((await db.query<{allowed:boolean}>("select has_function_privilege('authenticated','public.is_administrator()','EXECUTE') as allowed")).rows[0].allowed, true);
-    for (const signature of ['public.attach_screenshot(uuid,uuid,text,text,integer)','public.append_screenshot_review(uuid,uuid,integer,jsonb,text,uuid[])','public.create_screenshot_draft(uuid,uuid,jsonb)','public.consume_screenshot_request(uuid,text)','public.preview_screenshot_retention(uuid)','public.prepare_orphan_screenshot_cleanup(uuid,text,text)','public.finish_orphan_screenshot_cleanup(uuid,text,uuid)']) {
+    for (const signature of ['public.attach_screenshot(uuid,uuid,text,text,integer)','public.append_screenshot_review(uuid,uuid,integer,jsonb,text,uuid[])','public.create_screenshot_draft(uuid,uuid,jsonb)','public.consume_screenshot_request(uuid,text)','public.preview_screenshot_retention(uuid)','public.prepare_orphan_screenshot_cleanup(uuid,text,text)','public.finish_orphan_screenshot_cleanup(uuid,text,uuid)','public.reserve_screenshot_ai_budget(uuid)']) {
       for (const role of ['anon','authenticated','service_role']) {
         assert.equal((await db.query<{allowed:boolean}>(`select has_function_privilege($1,$2,'EXECUTE') as allowed`,[role,signature])).rows[0].allowed,role==='service_role');
       }
@@ -45,6 +46,17 @@ test('Phase 8B real PostgreSQL: owner isolation, private storage, server-only wr
     await db.exec(`insert into private.administrators(user_id,reason) values ('${a}','test'),('${b}','test');
       insert into public.import_drafts(id,created_by,original) values('${d}','${a}','{}');
       insert into storage.objects(bucket_id,name) values('tournament-sources','${a}/${d}/${hash}');`);
+    // Application-side monthly AI request reservation is atomic and strictly
+    // denied to browsers. Reservations are not refunds or provider billing caps.
+    for(let attempt=0;attempt<20;attempt++){
+      const value=await db.query<{ok:boolean}>('select public.reserve_screenshot_ai_budget($1) as ok',[a]);
+      assert.equal(value.rows[0].ok,true);
+    }
+    assert.equal((await db.query<{ok:boolean}>('select public.reserve_screenshot_ai_budget($1) as ok',[a])).rows[0].ok,false);
+    assert.equal((await db.query<{spent:number;attempts:number}>('select reserved_cents as spent,attempts from private.screenshot_ai_budgets where actor=$1',[a])).rows[0].spent,500);
+    assert.equal((await db.query<{attempts:number}>('select attempts from private.screenshot_ai_budgets where actor=$1',[a])).rows[0].attempts,20);
+    await assert.rejects(db.query('select public.reserve_screenshot_ai_budget($1)',[d]),/Forbidden/);
+
     // Persistent request controls are available only to the trusted service role.
     // Each action is separately counted; denied attempts do not reset the hour.
     for (let i = 0; i < 40; i++) {
