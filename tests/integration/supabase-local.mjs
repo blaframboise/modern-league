@@ -126,6 +126,21 @@ async function main() {
   const saved = await owner.client.from('import_corrections').select('*').eq('draft_id', draft);
   assert.ifError(saved.error);
   assert.equal(saved.data.length, 1);
+  // Orphan cleanup runs against actual disposable Supabase Storage, never production.
+  const orphanPath=`${owner.id}/${draft}/${'c'.repeat(64)}`;
+  const orphanUpload=await service.storage.from('tournament-sources').upload(orphanPath,png,{contentType:'image/png'});
+  assert.ifError(orphanUpload.error);
+  execFileSync('docker',['exec',dbContainer,'psql','-U','postgres','-d','postgres','-v','ON_ERROR_STOP=1',
+    '-c',`update storage.objects set created_at=now()-interval '48 hours' where bucket_id='tournament-sources' and name='${orphanPath}'`],{stdio:'pipe'});
+  assert.equal((await api('retention-delete-orphan',otherAdmin,draft,{body:{objectPath:orphanPath,reason:'Wrong owner',confirm:true}})).status,400);
+  assert.equal((await api('retention-delete-orphan',owner,draft,{body:{objectPath:orphanPath,reason:'Missing confirmation'}})).status,400);
+  const purge=await api('retention-delete-orphan',owner,draft,{body:{objectPath:orphanPath,reason:'Verified aged orphan for disposable test',confirm:true}});
+  assert.equal(purge.status,200,JSON.stringify(purge));
+  assert.equal(purge.payload.deleted,true);
+  const afterPurge=await service.storage.from('tournament-sources').list(`${owner.id}/${draft}`,{search:'c'.repeat(64)});
+  assert.ifError(afterPurge.error);
+  assert.ok(!afterPurge.data.some(item=>item.name==='c'.repeat(64)));
+  assert.equal((await api('retention-delete-orphan',owner,draft,{body:{objectPath:orphanPath,reason:'Double delete',confirm:true}})).status,409);
   assert.equal((await api('extract', owner, draft)).status, 501);
   assert.equal((await anon.from('published_results').select('result_id')).error, null);
   console.log('PASS local Auth, private Storage, draft RPC, upload/dedup, owner isolation, immutable corrections, extraction disabled');
