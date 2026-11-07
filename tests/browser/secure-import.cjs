@@ -10,7 +10,7 @@ const assert = require('node:assert/strict');
     for (const width of [390,1440]) {
       const page = await browser.newPage({ viewport: { width, height: 1000 } });
       const errors = []; page.on('pageerror', error => errors.push(String(error)));
-      const drafts = []; const corrections = []; const assets = []; let admin = true; let requests = 0; let orphanPresent = true; let extractFailures = 1;
+      const drafts = []; const corrections = []; const assets = []; const sandboxPlayers = []; const sandboxAliases=[]; const sandboxTournaments=[]; const sandboxResults=[]; let admin = true; let requests = 0; let orphanPresent = true; let extractFailures = 1;
       const user = { id: actor, aud: 'authenticated', role: 'authenticated', email: 'synthetic@example.invalid', app_metadata: {}, user_metadata: {}, created_at: new Date().toISOString() };
       const token = { access_token: 'synthetic-token', refresh_token: 'synthetic-refresh', token_type: 'bearer', expires_at: Math.floor(Date.now()/1000) + 3600, expires_in: 3600, user };
       await page.addInitScript(token => { localStorage.setItem('sb-127-auth-token', JSON.stringify(token)); }, token);
@@ -20,6 +20,26 @@ const assert = require('node:assert/strict');
         const reply = (data, status=200) => route.fulfill({ status, headers, contentType: 'application/json', body: JSON.stringify(data) });
         if (url.pathname === '/auth/v1/user') return reply(user);
         if (url.pathname === '/rest/v1/rpc/is_administrator') return reply(admin);
+        if (url.pathname === '/rest/v1/sandbox_players') {
+          if (request.method()==='POST') {
+            const row={id:'00000000-0000-4000-8000-000000000009',display_name:request.postDataJSON().display_name,created_at:new Date().toISOString()};
+            sandboxPlayers.push(row); return reply(row,201);
+          }
+          return reply(sandboxPlayers);
+        }
+        if (url.pathname === '/rest/v1/sandbox_player_aliases') {
+          if (request.method()==='POST') { sandboxAliases.push(request.postDataJSON()); return reply([],201); }
+          return reply(sandboxAliases);
+        }
+        if (url.pathname === '/rest/v1/sandbox_tournaments') return reply(sandboxTournaments);
+        if (url.pathname === '/rest/v1/sandbox_results') return reply(sandboxResults);
+        if (url.pathname === '/rest/v1/rpc/save_sandbox_tournament') {
+          const args=request.postDataJSON();
+          const id='00000000-0000-4000-8000-000000000010';
+          sandboxTournaments.push({id,draft_id:args.p_draft,revision:args.p_revision,event_name:args.p_name,season_ordinal:args.p_season,scheduled_rounds:args.p_rounds,created_at:new Date().toISOString()});
+          args.p_links.forEach(row=>sandboxResults.push({tournament_id:id,...row,player_id:row.player_id, row_id:row.row_id}));
+          return reply(id);
+        }
         if (url.pathname === '/rest/v1/import_drafts') return reply(url.searchParams.has('id') ? drafts.find(d => `eq.${d.id}` === url.searchParams.get('id')) : drafts);
         if (url.pathname === '/rest/v1/import_corrections') return reply(corrections);
         if (url.pathname === '/rest/v1/screenshot_assets') return reply(assets);
@@ -79,6 +99,8 @@ const assert = require('node:assert/strict');
       assert.equal(await page.getByLabel('Player 1 name').inputValue(),'Jane Doe');
       await page.getByLabel('Player 1 name').fill('Verified player');
       await page.getByLabel('Player 1 wins').fill('2');
+      await page.getByLabel('Player 1 losses').fill('0');
+      await page.getByLabel('Player 1 draws').fill('0');
       await page.getByRole('checkbox',{name:/I checked the player names/}).check();
       await page.getByRole('button',{name:'Save corrected results'}).click();
       await page.getByRole('heading',{name:'Review saved'}).waitFor();
@@ -95,10 +117,28 @@ const assert = require('node:assert/strict');
       await page.getByRole('button',{name:'Suggest name capitalization'}).waitFor();
       assert.equal(await page.getByLabel('Player 1 name').isEnabled(),true);
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+      await page.goto(`${process.env.SECURE_BASE_URL || 'http://127.0.0.1:5174'}/admin`);
+      await page.getByRole('link',{name:'Test players, tournament matching and leaderboard'}).waitFor();
+      await page.getByRole('link',{name:'Admin',exact:true}).waitFor();
+      await page.getByRole('link',{name:'Test players, tournament matching and leaderboard'}).click();
+      await page.getByRole('heading',{name:'Test workspace'}).waitFor();
+      await page.getByLabel('Preferred leaderboard name').fill('test player');
+      await page.getByRole('button',{name:'Add test player'}).click();
+      await page.getByText('Test Player',{exact:true}).waitFor();
+      await page.getByRole('button',{name:'Tournament matching'}).click();
+      await page.getByLabel('Reviewed screenshot').selectOption(drafts[0].id);
+      await page.getByLabel('Match Verified player').selectOption(sandboxPlayers[0].id);
+      await page.getByRole('button',{name:'Save matched test tournament'}).click();
+      await page.getByText('Test tournament linked.',{exact:false}).waitFor();
+      assert.equal(sandboxTournaments.length,1);
+      assert.equal(sandboxResults.length,1);
+      await page.getByRole('button',{name:'Test leaderboard'}).click();
+      await page.getByText('Test Player',{exact:true}).waitFor();
       admin = false; const before = requests;
       await page.reload();
       await page.getByText('Administrator sign-in required.').waitFor();
       assert.equal(await page.getByLabel('Choose tournament screenshot').count(),0);
+      assert.equal(await page.getByRole('link',{name:'Admin',exact:true}).count(),0);
       assert.equal(requests,before);
       assert.deepEqual(errors,[]);
       await page.close();
