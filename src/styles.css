@@ -148,3 +148,22 @@ h1, h2, h3, p { margin: 0; }h1 { font-size: clamp(42px, 4.6vw, 64px); font-weigh
 .guided-import .import-secondary summary {cursor:pointer}
 .guided-import .import-secondary-content {display:grid;gap:1rem;padding:1rem 0}
 @media(max-width:600px){.guided-import .import-thumb{width:100px}.guided-import .import-panel{padding:1rem}.guided-import .import-progress span{font-size:.8rem}}
+
+
+/* Native select popups must have explicit contrasting text AND surface colors.
+   Browsers/OSes can otherwise use a light popup while inheriting white text. */
+.guided-import select,
+.guided-import select:disabled {
+  color: #f4f1e9;
+  background-color: #24252a;
+  border: 1px solid #999eaa;
+  color-scheme: dark;
+  opacity: 1;
+}
+.guided-import select option,
+.guided-import select optgroup {
+  color: #17191d;
+  background-color: #ffffff;
+  font-weight: 400;
+}
+.guided-import select:focus-visible { outline: 2px solid #dec38b; outline-offset: 2px; }
