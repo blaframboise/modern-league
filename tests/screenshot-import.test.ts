@@ -7,7 +7,7 @@ import { importHandler } from '../supabase/functions/screenshot-import/handler.t
 import { reconstructImportDraft } from '../src/data/reconstruction.ts';
 
 const actor = '00000000-0000-4000-8000-000000000001';
-const id = '00000000-0000-4000-8000-000000000002';
+const id = 'abcdefab-1234-4abc-8def-abcdef123456';
 const source = '00000000-0000-4000-8000-000000000003';
 const png = new Uint8Array([137,80,78,71,13,10,26,10,0]);
 function harness({ user = true, admin = true, owner = actor, failAttach = false, failUpload = false } = {}) {
@@ -30,7 +30,7 @@ function harness({ user = true, admin = true, owner = actor, failAttach = false,
             return resolve({ data: null, error: null });
           }
           reads++;
-          return resolve({ data: table === 'import_drafts' ? (filters.id === id ? original : null) : table === 'import_corrections' ? rows : assets, count: rows.length, error: null });
+          return resolve({ data: table === 'import_drafts' ? (String(filters.id).toLowerCase() === id ? original : null) : table === 'import_corrections' ? rows : assets, count: rows.length, error: null });
         },
       };
       return q;
@@ -52,8 +52,8 @@ function harness({ user = true, admin = true, owner = actor, failAttach = false,
   };
   const userClient = { auth: { async getUser() { return { data: { user: user ? { id: actor } : null }, error: null }; } }, async rpc() { return { data: admin, error: null }; } };
   const handler = importHandler(name => ({ SUPABASE_URL: 'https://example.invalid', SUPABASE_ANON_KEY: 'test', SUPABASE_SERVICE_ROLE_KEY: 'service', IMPORT_ALLOWED_ORIGIN: 'https://league.example' })[name], (_url, key) => key === 'service' ? service : userClient);
-  async function request(action: string, body?: any, authorization = true) {
-    const response = await handler(new Request(`https://edge.example/screenshot-import?action=${action}`, { method: 'POST', headers: { ...(authorization ? { authorization: 'Bearer test' } : {}), 'x-draft-id': id, 'content-type': body instanceof Uint8Array ? 'image/png' : 'application/json', origin: 'https://league.example' }, body: body instanceof Uint8Array ? new Uint8Array(body).buffer : JSON.stringify(body ?? {}) }));
+  async function request(action: string, body?: any, authorization = true, draftId = id) {
+    const response = await handler(new Request(`https://edge.example/screenshot-import?action=${action}`, { method: 'POST', headers: { ...(authorization ? { authorization: 'Bearer test' } : {}), 'x-draft-id': draftId, 'content-type': body instanceof Uint8Array ? 'image/png' : 'application/json', origin: 'https://league.example' }, body: body instanceof Uint8Array ? new Uint8Array(body).buffer : JSON.stringify(body ?? {}) }));
     return { status: response.status, body: await response.json() };
   }
   return { request, rows, assets, original, objects, stats: () => ({ uploads, reads }) };
@@ -63,6 +63,7 @@ test('bounded trusted image signature/MIME/size/identifier checks', async () => 
   validateImageBytes(png, 'image/png');
   for (const [bytes, mime] of [[png, 'image/jpeg'], [png, 'image/svg+xml'], [new Uint8Array(), 'image/png'], [new Uint8Array(10485761), 'image/png']] as const) assert.throws(() => validateImageBytes(bytes, mime));
   assert.throws(() => uuid('../path')); assert.equal(uuid(id), id);
+  assert.equal(uuid('ABCDEFAB-1234-4ABC-8DEF-ABCDEF123456'), 'abcdefab-1234-4abc-8def-abcdef123456');
   await assert.rejects(boundedBody(new Request('http://localhost', { method: 'POST', body: png }), 2));
   assert.deepEqual(await boundedBody(new Request('http://localhost', { method: 'POST', body: png })), png);
 });
@@ -85,6 +86,13 @@ test('server upload validates bytes, recovers partial failure, and deduplicates 
   assert.equal(h.assets.length, 1); assert.equal(h.objects.size, 1); assert.equal(h.stats().uploads, 2);
   assert.equal((await harness({ failUpload: true }).request('upload', png)).status, 400);
   assert.equal((await h.request('extract')).status, 501);
+});
+test('uppercase UUID uploads use the same canonical Storage path as PostgreSQL metadata', async () => {
+  const h = harness();
+  assert.equal((await h.request('upload', png, true, id.toUpperCase())).status,200);
+  assert.ok(h.objects.has(h.assets[0].object_path));
+  assert.equal((await h.request('upload', png)).status,200);
+  assert.equal(h.objects.size,1);
 });
 test('field evidence is complete, explicit and tied to owned sources', () => {
   const empty = unresolvedOriginal(); const values = { ...empty, tournament: { ...empty.tournament, name: 'Read by human' } };

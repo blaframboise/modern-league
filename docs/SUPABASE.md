@@ -148,3 +148,7 @@ restricts draft and source reads to their creating administrator and removes bro
 correction INSERT privileges. The legacy repository `appendCorrection` helper will
 therefore fail closed after migration; operational saves use the trusted Edge Function.
 No scoring, readiness, approval, or publication authorization is introduced.
+
+Before any production reconciliation, follow the [beginner read-only dashboard/SQL
+verification checklist](MIGRATION_READINESS.md). It distinguishes actual schema
+equivalence from migration-ledger entries and does not authorize either to be changed.

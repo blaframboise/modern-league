@@ -4,7 +4,7 @@ import type { ImportValues } from '../results/index.ts';
 export const SOURCE_BUCKET = 'tournament-sources';
 export function uuid(value: unknown): string {
   if (typeof value !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)) throw new Error('Invalid request identifier.');
-  return value;
+  return value.toLowerCase();
 }
 /** Trusted boundary must invoke this on bounded bytes; browser checks are advisory. */
 export function validateImageBytes(bytes: Uint8Array, mime: string): void {

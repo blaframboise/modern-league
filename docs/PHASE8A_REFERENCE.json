@@ -1,0 +1,1762 @@
+[
+  {
+    "section": "column_privileges",
+    "object_name": "public.approval_history.actor:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.approval_history.created_at:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.approval_history.decision:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.approval_history.draft_id:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.approval_history.id:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.approval_history.reason:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.approval_history.revision:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.approval_history.validated_snapshot:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.extraction_evidence.created_at:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.extraction_evidence.draft_id:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.extraction_evidence.id:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.extraction_evidence.report:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.import_corrections.actor:authenticated:INSERT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.import_corrections.actor:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.import_corrections.created_at:authenticated:INSERT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.import_corrections.created_at:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.import_corrections.draft_id:authenticated:INSERT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.import_corrections.draft_id:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.import_corrections.id:authenticated:INSERT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.import_corrections.id:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.import_corrections.reason:authenticated:INSERT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.import_corrections.reason:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.import_corrections.revision:authenticated:INSERT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.import_corrections.revision:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.import_corrections.snapshot:authenticated:INSERT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.import_corrections.snapshot:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.import_drafts.created_at:authenticated:INSERT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.import_drafts.created_at:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.import_drafts.created_by:authenticated:INSERT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.import_drafts.created_by:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.import_drafts.id:authenticated:INSERT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.import_drafts.id:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.import_drafts.original:authenticated:INSERT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.import_drafts.original:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.league_seasons.id:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.league_seasons.league_year:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.league_seasons.ordinal:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.player_identities.alias:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.player_identities.id:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.player_identities.player_id:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.player_records.draws:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.player_records.final_position:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.player_records.losses:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.player_records.player_id:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.player_records.result_id:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.player_records.scheduled_rounds:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.player_records.wins:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.players.display_name:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.players.id:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.published_results.public_snapshot:anon:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.published_results.public_snapshot:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.published_results.published_at:anon:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.published_results.published_at:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.published_results.result_id:anon:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.published_results.result_id:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.scheduled_events.fold_offset:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.scheduled_events.id:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.scheduled_events.kind:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.scheduled_events.league_year:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.scheduled_events.local_date:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.scheduled_events.local_time:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.scheduled_events.name:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.scheduled_events.scheduled_rounds:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.scheduled_events.season_id:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.scheduled_events.starts_at:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.scheduled_events.time_zone:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.screenshot_assets.byte_size:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.screenshot_assets.draft_id:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.screenshot_assets.id:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.screenshot_assets.mime_type:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.screenshot_assets.object_path:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.screenshot_assets.sha256:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.tournament_results.approval_id:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.tournament_results.decision:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.tournament_results.event_id:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.tournament_results.id:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.tournament_results.scheduled_rounds:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "column_privileges",
+    "object_name": "public.tournament_results.source_key:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "columns",
+    "object_name": "private.administrators.granted_at",
+    "definition": "position=2; type=timestamp with time zone; not_null=t; default=now(); identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "private.administrators.reason",
+    "definition": "position=3; type=text; not_null=t; default=<none>; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "private.administrators.user_id",
+    "definition": "position=1; type=uuid; not_null=t; default=<none>; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.approval_history.actor",
+    "definition": "position=5; type=uuid; not_null=t; default=<none>; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.approval_history.created_at",
+    "definition": "position=8; type=timestamp with time zone; not_null=t; default=now(); identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.approval_history.decision",
+    "definition": "position=4; type=text; not_null=t; default=<none>; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.approval_history.draft_id",
+    "definition": "position=2; type=uuid; not_null=t; default=<none>; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.approval_history.id",
+    "definition": "position=1; type=uuid; not_null=t; default=gen_random_uuid(); identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.approval_history.reason",
+    "definition": "position=6; type=text; not_null=t; default=<none>; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.approval_history.revision",
+    "definition": "position=3; type=integer; not_null=t; default=<none>; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.approval_history.validated_snapshot",
+    "definition": "position=7; type=jsonb; not_null=t; default=<none>; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.extraction_evidence.created_at",
+    "definition": "position=4; type=timestamp with time zone; not_null=t; default=now(); identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.extraction_evidence.draft_id",
+    "definition": "position=2; type=uuid; not_null=t; default=<none>; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.extraction_evidence.id",
+    "definition": "position=1; type=uuid; not_null=t; default=gen_random_uuid(); identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.extraction_evidence.report",
+    "definition": "position=3; type=jsonb; not_null=t; default=<none>; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.import_corrections.actor",
+    "definition": "position=6; type=uuid; not_null=t; default=auth.uid(); identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.import_corrections.created_at",
+    "definition": "position=7; type=timestamp with time zone; not_null=t; default=now(); identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.import_corrections.draft_id",
+    "definition": "position=2; type=uuid; not_null=t; default=<none>; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.import_corrections.id",
+    "definition": "position=1; type=uuid; not_null=t; default=gen_random_uuid(); identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.import_corrections.reason",
+    "definition": "position=5; type=text; not_null=t; default=<none>; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.import_corrections.revision",
+    "definition": "position=3; type=integer; not_null=t; default=<none>; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.import_corrections.snapshot",
+    "definition": "position=4; type=jsonb; not_null=t; default=<none>; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.import_drafts.created_at",
+    "definition": "position=3; type=timestamp with time zone; not_null=t; default=now(); identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.import_drafts.created_by",
+    "definition": "position=2; type=uuid; not_null=t; default=auth.uid(); identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.import_drafts.id",
+    "definition": "position=1; type=uuid; not_null=t; default=gen_random_uuid(); identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.import_drafts.original",
+    "definition": "position=4; type=jsonb; not_null=t; default=<none>; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.league_seasons.id",
+    "definition": "position=1; type=uuid; not_null=t; default=gen_random_uuid(); identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.league_seasons.league_year",
+    "definition": "position=2; type=integer; not_null=t; default=<none>; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.league_seasons.ordinal",
+    "definition": "position=3; type=integer; not_null=t; default=<none>; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.player_identities.alias",
+    "definition": "position=3; type=text; not_null=t; default=<none>; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.player_identities.id",
+    "definition": "position=1; type=uuid; not_null=t; default=gen_random_uuid(); identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.player_identities.player_id",
+    "definition": "position=2; type=uuid; not_null=t; default=<none>; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.player_records.draws",
+    "definition": "position=6; type=integer; not_null=t; default=<none>; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.player_records.final_position",
+    "definition": "position=7; type=integer; not_null=f; default=<none>; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.player_records.losses",
+    "definition": "position=5; type=integer; not_null=t; default=<none>; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.player_records.player_id",
+    "definition": "position=2; type=uuid; not_null=t; default=<none>; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.player_records.result_id",
+    "definition": "position=1; type=uuid; not_null=t; default=<none>; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.player_records.scheduled_rounds",
+    "definition": "position=3; type=integer; not_null=t; default=<none>; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.player_records.wins",
+    "definition": "position=4; type=integer; not_null=t; default=<none>; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.players.display_name",
+    "definition": "position=2; type=text; not_null=t; default=<none>; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.players.id",
+    "definition": "position=1; type=uuid; not_null=t; default=gen_random_uuid(); identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.published_results.public_snapshot",
+    "definition": "position=2; type=jsonb; not_null=t; default=<none>; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.published_results.published_at",
+    "definition": "position=4; type=timestamp with time zone; not_null=t; default=now(); identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.published_results.published_by",
+    "definition": "position=3; type=uuid; not_null=t; default=<none>; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.published_results.result_id",
+    "definition": "position=1; type=uuid; not_null=t; default=<none>; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.scheduled_events.fold_offset",
+    "definition": "position=9; type=text; not_null=f; default=<none>; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.scheduled_events.id",
+    "definition": "position=1; type=uuid; not_null=t; default=gen_random_uuid(); identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.scheduled_events.kind",
+    "definition": "position=4; type=text; not_null=t; default=<none>; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.scheduled_events.league_year",
+    "definition": "position=3; type=integer; not_null=t; default=<none>; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.scheduled_events.local_date",
+    "definition": "position=6; type=date; not_null=t; default=<none>; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.scheduled_events.local_time",
+    "definition": "position=7; type=time without time zone; not_null=t; default=<none>; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.scheduled_events.name",
+    "definition": "position=5; type=text; not_null=t; default=<none>; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.scheduled_events.scheduled_rounds",
+    "definition": "position=11; type=integer; not_null=t; default=<none>; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.scheduled_events.season_id",
+    "definition": "position=2; type=uuid; not_null=f; default=<none>; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.scheduled_events.starts_at",
+    "definition": "position=10; type=timestamp with time zone; not_null=t; default=<none>; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.scheduled_events.time_zone",
+    "definition": "position=8; type=text; not_null=t; default='America/Detroit'::text; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.screenshot_assets.byte_size",
+    "definition": "position=5; type=integer; not_null=t; default=<none>; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.screenshot_assets.draft_id",
+    "definition": "position=2; type=uuid; not_null=t; default=<none>; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.screenshot_assets.id",
+    "definition": "position=1; type=uuid; not_null=t; default=gen_random_uuid(); identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.screenshot_assets.mime_type",
+    "definition": "position=4; type=text; not_null=t; default=<none>; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.screenshot_assets.object_path",
+    "definition": "position=3; type=text; not_null=t; default=<none>; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.screenshot_assets.sha256",
+    "definition": "position=6; type=text; not_null=t; default=<none>; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.tournament_results.approval_id",
+    "definition": "position=3; type=uuid; not_null=t; default=<none>; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.tournament_results.decision",
+    "definition": "position=4; type=text; not_null=t; default='approved'::text; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.tournament_results.event_id",
+    "definition": "position=2; type=uuid; not_null=t; default=<none>; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.tournament_results.id",
+    "definition": "position=1; type=uuid; not_null=t; default=gen_random_uuid(); identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.tournament_results.scheduled_rounds",
+    "definition": "position=6; type=integer; not_null=t; default=<none>; identity=; generated="
+  },
+  {
+    "section": "columns",
+    "object_name": "public.tournament_results.source_key",
+    "definition": "position=5; type=text; not_null=t; default=<none>; identity=; generated="
+  },
+  {
+    "section": "constraints",
+    "object_name": "private.administrators.administrators_granted_at_not_null",
+    "definition": "NOT NULL granted_at; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "private.administrators.administrators_pkey",
+    "definition": "PRIMARY KEY (user_id); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "private.administrators.administrators_reason_check",
+    "definition": "CHECK (length(TRIM(BOTH FROM reason)) > 0); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "private.administrators.administrators_reason_not_null",
+    "definition": "NOT NULL reason; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "private.administrators.administrators_user_id_fkey",
+    "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "private.administrators.administrators_user_id_not_null",
+    "definition": "NOT NULL user_id; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.approval_history.approval_history_actor_fkey",
+    "definition": "FOREIGN KEY (actor) REFERENCES auth.users(id); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.approval_history.approval_history_actor_not_null",
+    "definition": "NOT NULL actor; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.approval_history.approval_history_created_at_not_null",
+    "definition": "NOT NULL created_at; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.approval_history.approval_history_decision_check",
+    "definition": "CHECK (decision = ANY (ARRAY['approved'::text, 'rejected'::text])); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.approval_history.approval_history_decision_not_null",
+    "definition": "NOT NULL decision; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.approval_history.approval_history_draft_id_fkey",
+    "definition": "FOREIGN KEY (draft_id) REFERENCES import_drafts(id); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.approval_history.approval_history_draft_id_key",
+    "definition": "UNIQUE (draft_id); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.approval_history.approval_history_draft_id_not_null",
+    "definition": "NOT NULL draft_id; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.approval_history.approval_history_id_decision_key",
+    "definition": "UNIQUE (id, decision); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.approval_history.approval_history_id_not_null",
+    "definition": "NOT NULL id; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.approval_history.approval_history_pkey",
+    "definition": "PRIMARY KEY (id); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.approval_history.approval_history_reason_check",
+    "definition": "CHECK (length(TRIM(BOTH FROM reason)) > 0); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.approval_history.approval_history_reason_not_null",
+    "definition": "NOT NULL reason; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.approval_history.approval_history_revision_check",
+    "definition": "CHECK (revision >= 0); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.approval_history.approval_history_revision_not_null",
+    "definition": "NOT NULL revision; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.approval_history.approval_history_validated_snapshot_not_null",
+    "definition": "NOT NULL validated_snapshot; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.extraction_evidence.extraction_evidence_created_at_not_null",
+    "definition": "NOT NULL created_at; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.extraction_evidence.extraction_evidence_draft_id_fkey",
+    "definition": "FOREIGN KEY (draft_id) REFERENCES import_drafts(id); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.extraction_evidence.extraction_evidence_draft_id_not_null",
+    "definition": "NOT NULL draft_id; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.extraction_evidence.extraction_evidence_id_not_null",
+    "definition": "NOT NULL id; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.extraction_evidence.extraction_evidence_pkey",
+    "definition": "PRIMARY KEY (id); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.extraction_evidence.extraction_evidence_report_check",
+    "definition": "CHECK (jsonb_typeof(report) = 'object'::text); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.extraction_evidence.extraction_evidence_report_not_null",
+    "definition": "NOT NULL report; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.import_corrections.import_corrections_actor_fkey",
+    "definition": "FOREIGN KEY (actor) REFERENCES auth.users(id); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.import_corrections.import_corrections_actor_not_null",
+    "definition": "NOT NULL actor; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.import_corrections.import_corrections_created_at_not_null",
+    "definition": "NOT NULL created_at; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.import_corrections.import_corrections_draft_id_fkey",
+    "definition": "FOREIGN KEY (draft_id) REFERENCES import_drafts(id); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.import_corrections.import_corrections_draft_id_not_null",
+    "definition": "NOT NULL draft_id; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.import_corrections.import_corrections_draft_id_revision_key",
+    "definition": "UNIQUE (draft_id, revision); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.import_corrections.import_corrections_id_not_null",
+    "definition": "NOT NULL id; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.import_corrections.import_corrections_pkey",
+    "definition": "PRIMARY KEY (id); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.import_corrections.import_corrections_reason_check",
+    "definition": "CHECK (length(TRIM(BOTH FROM reason)) > 0); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.import_corrections.import_corrections_reason_not_null",
+    "definition": "NOT NULL reason; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.import_corrections.import_corrections_revision_check",
+    "definition": "CHECK (revision > 0); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.import_corrections.import_corrections_revision_not_null",
+    "definition": "NOT NULL revision; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.import_corrections.import_corrections_snapshot_check",
+    "definition": "CHECK (jsonb_typeof(snapshot) = 'object'::text); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.import_corrections.import_corrections_snapshot_not_null",
+    "definition": "NOT NULL snapshot; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.import_drafts.import_drafts_created_at_not_null",
+    "definition": "NOT NULL created_at; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.import_drafts.import_drafts_created_by_fkey",
+    "definition": "FOREIGN KEY (created_by) REFERENCES auth.users(id); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.import_drafts.import_drafts_created_by_not_null",
+    "definition": "NOT NULL created_by; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.import_drafts.import_drafts_id_not_null",
+    "definition": "NOT NULL id; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.import_drafts.import_drafts_original_check",
+    "definition": "CHECK (jsonb_typeof(original) = 'object'::text); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.import_drafts.import_drafts_original_not_null",
+    "definition": "NOT NULL original; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.import_drafts.import_drafts_pkey",
+    "definition": "PRIMARY KEY (id); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.league_seasons.league_seasons_id_not_null",
+    "definition": "NOT NULL id; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.league_seasons.league_seasons_league_year_check",
+    "definition": "CHECK (league_year >= 2027); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.league_seasons.league_seasons_league_year_not_null",
+    "definition": "NOT NULL league_year; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.league_seasons.league_seasons_league_year_ordinal_key",
+    "definition": "UNIQUE (league_year, ordinal); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.league_seasons.league_seasons_ordinal_check",
+    "definition": "CHECK (ordinal >= 1 AND ordinal <= 4); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.league_seasons.league_seasons_ordinal_not_null",
+    "definition": "NOT NULL ordinal; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.league_seasons.league_seasons_pkey",
+    "definition": "PRIMARY KEY (id); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.player_identities.player_identities_alias_check",
+    "definition": "CHECK (length(TRIM(BOTH FROM alias)) > 0); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.player_identities.player_identities_alias_not_null",
+    "definition": "NOT NULL alias; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.player_identities.player_identities_id_not_null",
+    "definition": "NOT NULL id; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.player_identities.player_identities_pkey",
+    "definition": "PRIMARY KEY (id); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.player_identities.player_identities_player_id_fkey",
+    "definition": "FOREIGN KEY (player_id) REFERENCES players(id); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.player_identities.player_identities_player_id_not_null",
+    "definition": "NOT NULL player_id; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.player_records.player_records_check",
+    "definition": "CHECK ((wins::bigint + losses + draws) <= scheduled_rounds); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.player_records.player_records_draws_check",
+    "definition": "CHECK (draws >= 0); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.player_records.player_records_draws_not_null",
+    "definition": "NOT NULL draws; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.player_records.player_records_final_position_check",
+    "definition": "CHECK (final_position > 0); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.player_records.player_records_losses_check",
+    "definition": "CHECK (losses >= 0); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.player_records.player_records_losses_not_null",
+    "definition": "NOT NULL losses; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.player_records.player_records_pkey",
+    "definition": "PRIMARY KEY (result_id, player_id); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.player_records.player_records_player_id_fkey",
+    "definition": "FOREIGN KEY (player_id) REFERENCES players(id); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.player_records.player_records_player_id_not_null",
+    "definition": "NOT NULL player_id; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.player_records.player_records_result_id_not_null",
+    "definition": "NOT NULL result_id; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.player_records.player_records_result_id_scheduled_rounds_fkey",
+    "definition": "FOREIGN KEY (result_id, scheduled_rounds) REFERENCES tournament_results(id, scheduled_rounds); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.player_records.player_records_scheduled_rounds_not_null",
+    "definition": "NOT NULL scheduled_rounds; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.player_records.player_records_wins_check",
+    "definition": "CHECK (wins >= 0); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.player_records.player_records_wins_not_null",
+    "definition": "NOT NULL wins; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.players.players_display_name_check",
+    "definition": "CHECK (length(TRIM(BOTH FROM display_name)) > 0); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.players.players_display_name_not_null",
+    "definition": "NOT NULL display_name; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.players.players_id_not_null",
+    "definition": "NOT NULL id; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.players.players_pkey",
+    "definition": "PRIMARY KEY (id); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.published_results.published_results_pkey",
+    "definition": "PRIMARY KEY (result_id); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.published_results.published_results_public_snapshot_check",
+    "definition": "CHECK (jsonb_typeof(public_snapshot) = 'object'::text); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.published_results.published_results_public_snapshot_not_null",
+    "definition": "NOT NULL public_snapshot; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.published_results.published_results_published_at_not_null",
+    "definition": "NOT NULL published_at; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.published_results.published_results_published_by_fkey",
+    "definition": "FOREIGN KEY (published_by) REFERENCES auth.users(id); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.published_results.published_results_published_by_not_null",
+    "definition": "NOT NULL published_by; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.published_results.published_results_result_id_fkey",
+    "definition": "FOREIGN KEY (result_id) REFERENCES tournament_results(id); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.published_results.published_results_result_id_not_null",
+    "definition": "NOT NULL result_id; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.scheduled_events.scheduled_events_check",
+    "definition": "CHECK (kind = 'annual'::text AND season_id IS NULL OR kind <> 'annual'::text AND season_id IS NOT NULL); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.scheduled_events.scheduled_events_id_not_null",
+    "definition": "NOT NULL id; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.scheduled_events.scheduled_events_kind_check",
+    "definition": "CHECK (kind = ANY (ARRAY['regular'::text, 'seasonal'::text, 'annual'::text])); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.scheduled_events.scheduled_events_kind_not_null",
+    "definition": "NOT NULL kind; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.scheduled_events.scheduled_events_league_year_check",
+    "definition": "CHECK (league_year >= 2027); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.scheduled_events.scheduled_events_league_year_not_null",
+    "definition": "NOT NULL league_year; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.scheduled_events.scheduled_events_local_date_not_null",
+    "definition": "NOT NULL local_date; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.scheduled_events.scheduled_events_local_time_not_null",
+    "definition": "NOT NULL local_time; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.scheduled_events.scheduled_events_name_check",
+    "definition": "CHECK (length(TRIM(BOTH FROM name)) > 0); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.scheduled_events.scheduled_events_name_not_null",
+    "definition": "NOT NULL name; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.scheduled_events.scheduled_events_pkey",
+    "definition": "PRIMARY KEY (id); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.scheduled_events.scheduled_events_scheduled_rounds_check",
+    "definition": "CHECK (scheduled_rounds > 0); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.scheduled_events.scheduled_events_scheduled_rounds_not_null",
+    "definition": "NOT NULL scheduled_rounds; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.scheduled_events.scheduled_events_season_id_fkey",
+    "definition": "FOREIGN KEY (season_id) REFERENCES league_seasons(id); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.scheduled_events.scheduled_events_starts_at_not_null",
+    "definition": "NOT NULL starts_at; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.scheduled_events.scheduled_events_time_zone_not_null",
+    "definition": "NOT NULL time_zone; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.screenshot_assets.screenshot_assets_byte_size_check",
+    "definition": "CHECK (byte_size >= 1 AND byte_size <= 10485760); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.screenshot_assets.screenshot_assets_byte_size_not_null",
+    "definition": "NOT NULL byte_size; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.screenshot_assets.screenshot_assets_draft_id_fkey",
+    "definition": "FOREIGN KEY (draft_id) REFERENCES import_drafts(id); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.screenshot_assets.screenshot_assets_draft_id_not_null",
+    "definition": "NOT NULL draft_id; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.screenshot_assets.screenshot_assets_id_not_null",
+    "definition": "NOT NULL id; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.screenshot_assets.screenshot_assets_mime_type_check",
+    "definition": "CHECK (mime_type = ANY (ARRAY['image/jpeg'::text, 'image/png'::text, 'image/webp'::text])); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.screenshot_assets.screenshot_assets_mime_type_not_null",
+    "definition": "NOT NULL mime_type; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.screenshot_assets.screenshot_assets_object_path_key",
+    "definition": "UNIQUE (object_path); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.screenshot_assets.screenshot_assets_object_path_not_null",
+    "definition": "NOT NULL object_path; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.screenshot_assets.screenshot_assets_pkey",
+    "definition": "PRIMARY KEY (id); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.screenshot_assets.screenshot_assets_sha256_check",
+    "definition": "CHECK (sha256 ~ '^[0-9a-f]{64}$'::text); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.screenshot_assets.screenshot_assets_sha256_not_null",
+    "definition": "NOT NULL sha256; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.tournament_results.tournament_results_approval_id_decision_fkey",
+    "definition": "FOREIGN KEY (approval_id, decision) REFERENCES approval_history(id, decision); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.tournament_results.tournament_results_approval_id_key",
+    "definition": "UNIQUE (approval_id); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.tournament_results.tournament_results_approval_id_not_null",
+    "definition": "NOT NULL approval_id; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.tournament_results.tournament_results_decision_check",
+    "definition": "CHECK (decision = 'approved'::text); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.tournament_results.tournament_results_decision_not_null",
+    "definition": "NOT NULL decision; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.tournament_results.tournament_results_event_id_fkey",
+    "definition": "FOREIGN KEY (event_id) REFERENCES scheduled_events(id); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.tournament_results.tournament_results_event_id_key",
+    "definition": "UNIQUE (event_id); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.tournament_results.tournament_results_event_id_not_null",
+    "definition": "NOT NULL event_id; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.tournament_results.tournament_results_id_not_null",
+    "definition": "NOT NULL id; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.tournament_results.tournament_results_id_scheduled_rounds_key",
+    "definition": "UNIQUE (id, scheduled_rounds); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.tournament_results.tournament_results_pkey",
+    "definition": "PRIMARY KEY (id); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.tournament_results.tournament_results_scheduled_rounds_check",
+    "definition": "CHECK (scheduled_rounds > 0); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.tournament_results.tournament_results_scheduled_rounds_not_null",
+    "definition": "NOT NULL scheduled_rounds; validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.tournament_results.tournament_results_source_key_check",
+    "definition": "CHECK (length(TRIM(BOTH FROM source_key)) > 0); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.tournament_results.tournament_results_source_key_key",
+    "definition": "UNIQUE (source_key); validated=true"
+  },
+  {
+    "section": "constraints",
+    "object_name": "public.tournament_results.tournament_results_source_key_not_null",
+    "definition": "NOT NULL source_key; validated=true"
+  },
+  {
+    "section": "functions",
+    "object_name": "private.immutable_history()",
+    "definition": "CREATE OR REPLACE FUNCTION private.immutable_history()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO ''\nAS $function$ begin\n  raise exception 'Immutable history: append a new review action instead';\nend $function$\n"
+  },
+  {
+    "section": "functions",
+    "object_name": "public.is_administrator()",
+    "definition": "CREATE OR REPLACE FUNCTION public.is_administrator()\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n  select exists(select 1 from private.administrators where user_id = auth.uid())\n$function$\n"
+  },
+  {
+    "section": "indexes",
+    "object_name": "private.administrators.administrators_pkey",
+    "definition": "CREATE UNIQUE INDEX administrators_pkey ON private.administrators USING btree (user_id)"
+  },
+  {
+    "section": "indexes",
+    "object_name": "public.approval_history.approval_history_draft_id_key",
+    "definition": "CREATE UNIQUE INDEX approval_history_draft_id_key ON public.approval_history USING btree (draft_id)"
+  },
+  {
+    "section": "indexes",
+    "object_name": "public.approval_history.approval_history_id_decision_key",
+    "definition": "CREATE UNIQUE INDEX approval_history_id_decision_key ON public.approval_history USING btree (id, decision)"
+  },
+  {
+    "section": "indexes",
+    "object_name": "public.approval_history.approval_history_pkey",
+    "definition": "CREATE UNIQUE INDEX approval_history_pkey ON public.approval_history USING btree (id)"
+  },
+  {
+    "section": "indexes",
+    "object_name": "public.extraction_evidence.extraction_evidence_pkey",
+    "definition": "CREATE UNIQUE INDEX extraction_evidence_pkey ON public.extraction_evidence USING btree (id)"
+  },
+  {
+    "section": "indexes",
+    "object_name": "public.import_corrections.import_corrections_draft_id_revision_key",
+    "definition": "CREATE UNIQUE INDEX import_corrections_draft_id_revision_key ON public.import_corrections USING btree (draft_id, revision)"
+  },
+  {
+    "section": "indexes",
+    "object_name": "public.import_corrections.import_corrections_pkey",
+    "definition": "CREATE UNIQUE INDEX import_corrections_pkey ON public.import_corrections USING btree (id)"
+  },
+  {
+    "section": "indexes",
+    "object_name": "public.import_drafts.import_drafts_pkey",
+    "definition": "CREATE UNIQUE INDEX import_drafts_pkey ON public.import_drafts USING btree (id)"
+  },
+  {
+    "section": "indexes",
+    "object_name": "public.league_seasons.league_seasons_league_year_ordinal_key",
+    "definition": "CREATE UNIQUE INDEX league_seasons_league_year_ordinal_key ON public.league_seasons USING btree (league_year, ordinal)"
+  },
+  {
+    "section": "indexes",
+    "object_name": "public.league_seasons.league_seasons_pkey",
+    "definition": "CREATE UNIQUE INDEX league_seasons_pkey ON public.league_seasons USING btree (id)"
+  },
+  {
+    "section": "indexes",
+    "object_name": "public.player_identities.player_identities_pkey",
+    "definition": "CREATE UNIQUE INDEX player_identities_pkey ON public.player_identities USING btree (id)"
+  },
+  {
+    "section": "indexes",
+    "object_name": "public.player_records.player_records_pkey",
+    "definition": "CREATE UNIQUE INDEX player_records_pkey ON public.player_records USING btree (result_id, player_id)"
+  },
+  {
+    "section": "indexes",
+    "object_name": "public.players.players_pkey",
+    "definition": "CREATE UNIQUE INDEX players_pkey ON public.players USING btree (id)"
+  },
+  {
+    "section": "indexes",
+    "object_name": "public.published_results.published_results_pkey",
+    "definition": "CREATE UNIQUE INDEX published_results_pkey ON public.published_results USING btree (result_id)"
+  },
+  {
+    "section": "indexes",
+    "object_name": "public.scheduled_events.scheduled_events_pkey",
+    "definition": "CREATE UNIQUE INDEX scheduled_events_pkey ON public.scheduled_events USING btree (id)"
+  },
+  {
+    "section": "indexes",
+    "object_name": "public.screenshot_assets.screenshot_assets_object_path_key",
+    "definition": "CREATE UNIQUE INDEX screenshot_assets_object_path_key ON public.screenshot_assets USING btree (object_path)"
+  },
+  {
+    "section": "indexes",
+    "object_name": "public.screenshot_assets.screenshot_assets_pkey",
+    "definition": "CREATE UNIQUE INDEX screenshot_assets_pkey ON public.screenshot_assets USING btree (id)"
+  },
+  {
+    "section": "indexes",
+    "object_name": "public.tournament_results.tournament_results_approval_id_key",
+    "definition": "CREATE UNIQUE INDEX tournament_results_approval_id_key ON public.tournament_results USING btree (approval_id)"
+  },
+  {
+    "section": "indexes",
+    "object_name": "public.tournament_results.tournament_results_event_id_key",
+    "definition": "CREATE UNIQUE INDEX tournament_results_event_id_key ON public.tournament_results USING btree (event_id)"
+  },
+  {
+    "section": "indexes",
+    "object_name": "public.tournament_results.tournament_results_id_scheduled_rounds_key",
+    "definition": "CREATE UNIQUE INDEX tournament_results_id_scheduled_rounds_key ON public.tournament_results USING btree (id, scheduled_rounds)"
+  },
+  {
+    "section": "indexes",
+    "object_name": "public.tournament_results.tournament_results_pkey",
+    "definition": "CREATE UNIQUE INDEX tournament_results_pkey ON public.tournament_results USING btree (id)"
+  },
+  {
+    "section": "indexes",
+    "object_name": "public.tournament_results.tournament_results_source_key_key",
+    "definition": "CREATE UNIQUE INDEX tournament_results_source_key_key ON public.tournament_results USING btree (source_key)"
+  },
+  {
+    "section": "policies",
+    "object_name": "public.approval_history.admin_read",
+    "definition": "PERMISSIVE SELECT roles={authenticated}; using=is_administrator(); check=<none>"
+  },
+  {
+    "section": "policies",
+    "object_name": "public.extraction_evidence.admin_read",
+    "definition": "PERMISSIVE SELECT roles={authenticated}; using=is_administrator(); check=<none>"
+  },
+  {
+    "section": "policies",
+    "object_name": "public.import_corrections.admin_append_correction",
+    "definition": "PERMISSIVE INSERT roles={authenticated}; using=<none>; check=(is_administrator() AND (actor = auth.uid()) AND (EXISTS ( SELECT 1\n   FROM import_drafts d\n  WHERE (d.id = import_corrections.draft_id))) AND (revision = (COALESCE(( SELECT max(c.revision) AS max\n   FROM import_corrections c\n  WHERE (c.draft_id = import_corrections.draft_id)), 0) + 1)))"
+  },
+  {
+    "section": "policies",
+    "object_name": "public.import_corrections.admin_read",
+    "definition": "PERMISSIVE SELECT roles={authenticated}; using=is_administrator(); check=<none>"
+  },
+  {
+    "section": "policies",
+    "object_name": "public.import_drafts.admin_create_draft",
+    "definition": "PERMISSIVE INSERT roles={authenticated}; using=<none>; check=(is_administrator() AND (created_by = auth.uid()))"
+  },
+  {
+    "section": "policies",
+    "object_name": "public.import_drafts.admin_read",
+    "definition": "PERMISSIVE SELECT roles={authenticated}; using=is_administrator(); check=<none>"
+  },
+  {
+    "section": "policies",
+    "object_name": "public.league_seasons.admin_read",
+    "definition": "PERMISSIVE SELECT roles={authenticated}; using=is_administrator(); check=<none>"
+  },
+  {
+    "section": "policies",
+    "object_name": "public.player_identities.admin_read",
+    "definition": "PERMISSIVE SELECT roles={authenticated}; using=is_administrator(); check=<none>"
+  },
+  {
+    "section": "policies",
+    "object_name": "public.player_records.admin_read",
+    "definition": "PERMISSIVE SELECT roles={authenticated}; using=is_administrator(); check=<none>"
+  },
+  {
+    "section": "policies",
+    "object_name": "public.players.admin_read",
+    "definition": "PERMISSIVE SELECT roles={authenticated}; using=is_administrator(); check=<none>"
+  },
+  {
+    "section": "policies",
+    "object_name": "public.published_results.admin_read",
+    "definition": "PERMISSIVE SELECT roles={authenticated}; using=is_administrator(); check=<none>"
+  },
+  {
+    "section": "policies",
+    "object_name": "public.published_results.public_read",
+    "definition": "PERMISSIVE SELECT roles={anon,authenticated}; using=true; check=<none>"
+  },
+  {
+    "section": "policies",
+    "object_name": "public.scheduled_events.admin_read",
+    "definition": "PERMISSIVE SELECT roles={authenticated}; using=is_administrator(); check=<none>"
+  },
+  {
+    "section": "policies",
+    "object_name": "public.screenshot_assets.admin_read",
+    "definition": "PERMISSIVE SELECT roles={authenticated}; using=is_administrator(); check=<none>"
+  },
+  {
+    "section": "policies",
+    "object_name": "public.tournament_results.admin_read",
+    "definition": "PERMISSIVE SELECT roles={authenticated}; using=is_administrator(); check=<none>"
+  },
+  {
+    "section": "table_privileges",
+    "object_name": "public.approval_history:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "table_privileges",
+    "object_name": "public.extraction_evidence:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "table_privileges",
+    "object_name": "public.import_corrections:authenticated:INSERT",
+    "definition": "true"
+  },
+  {
+    "section": "table_privileges",
+    "object_name": "public.import_corrections:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "table_privileges",
+    "object_name": "public.import_drafts:authenticated:INSERT",
+    "definition": "true"
+  },
+  {
+    "section": "table_privileges",
+    "object_name": "public.import_drafts:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "table_privileges",
+    "object_name": "public.league_seasons:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "table_privileges",
+    "object_name": "public.player_identities:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "table_privileges",
+    "object_name": "public.player_records:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "table_privileges",
+    "object_name": "public.players:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "table_privileges",
+    "object_name": "public.scheduled_events:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "table_privileges",
+    "object_name": "public.screenshot_assets:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "table_privileges",
+    "object_name": "public.tournament_results:authenticated:SELECT",
+    "definition": "true"
+  },
+  {
+    "section": "tables",
+    "object_name": "private.administrators",
+    "definition": "kind=r; rls=t; force_rls=f"
+  },
+  {
+    "section": "tables",
+    "object_name": "public.approval_history",
+    "definition": "kind=r; rls=t; force_rls=f"
+  },
+  {
+    "section": "tables",
+    "object_name": "public.extraction_evidence",
+    "definition": "kind=r; rls=t; force_rls=f"
+  },
+  {
+    "section": "tables",
+    "object_name": "public.import_corrections",
+    "definition": "kind=r; rls=t; force_rls=f"
+  },
+  {
+    "section": "tables",
+    "object_name": "public.import_drafts",
+    "definition": "kind=r; rls=t; force_rls=f"
+  },
+  {
+    "section": "tables",
+    "object_name": "public.league_seasons",
+    "definition": "kind=r; rls=t; force_rls=f"
+  },
+  {
+    "section": "tables",
+    "object_name": "public.player_identities",
+    "definition": "kind=r; rls=t; force_rls=f"
+  },
+  {
+    "section": "tables",
+    "object_name": "public.player_records",
+    "definition": "kind=r; rls=t; force_rls=f"
+  },
+  {
+    "section": "tables",
+    "object_name": "public.players",
+    "definition": "kind=r; rls=t; force_rls=f"
+  },
+  {
+    "section": "tables",
+    "object_name": "public.published_results",
+    "definition": "kind=r; rls=t; force_rls=f"
+  },
+  {
+    "section": "tables",
+    "object_name": "public.scheduled_events",
+    "definition": "kind=r; rls=t; force_rls=f"
+  },
+  {
+    "section": "tables",
+    "object_name": "public.screenshot_assets",
+    "definition": "kind=r; rls=t; force_rls=f"
+  },
+  {
+    "section": "tables",
+    "object_name": "public.tournament_results",
+    "definition": "kind=r; rls=t; force_rls=f"
+  },
+  {
+    "section": "triggers",
+    "object_name": "public.approval_history.immutable",
+    "definition": "CREATE TRIGGER immutable BEFORE DELETE OR UPDATE ON approval_history FOR EACH ROW EXECUTE FUNCTION private.immutable_history(); enabled=O"
+  },
+  {
+    "section": "triggers",
+    "object_name": "public.extraction_evidence.immutable",
+    "definition": "CREATE TRIGGER immutable BEFORE DELETE OR UPDATE ON extraction_evidence FOR EACH ROW EXECUTE FUNCTION private.immutable_history(); enabled=O"
+  },
+  {
+    "section": "triggers",
+    "object_name": "public.import_corrections.immutable",
+    "definition": "CREATE TRIGGER immutable BEFORE DELETE OR UPDATE ON import_corrections FOR EACH ROW EXECUTE FUNCTION private.immutable_history(); enabled=O"
+  },
+  {
+    "section": "triggers",
+    "object_name": "public.import_drafts.immutable",
+    "definition": "CREATE TRIGGER immutable BEFORE DELETE OR UPDATE ON import_drafts FOR EACH ROW EXECUTE FUNCTION private.immutable_history(); enabled=O"
+  },
+  {
+    "section": "triggers",
+    "object_name": "public.player_records.immutable",
+    "definition": "CREATE TRIGGER immutable BEFORE DELETE OR UPDATE ON player_records FOR EACH ROW EXECUTE FUNCTION private.immutable_history(); enabled=O"
+  },
+  {
+    "section": "triggers",
+    "object_name": "public.published_results.immutable",
+    "definition": "CREATE TRIGGER immutable BEFORE DELETE OR UPDATE ON published_results FOR EACH ROW EXECUTE FUNCTION private.immutable_history(); enabled=O"
+  },
+  {
+    "section": "triggers",
+    "object_name": "public.screenshot_assets.immutable",
+    "definition": "CREATE TRIGGER immutable BEFORE DELETE OR UPDATE ON screenshot_assets FOR EACH ROW EXECUTE FUNCTION private.immutable_history(); enabled=O"
+  },
+  {
+    "section": "triggers",
+    "object_name": "public.tournament_results.immutable",
+    "definition": "CREATE TRIGGER immutable BEFORE DELETE OR UPDATE ON tournament_results FOR EACH ROW EXECUTE FUNCTION private.immutable_history(); enabled=O"
+  }
+]

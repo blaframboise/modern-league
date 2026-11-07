@@ -91,3 +91,12 @@ declare existing public.import_corrections; begin
 end $$;
 revoke all on function public.append_screenshot_review(uuid,uuid,integer,jsonb,text,uuid[]) from public,anon,authenticated;
 grant execute on function public.append_screenshot_review(uuid,uuid,integer,jsonb,text,uuid[]) to service_role;
+
+-- Phase 8A row-level guards cannot intercept TRUNCATE (which also bypasses RLS).
+-- Preserve append-only journals even under broad Supabase service-role defaults.
+do $$ declare t text; begin
+ foreach t in array array['import_drafts','import_corrections','extraction_evidence','screenshot_assets','approval_history','tournament_results','player_records','published_results'] loop
+   execute format('revoke truncate on public.%I from public, anon, authenticated, service_role', t);
+   execute format('create trigger immutable_truncate before truncate on public.%I for each statement execute function private.immutable_history()', t);
+ end loop;
+end $$;

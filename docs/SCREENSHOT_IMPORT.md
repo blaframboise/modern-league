@@ -60,7 +60,8 @@ Server limits correction payloads to 1 MiB and reasons/field notes to 2,000 char
 Storage count enforcement locks the parent draft in `attach_screenshot`, rechecks
 administrator membership and ownership, and deduplicates `(draft_id, sha256)` atomically.
 No browser gets execution permission on that service-only function. Original and
-correction UPDATE/DELETE triggers remain in place; approval/publication grants remain
+correction UPDATE/DELETE triggers remain in place; 8B also blocks TRUNCATE with
+statement triggers and explicit privilege revocation; approval/publication grants remain
 closed. Do not expose service-role keys, database passwords or provider secrets in
 frontend code or `VITE_*`. Only public URL/publishable key belong there.
 
@@ -160,6 +161,9 @@ real screenshot data that needs a retention promise. Per-user byte/draft quotas,
 rate limits and monitoring are additional launch decisions; current per-request/draft
 limits alone do not prevent an authorized account from consuming excessive storage.
 
+See [migration-readiness review and read-only dashboard checklist](MIGRATION_READINESS.md)
+for exact catalog/ledger queries and the checked-in Phase 8A reference.
+
 ## Manual approval checklist
 
 No item below was performed against production. **Do not merge or deploy this delivery.**
@@ -169,10 +173,10 @@ No item below was performed against production. **Do not merge or deploy this de
    immutable triggers against `202611060001_foundation.sql` and a fresh local database.
    Check `supabase migration list --linked` using an authorized workstation. The SQL
    Editor already applied Phase 8A; do not run it again or edit the historical file.
-   If its ledger entry is absent **and** schema equivalence has been verified, the
-   operator may explicitly approve `supabase migration repair 202611060001 --status applied
-   --linked`. This changes history only, not schema. Investigate any divergence with a
-   new reviewed migration; never mark an unverified/different schema as applied.
+   If its ledger entry is absent and schema equivalence has been verified, stop for
+   a separately approved history-only reconciliation plan. This review authorizes
+   no repair command. Investigate divergence with separately reviewed forward changes;
+   never mark an unverified/different schema as applied.
 2. Only after ledger reconciliation, review the pending list with `supabase db push
    --dry-run` and confirm that **only** `202611060002_secure_screenshot_import.sql` is
    pending. Do not recommend/execute a live push beforehand. Stop if foundation appears
@@ -212,7 +216,7 @@ verification requirements. See the PR for observed commands/results and any limi
 ### Observed verification for this delivery
 
 - `npm run typecheck`: passed (frontend, domain and TypeScript tests).
-- `npm test`: 109 passed, including actual handler requests with injected SDK clients
+- `npm test`: 111 passed (after the follow-up migration/security review), including actual handler requests with injected SDK clients
   and PostgreSQL evaluation of both migrations against synthetic Auth/Storage tables.
 - `npm run build`: passed; Vite reports its existing >500 kB chunk advisory.
 - `BROWSER_EXECUTABLE_PATH=/usr/bin/chromium npm run test:browser`: passed
@@ -224,3 +228,7 @@ verification requirements. See the PR for observed commands/results and any limi
 - No full Supabase Auth/PostgREST/Storage/Edge integration or provider interpretation
   was run. Dashboard setup, Phase 8A ledger reconciliation and separate operator
   approval remain mandatory before operational use. No real screenshots were used.
+
+The follow-up review on this branch adds read-only production verification artifacts
+and regression coverage for UUID canonicalization, service-role execution and TRUNCATE.
+See MIGRATION_READINESS.md for findings, remaining blockers and actual verification scope.
