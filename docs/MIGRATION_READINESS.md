@@ -329,3 +329,32 @@ production SQL, historical migration or ledger was changed.
 For this catalog-only follow-up, `npm run typecheck` and `npm test` (111 passed)
 were rerun. The build/browser/Deno results above refer to the preceding infrastructure
 review; this follow-up changes only verification SQL, its reference, guidance and tests.
+
+## Retention policy additions (pending Phase 8B migrations 003–005)
+
+The organizer approved a private, human-reviewed screenshot policy: orphan eligibility after
+24 hours; inactive unapproved source review after 90 days; and published source review
+one year after the competitive year ends. No scheduled purge is enabled.
+
+- `202611060003_screenshot_retention_audit.sql` adds the immutable, private hold and
+  deletion-event journal, owner-scoped event recording, and safeguards against
+  relinking a source after an operator has requested its removal.
+- `202611060004_screenshot_retention_review.sql` creates the private candidate
+  inventory and a service-only, owner-scoped preview RPC.
+- `202611060005_screenshot_orphan_cleanup.sql` provides database-locked preparation
+  and verified completion for manual deletion of **unlinked orphans only**. The
+  operator-confirmed Edge handler removes bytes through Supabase Storage API,
+  verifies absence and records an immutable event; pending requests can be retried.
+  Neither linked draft sources nor published evidence can be deleted by this endpoint.
+
+The release must verify on a disposable Supabase stack that owner/non-owner permissions
+hold, deletion requires explicit confirmation and a reason, source age and references
+are rechecked, interrupted deletion is retriable, and Storage removal is reflected
+in audit records. The CI workflow exercises migration replay on real local Supabase
+services; unit/PGlite tests also check holds, approval state and immutability.
+
+**Before production:** reconcile the missing historical Phase 8A migration record
+using a supported approach; never replay the foundation onto the existing production
+schema. Recheck current production collision/security reports; approve any migration,
+Edge deployment and origin configuration explicitly. Confirm privacy notices and
+backup/appeal treatment. Do not enable AI extraction or publish results through this PR.
