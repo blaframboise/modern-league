@@ -46,7 +46,6 @@ export function OfficialImportPage() {
   const nextDraft = useRef(crypto.randomUUID());
   const previewUrl = useRef<string | null>(null);
   const api = client ? screenshotClient(client) : null;
-  const source = assets[0];
 
   function usePreview(url: string | null) {
     if (previewUrl.current) URL.revokeObjectURL(previewUrl.current);
