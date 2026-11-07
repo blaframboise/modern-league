@@ -41,6 +41,10 @@ function harness({ user = true, admin = true, owner = actor, failAttach = false,
       objects.set(path, bytes); return { error: null };
     } }; } },
     async rpc(name: string, args: any) {
+      if (name === 'create_screenshot_draft') {
+        if (args.p_actor !== owner) return { error: { message: 'Draft unavailable' } };
+        return { data: args.p_draft, error: null };
+      }
       if (name === 'append_screenshot_review') {
         rows.push({ id: String(rows.length + 1), draft_id: args.p_draft, revision: args.p_revision, snapshot: args.p_snapshot, reason: args.p_reason, actor: args.p_actor });
         return { error: null };
@@ -66,6 +70,17 @@ test('bounded trusted image signature/MIME/size/identifier checks', async () => 
   assert.equal(uuid('ABCDEFAB-1234-4ABC-8DEF-ABCDEF123456'), 'abcdefab-1234-4abc-8def-abcdef123456');
   await assert.rejects(boundedBody(new Request('http://localhost', { method: 'POST', body: png }), 2));
   assert.deepEqual(await boundedBody(new Request('http://localhost', { method: 'POST', body: png })), png);
+});
+test('draft creation calls the trusted service RPC and keeps the same request ID', async () => {
+  const h = harness();
+  const first = await h.request('create');
+  const retry = await h.request('create');
+  assert.equal(first.status,200);
+  assert.equal(first.body.id,id);
+  assert.equal(retry.status,200);
+  assert.equal(retry.body.id,id);
+  assert.equal(h.stats().uploads,0);
+  assert.equal((await harness({ owner: source }).request('create')).status,409);
 });
 test('actual server handler rejects anonymous/non-administrators before any data or storage access', async () => {
   for (const h of [harness({ user: false }), harness({ admin: false })]) {
