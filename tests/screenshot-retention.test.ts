@@ -28,15 +28,15 @@ test('Approved retention eligibility honors inactive 90-day drafts, appeals and 
     insert into storage.objects(bucket_id,name,metadata,created_at)
       values('tournament-sources','${objectPath}','{"size":"123"}',now()-interval '91 days');`);
   const eligibility=await readFile(new URL('../supabase/verification/screenshot-retention-eligibility.sql',import.meta.url),'utf8');
-  let rows=(await db.query(eligibility)).rows;
+  let rows=(await db.query<{object_path:string;retention_reason:string}>(eligibility)).rows;
   assert.ok(rows.some((r)=>r.object_path===objectPath && r.retention_reason==='abandoned_unapproved_90d'));
   // An approval makes the sources ineligible as abandoned, even before publishing.
   const approval='10000000-0000-4000-8000-000000000003';
   await db.exec(`insert into public.approval_history(id,draft_id,revision,decision,actor,reason,validated_snapshot)
     values('${approval}','${draft}',0,'approved','${actor}','synthetic fixture','{}');`);
-  rows=(await db.query(eligibility)).rows;
+  rows=(await db.query<{object_path:string;retention_reason:string}>(eligibility)).rows;
   assert.ok(!rows.some((r)=>r.object_path===objectPath));
   // The policy does not turn an unpublished approval into a published result.
-  assert.equal((await db.query('select count(*)::int as count from public.published_results')).rows[0].count,0);
+  assert.equal((await db.query<{count:number}>('select count(*)::int as count from public.published_results')).rows[0].count,0);
  } finally {await db.close();}
 });
