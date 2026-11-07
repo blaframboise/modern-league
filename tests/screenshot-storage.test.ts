@@ -30,7 +30,7 @@ test('Phase 8B real PostgreSQL: owner isolation, private storage, server-only wr
     // The administrator predicate remains available to signed-in users, but not anonymously.
     assert.equal((await db.query<{allowed:boolean}>("select has_function_privilege('anon','public.is_administrator()','EXECUTE') as allowed")).rows[0].allowed, false);
     assert.equal((await db.query<{allowed:boolean}>("select has_function_privilege('authenticated','public.is_administrator()','EXECUTE') as allowed")).rows[0].allowed, true);
-    for (const signature of ['public.attach_screenshot(uuid,uuid,text,text,integer)','public.append_screenshot_review(uuid,uuid,integer,jsonb,text,uuid[])']) {
+    for (const signature of ['public.attach_screenshot(uuid,uuid,text,text,integer)','public.append_screenshot_review(uuid,uuid,integer,jsonb,text,uuid[])','public.create_screenshot_draft(uuid,uuid,jsonb)']) {
       for (const role of ['anon','authenticated','service_role']) {
         assert.equal((await db.query<{allowed:boolean}>(`select has_function_privilege($1,$2,'EXECUTE') as allowed`,[role,signature])).rows[0].allowed,role==='service_role');
       }
@@ -84,7 +84,7 @@ test('Phase 8B real PostgreSQL: owner isolation, private storage, server-only wr
     for (const table of tables) {
       for (const role of ['anon','authenticated']) {
         const grants = (await db.query<{update:boolean;delete:boolean;truncate:boolean;insert:boolean}>(`select has_table_privilege($1,$2,'UPDATE') as update, has_table_privilege($1,$2,'DELETE') as delete, has_table_privilege($1,$2,'TRUNCATE') as truncate, has_table_privilege($1,$2,'INSERT') as insert`, [role,`public.${table}`])).rows[0];
-        assert.deepEqual(grants, {update:false,delete:false,truncate:false,insert:role==='authenticated' && table==='import_drafts'});
+        assert.deepEqual(grants, {update:false,delete:false,truncate:false,insert:false});
       }
     }
     assert.equal((await db.query<{allowed:boolean}>("select has_table_privilege('authenticated','public.screenshot_assets','SELECT') as allowed")).rows[0].allowed,true);
@@ -111,6 +111,21 @@ test('Phase 8B real PostgreSQL: owner isolation, private storage, server-only wr
         quotaDraft, `${a}/${quotaDraft}/${quotaHash}`, 'image/png', 10485760, quotaHash,
       ]);
     }
+    // Browser draft creation is unavailable; the service RPC must enforce quota.
+    assert.equal((await db.query<{allowed:boolean}>("select has_table_privilege('authenticated','public.import_drafts','INSERT') as allowed")).rows[0].allowed,false);
+    const createDraftId = '00000000-0000-4000-8000-000000000088';
+    await db.query("select public.create_screenshot_draft($1,$2,$3::jsonb)", [createDraftId,a,'{}']);
+    await db.query("select public.create_screenshot_draft($1,$2,$3::jsonb)", [createDraftId,a,'{}']); // same-owner retry
+    assert.equal((await db.query<{count:number}>('select count(*)::int as count from public.import_drafts where id=$1',[createDraftId])).rows[0].count,1);
+    await assert.rejects(db.query("select public.create_screenshot_draft($1,$2,$3::jsonb)",[createDraftId,b,'{}']), /Draft unavailable/);
+    await assert.rejects(db.query("select public.create_screenshot_draft($1,$2,$3::jsonb)", ['00000000-0000-4000-8000-000000000089',a,'null']), /Invalid draft original/);
+    // Add synthetic drafts to the cap. These are local-disposable test rows only.
+    await db.exec(`insert into public.import_drafts(id,created_by,original)
+      select ('00000000-0000-4000-8000-' || lpad(to_hex(g),12,'0'))::uuid,
+      '${a}'::uuid, '{}'::jsonb from generate_series(200, 294) g;`);
+    await assert.rejects(db.query("select public.create_screenshot_draft($1,$2,$3::jsonb)", ['00000000-0000-4000-8000-000000000099',a,'{}']), /Administrator draft quota exceeded/);
+    await db.query("select public.create_screenshot_draft($1,$2,$3::jsonb)", [createDraftId,a,'{}']); // existing retry remains legal at cap
+
     const quotaHash = 'e'.repeat(64);
     await assert.rejects(
       db.query('select public.attach_screenshot($1,$2,$3,$4,$5)', [quotaDrafts[3],a,quotaHash,'image/png',10485760]),
