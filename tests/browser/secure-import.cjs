@@ -26,6 +26,7 @@ const assert = require('node:assert/strict');
         if (url.pathname.startsWith('/storage/v1/object/')) return route.fulfill({ headers, contentType: 'image/png', body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j4ZkAAAAASUVORK5CYII=', 'base64') });
         if (url.pathname === '/functions/v1/screenshot-import') {
           requests++; const id = request.headers()['x-draft-id']; const action = url.searchParams.get('action');
+          if (action === 'retention-delete-orphan') { orphanPresent=false; return reply({deleted:true,auditId:'synthetic-success'}); }
           if (action === 'retention-preview') return reply({candidates:orphanPresent ? [{object_path:`${actor}/${id}/${'c'.repeat(64)}`,asset_id:null,draft_id:null,retention_reason:'orphan_24h',activity_at:'2026-10-01T00:00:00Z'}] : []});
           if (action === 'create') { drafts.push({ id, created_by: actor, original: { tournament: { eventId:'',sourceKey:'',name:'',date:'',start:null,year:0,kind:'',scheduledRounds:null }, results:[] } }); return reply({ id }); }
           if (action === 'upload') { assets.push({ id: assetId, draft_id: id, object_path: `${actor}/${id}/synthetic`, mime_type:'image/png',byte_size:68,sha256:'a'.repeat(64) }); return reply(assets[0]); }
