@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { boundedBody, unresolvedOriginal, uuid, validateImageBytes } from '../src/importInfrastructure/validation.ts';
 import { fieldPaths, validateHumanEvidence } from '../src/importInfrastructure/evidence.ts';
 import { configuredExtractionAdapter } from '../src/importInfrastructure/provider.ts';
+import { metadataKeys, rowKeys } from '../src/extraction/index.ts';
 import { importHandler } from '../supabase/functions/screenshot-import/handler.ts';
 import { reconstructImportDraft } from '../src/data/reconstruction.ts';
 
@@ -10,7 +11,7 @@ const actor = '00000000-0000-4000-8000-000000000001';
 const id = 'abcdefab-1234-4abc-8def-abcdef123456';
 const source = '00000000-0000-4000-8000-000000000003';
 const png = new Uint8Array([137,80,78,71,13,10,26,10,0]);
-function harness({ user = true, admin = true, owner = actor, failAttach = false, failUpload = false, failRemove = false, rateLimited = false, rateUnavailable = false } = {}) {
+function harness({ user = true, admin = true, owner = actor, failAttach = false, failUpload = false, failRemove = false, rateLimited = false, rateUnavailable = false, aiEnabled = false, aiBudgetAllowed = true } = {}) {
   const original = { id, original: unresolvedOriginal(), created_by: owner };
   const rows: any[] = []; const assets: any[] = []; const objects = new Map();
   let attachments = 0; let uploads = 0; let reads = 0;
@@ -39,6 +40,9 @@ function harness({ user = true, admin = true, owner = actor, failAttach = false,
       uploads++; if (failUpload) return { error: { message: 'failed', statusCode: '503' } };
       if (objects.has(path)) return { error: { statusCode: '409' } };
       objects.set(path, bytes); return { error: null };
+    }, async download(path: string) {
+      const bytes=objects.get(path);
+      return bytes ? {data:new Blob([new Uint8Array(bytes)]),error:null} : {data:null,error:{message:'missing'}};
     }, async remove(paths: string[]) {
       if (failRemove) return { error: { message: 'storage unavailable' } };
       for (const path of paths) objects.delete(path);
@@ -48,6 +52,7 @@ function harness({ user = true, admin = true, owner = actor, failAttach = false,
       return { data:names.filter(item=>item.name.includes(options.search)),error:null };
     } }; } },
     async rpc(name: string, args: any) {
+      if (name === 'reserve_screenshot_ai_budget') return {data:aiBudgetAllowed,error:null};
       if (name === 'prepare_orphan_screenshot_cleanup') {
         return objects.has(args.p_path) ? {data:'00000000-0000-4000-8000-000000000099',error:null}
           : {data:null,error:{message:'not eligible'}};
@@ -67,17 +72,30 @@ function harness({ user = true, admin = true, owner = actor, failAttach = false,
         return { error: null };
       }
       attachments++; if (failAttach && attachments === 1) return { error: { message: 'failed' } };
-      const asset = { id: source, sha256: args.p_hash, object_path: `${actor}/${id}/${args.p_hash}` };
+      const asset = { id: source, sha256: args.p_hash, object_path: `${actor}/${id}/${args.p_hash}`, byte_size: args.p_size, mime_type: args.p_mime };
       assets.push(asset); return { data: asset, error: null };
     },
   };
   const userClient = { auth: { async getUser() { return { data: { user: user ? { id: actor } : null }, error: null }; } }, async rpc() { return { data: admin, error: null }; } };
-  const handler = importHandler(name => ({ SUPABASE_URL: 'https://example.invalid', SUPABASE_ANON_KEY: 'test', SUPABASE_SERVICE_ROLE_KEY: 'service', IMPORT_ALLOWED_ORIGIN: 'https://league.example' })[name], (_url, key) => key === 'service' ? service : userClient);
+  let aiCalls=0;
+  const provider=async (_url:string,options:any):Promise<Response>=>{
+    aiCalls++;
+    const body=JSON.parse(options.body);
+    assert.equal(body.store,false);
+    const tournament=Object.fromEntries(metadataKeys.map(k=>[k,null]));
+    tournament.name='Synthetic AI event';
+    const fields=Object.fromEntries(rowKeys.map(k=>[k,null]));
+    fields.importedName='Unverified synthetic player';fields.wins=1;
+    return new Response(JSON.stringify({status:'completed',
+      output:[{type:'message',content:[{type:'output_text',text:JSON.stringify({tournament,results:[fields],warnings:[]})}]}],
+      usage:{input_tokens:200,output_tokens:50}}),{status:200});
+  };
+  const handler = importHandler(name => ({ SUPABASE_URL: 'https://example.invalid', SUPABASE_ANON_KEY: 'test', SUPABASE_SERVICE_ROLE_KEY: 'service', IMPORT_ALLOWED_ORIGIN: 'https://league.example', ...(aiEnabled?{OPENAI_API_KEY:'test-provider-key'}:{}) })[name], (_url, key) => key === 'service' ? service : userClient,provider as typeof fetch);
   async function request(action: string, body?: any, authorization = true, draftId = id) {
     const response = await handler(new Request(`https://edge.example/screenshot-import?action=${action}`, { method: 'POST', headers: { ...(authorization ? { authorization: 'Bearer test' } : {}), 'x-draft-id': draftId, 'content-type': body instanceof Uint8Array ? 'image/png' : 'application/json', origin: 'https://league.example' }, body: body instanceof Uint8Array ? new Uint8Array(body).buffer : JSON.stringify(body ?? {}) }));
     return { status: response.status, body: await response.json() };
   }
-  return { request, rows, assets, original, objects, stats: () => ({ uploads, reads }) };
+  return { request, rows, assets, original, objects, aiCalls:()=>aiCalls, stats: () => ({ uploads, reads }) };
 }
 
 test('bounded trusted image signature/MIME/size/identifier checks', async () => {
@@ -140,6 +158,25 @@ test('durable per-operator rate boundary denies excess writes before any storage
   const unavailable = harness({ rateUnavailable: true });
   assert.equal((await unavailable.request('create')).status,503);
   assert.deepEqual(unavailable.stats(),{uploads:0,reads:0});
+});
+test('AI suggestions send only an owned hash-verified image after budget reservation',async()=>{
+  const h=harness({aiEnabled:true});
+  await h.request('upload',png);
+  const success=await h.request('extract',{sourceId:source});
+  assert.equal(success.status,200,JSON.stringify(success));
+  assert.equal(success.body.report.fictional,false);
+  assert.equal(success.body.report.results[0].fields.importedName.value,'Unverified synthetic player');
+  assert.equal(success.body.report.results[0].fields.importedName.status,'suggested');
+  assert.equal(h.aiCalls(),1);
+  assert.equal(h.rows.length,0);
+  const denied=harness({aiEnabled:true,aiBudgetAllowed:false});
+  await denied.request('upload',png);
+  const blocked=await denied.request('extract',{sourceId:source});
+  assert.equal(blocked.status,429);
+  assert.equal(denied.aiCalls(),0);
+  assert.equal((await h.request('extract',{sourceId:actor})).status,404);
+  assert.equal(h.aiCalls(),1);
+  assert.equal((await harness({admin:false,aiEnabled:true}).request('extract',{sourceId:source})).status,403);
 });
 test('server upload validates bytes, recovers partial failure, and deduplicates committed retries', async () => {
   const h = harness({ failAttach: true });
