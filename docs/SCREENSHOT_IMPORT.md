@@ -59,6 +59,15 @@ sending images externally. SVG/HEIC and arbitrary path/user-ID inputs are reject
 Server limits correction payloads to 1 MiB and reasons/field notes to 2,000 characters.
 Storage count enforcement locks the parent draft in `attach_screenshot`, rechecks
 administrator membership and ownership, and deduplicates `(draft_id, sha256)` atomically.
+The RPC now locks the administrator membership row before attaching, enforcing a
+**200 MiB owner-wide quota on linked source bytes** across all drafts in addition
+to the eight-images-per-draft limit. Existing hash retries do not consume quota.
+Simultaneous uploads for the same owner serialize this check; an over-quota attach
+fails without adding metadata. A storage object already uploaded before such a
+failure can remain an orphan and needs separate cleanup. The quota does **not**
+count unlinked objects or limit the number of drafts, requests, or independent
+upload attempts; do not claim full billing/abuse containment before rate limits,
+per-user draft quotas, cleanup and monitoring are implemented.
 No browser gets execution permission on that service-only function. Original and
 correction UPDATE/DELETE triggers remain in place; 8B also blocks TRUNCATE with
 statement triggers and explicit privilege revocation; approval/publication grants remain
@@ -157,9 +166,10 @@ who authorized deletion, paths/hashes, reason, timestamp, policy version, retry 
 source references must remain visibly unavailable rather than silently reassigned.
 Storage byte deletion does not delete metadata, backups or copies. Confirm backup/log
 retention and data subject requests before real use. Until approved, do not onboard
-real screenshot data that needs a retention promise. Per-user byte/draft quotas, gateway
-rate limits and monitoring are additional launch decisions; current per-request/draft
-limits alone do not prevent an authorized account from consuming excessive storage.
+real screenshot data that needs a retention promise. The linked-source byte quota is implemented, but **draft-count quotas, unlinked
+object limits, gateway rate limits and monitoring** remain launch requirements.
+The linked-only quota does not cap storage billing from orphaned uploads; do not
+onboard real screenshots until a reviewed retention and cleanup process exists.
 
 See [migration-readiness review and read-only dashboard checklist](MIGRATION_READINESS.md)
 for exact catalog/ledger queries and the checked-in Phase 8A reference.
