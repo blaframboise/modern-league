@@ -40,7 +40,7 @@ reads when an unrelated permissive Storage policy exists. Public/anonymous downl
 are denied. Keep the bucket private in dashboard settings; a future dashboard change
 can invalidate the design and must be reviewed.
 
-Only the Edge Function can upload or append operational corrections. It validates
+Only the Edge Function can create official private drafts, upload or append operational corrections. It validates
 JWTs with `auth.getUser`, then checks `public.is_administrator()` using that caller's
 JWT on **every** request, then verifies draft ownership before using its server-only
 service role. `verify_jwt=false` supports publishable-key clients; it does not remove
@@ -59,6 +59,13 @@ sending images externally. SVG/HEIC and arbitrary path/user-ID inputs are reject
 Server limits correction payloads to 1 MiB and reasons/field notes to 2,000 characters.
 Storage count enforcement locks the parent draft in `attach_screenshot`, rechecks
 administrator membership and ownership, and deduplicates `(draft_id, sha256)` atomically.
+A separate service-only `create_screenshot_draft` RPC now caps drafts at **100 per
+administrator**. It locks the administrator membership row so concurrent create
+requests cannot bypass the limit, and it accepts identical same-owner retries.
+Direct authenticated/browser INSERT into `import_drafts` is revoked in the pending
+8B migration. The earlier browser repository draft-create method is intentionally
+unavailable for official use; the `/official-import` route calls the Edge Function.
+
 The RPC now locks the administrator membership row before attaching, enforcing a
 **200 MiB owner-wide quota on linked source bytes** across all drafts in addition
 to the eight-images-per-draft limit. Existing hash retries do not consume quota.
@@ -174,7 +181,7 @@ who authorized deletion, paths/hashes, reason, timestamp, policy version, retry 
 source references must remain visibly unavailable rather than silently reassigned.
 Storage byte deletion does not delete metadata, backups or copies. Confirm backup/log
 retention and data subject requests before real use. Until approved, do not onboard
-real screenshot data that needs a retention promise. The linked-source byte quota is implemented, but **draft-count quotas, unlinked
+real screenshot data that needs a retention promise. The linked-source byte quota is implemented, but **unlinked
 object limits, gateway rate limits and monitoring** remain launch requirements.
 The linked-only quota does not cap storage billing from orphaned uploads; do not
 onboard real screenshots until a reviewed retention and cleanup process exists.
