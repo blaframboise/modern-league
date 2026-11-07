@@ -1,0 +1,35 @@
+name: Supabase local integration
+
+on:
+  pull_request:
+    paths:
+      - 'supabase/**'
+      - '.github/workflows/supabase-local.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: supabase-local-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  local-schema:
+    name: Validate migrations in isolated Supabase
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Start disposable local Supabase services
+        run: supabase start
+      - name: Apply reviewed migrations to disposable database
+        run: supabase db reset --local
+      - name: Verify local service health
+        run: supabase status
+      - name: Clean up disposable services
+        if: always()
+        run: supabase stop --no-backup
