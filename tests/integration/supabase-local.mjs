@@ -76,6 +76,12 @@ async function main() {
   const otherAdmin = await createUser(true);
   const nonAdmin = await createUser(false);
   const draft = randomUUID();
+  // Private retention candidates are available only after JWT/admin checks.
+  assert.equal((await api('retention-preview', nonAdmin, draft)).status,403);
+  const retentionPreview = await api('retention-preview', owner, draft);
+  assert.equal(retentionPreview.status,200,JSON.stringify(retentionPreview));
+  assert.ok(Array.isArray(retentionPreview.payload.candidates));
+
 
   const publicRpc = await anon.rpc('is_administrator');
   assert.ok(publicRpc.error, 'Anonymous clients should not execute the privileged administrator RPC');
