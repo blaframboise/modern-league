@@ -91,5 +91,39 @@ test('Phase 8B real PostgreSQL: owner isolation, private storage, server-only wr
     assert.equal((await db.query<{allowed:boolean}>("select has_column_privilege('anon','public.published_results','public_snapshot','SELECT') as allowed")).rows[0].allowed,true);
     assert.equal((await db.query<{allowed:boolean}>("select has_column_privilege('anon','public.published_results','published_by','SELECT') as allowed")).rows[0].allowed,false);
     assert.equal((await db.query('select * from public.published_results')).rows.length, 0);
+
+    // Linked-source quota is enforced across all drafts for the same administrator.
+    // Preload 190 MiB in three further drafts; the original draft has linked bytes too.
+    // A 10 MiB attachment would exceed the 200 MiB owner quota, while a tiny one fits.
+    const quotaDrafts = [
+      '00000000-0000-4000-8000-000000000011',
+      '00000000-0000-4000-8000-000000000012',
+      '00000000-0000-4000-8000-000000000013',
+      '00000000-0000-4000-8000-000000000014',
+    ];
+    for (const quotaDraft of quotaDrafts) {
+      await db.query('insert into public.import_drafts(id,created_by,original) values ($1,$2,$3)', [quotaDraft,a,'{}']);
+    }
+    for (let index = 1; index <= 19; index++) {
+      const quotaDraft = quotaDrafts[index <= 8 ? 0 : index <= 16 ? 1 : 2];
+      const quotaHash = index.toString(16).padStart(64, '0');
+      await db.query('insert into public.screenshot_assets(draft_id,object_path,mime_type,byte_size,sha256) values($1,$2,$3,$4,$5)', [
+        quotaDraft, `${a}/${quotaDraft}/${quotaHash}`, 'image/png', 10485760, quotaHash,
+      ]);
+    }
+    const quotaHash = 'e'.repeat(64);
+    await assert.rejects(
+      db.query('select public.attach_screenshot($1,$2,$3,$4,$5)', [quotaDrafts[3],a,quotaHash,'image/png',10485760]),
+      /Administrator source storage quota exceeded/,
+    );
+    assert.equal(
+      (await db.query<{count:number}>('select count(*)::int as count from public.screenshot_assets where draft_id=$1', [quotaDrafts[3]])).rows[0].count,
+      0,
+    );
+    await db.query('select public.attach_screenshot($1,$2,$3,$4,$5)', [quotaDrafts[3],a,quotaHash,'image/png',1]);
+    assert.equal(
+      (await db.query<{count:number}>('select count(*)::int as count from public.screenshot_assets where draft_id=$1', [quotaDrafts[3]])).rows[0].count,
+      1,
+    );
   } finally { await db.close(); }
 });
