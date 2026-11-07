@@ -43,6 +43,12 @@ const assert = require('node:assert/strict');
       await page.getByRole('button',{name:'Check retention eligibility'}).click();
       await page.getByText('Retention review refreshed.',{exact:false}).waitFor();
       await page.locator('li').filter({hasText:'Abandoned upload — source'}).first().waitFor();
+      assert.equal(await page.getByRole('button',{name:'Permanently delete aged orphan'}).isDisabled(),true);
+      await page.getByLabel('Reason for deleting an abandoned upload').fill('Verified synthetic orphan');
+      await page.getByRole('checkbox',{name:/I verified this abandoned upload/}).check();
+      await page.getByRole('button',{name:'Permanently delete aged orphan'}).click();
+      await page.getByText('permanently removed and the audit was recorded.',{exact:false}).waitFor();
+
 
       await page.getByRole('button',{name:'Create private draft'}).click();
       await page.getByText('Empty private draft saved.', {exact:false}).waitFor();
