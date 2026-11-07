@@ -23,7 +23,7 @@ jobs:
         with:
           version: 2.119.0
       - name: Start disposable local Supabase services
-        run: supabase start
+        run: supabase start -x realtime,imgproxy,mailpit,studio,logflare,vector,supavisor
       - name: Apply reviewed migrations to disposable database
         run: supabase db reset --local
       - name: Verify local service health
