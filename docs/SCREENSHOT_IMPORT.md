@@ -152,7 +152,7 @@ POST `/functions/v1/screenshot-import?action=...`, `Authorization: Bearer <user 
 | correct | `{revision,values,reason,confirm:[],sources,evidence}` | Replay and append human correction; stale conflicts fail |
 | extract | empty JSON | Authenticate/authorize then return **501 EXTRACTION_NOT_CONFIGURED** |
 
-No approval, publication, delete or official-write action exists. Do not use a mock in
+No approval, publication or official-write action exists. A separate explicitly confirmed, orphan-only retention action is documented above. Do not use a mock in
 the real route. `src/importInfrastructure/provider.ts` defines `ServerExtractionAdapterV1`:
 versioned provider identity, immutable source IDs/hashes/MIME/bytes, cancellation signal,
 and existing Phase 7 `ExtractionReport` v1 output. The deterministic `mockProvider` is
@@ -167,39 +167,45 @@ resolution. Current human originals must not be replaced with later extraction o
 use a separately designed append-only extraction attempt/link. Provider prompt injection
 must never influence authorization or publication. This interface is preparation only.
 
-## Retention/deletion proposal — requires operator approval
+## Approved retention rules and manual orphan-only cleanup
 
-Proposed, **not scheduled or implemented automatically**:
+The organizer approved the following defaults: orphaned unlinked files become
+eligible after 24 hours; abandoned, unapproved drafts after 90 days of
+inactivity; and published-result source images one year after the competitive
+year ends. A hold blocks cleanup. Evidence, source IDs and human corrections
+remain immutable.
 
-- Unlinked/orphan objects: quarantine 24 hours, then delete after confirming twice that
-  no asset references the path (coordinate with upload traffic; no concurrent attachment).
-- Abandoned draft images: retain 90 days since last source/review activity, notify the
-  owner through a separately approved process, then an operator may purge source bytes.
-- Reviewed/officially retained source bytes: proposed one year after the competitive
-  year closes, pending legal/privacy and appeal requirements. No automatic publication.
-- Keep minimal immutable metadata (hash, source UUID, MIME/size, actor/time and correction
-  history) for audit under a separately approved retention duration; redact personal data
-  only through a reviewed governance process, never by rewriting history ad hoc.
+`supabase/verification/screenshot-retention-eligibility.sql` and the
+administrator-only Retention Review panel show candidates for human review.
+`202611060003_screenshot_retention_audit.sql` creates a private append-only
+event journal. `202611060004_screenshot_retention_review.sql` exposes an
+owner-scoped, service-only preview RPC.
 
-A **read-only** aggregate inventory is now checked in as
-[`supabase/verification/screenshot-storage-audit.sql`](../supabase/verification/screenshot-storage-audit.sql).
-It reports linked/unlinked object counts, approximate byte usage and unlinked objects
-older than 24 hours, without exposing image names, hashes or user IDs. It does not
-remove objects, prove safe deletion, or prevent creation of new orphans. Use it only
-after 8B has been installed in a controlled environment; the bucket and metadata
-must exist.
+`202611060005_screenshot_orphan_cleanup.sql` adds a **manual orphan-only**
+deletion transaction: it checks administrator ownership, source age, lack of
+linked metadata and absence of a hold while holding the same administrator row
+lock used for source attachment. The Edge Function calls the Storage API
+`remove([path])`, checks that the file no longer appears in Storage, then
+records an immutable success event. Pending requests can be retried after
+transient failures. Requests are limited to 10 per administrator per hour.
+The UI requires a human review, an explicit reason and a confirmation.
 
-There is currently no browser deletion or retention worker. A production purge needs
-an append-only tombstone/deletion audit migration and dry-run operator tooling first;
-existing asset immutability intentionally forbids destructive metadata edits. Record
-who authorized deletion, paths/hashes, reason, timestamp, policy version, retry outcome;
-source references must remain visibly unavailable rather than silently reassigned.
-Storage byte deletion does not delete metadata, backups or copies. Confirm backup/log
-retention and data subject requests before real use. Until approved, do not onboard
-real screenshot data that needs a retention promise. The linked-source byte quota is implemented, but **unlinked
-object limits, per-IP gateway controls and monitoring** remain launch requirements.
-The linked-only quota does not cap storage billing from orphaned uploads; do not
-onboard real screenshots until a reviewed retention and cleanup process exists.
+**Only unlinked, 24-hour-old files are deletable here.** The UI cannot delete
+draft evidence, reviewed images, or published tournament sources. The 90-day
+and one-year candidates are informational until an appeal-aware, backed-up
+operator workflow is separately verified. No scheduled purge exists. This
+manual workflow does not erase backups, external copies or provider records;
+the organizer must arrange participant notice and data-request handling before
+operational use.
+
+The aggregate, path-free report
+[`supabase/verification/screenshot-storage-audit.sql`](../supabase/verification/screenshot-storage-audit.sql)
+tracks orphan counts and estimated bytes; it never changes Storage.
+
+Linked-source and draft-count quotas, rate limits and the owner-only bucket
+reduce but do not eliminate account compromise, distributed abuse or accidental
+sensitive uploads. Gateway monitoring, provider governance and retention
+operations require ongoing review.
 
 See [migration-readiness review and read-only dashboard checklist](MIGRATION_READINESS.md)
 for exact catalog/ledger queries and the checked-in Phase 8A reference.
