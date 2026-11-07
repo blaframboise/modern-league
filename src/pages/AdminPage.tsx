@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { supabaseConfiguration } from '../data/client';
 import { leagueRepository } from '../data/repository';
@@ -29,7 +30,7 @@ export function AdminPage() {
     const { data: { subscription } } = client.auth.onAuthStateChange(() => { setTimeout(() => { if (active) void refresh(); }, 0); });
     return () => { active = false; subscription.unsubscribe(); };
   }, [client]);
-  return <section className="container admin-page"><p className="eyebrow">ADMINISTRATOR ACCESS</p><h1>League administration</h1>
+  return <section className="container admin-page"><p className="eyebrow">ADMINISTRATOR ACCESS</p><h1>League administration</h1><p><Link to="/official-import">Private screenshot import drafts</Link></p>
     {!client ? <p>{error ?? 'Supabase is not configured. Fictional demonstrations remain available; nothing is saved to a database.'}</p> : <>
       <p role="status">{status}</p>
       {signedIn ? <button disabled={busy} onClick={async () => { setBusy(true); try { const result = await client.auth.signOut(); if (result.error) throw result.error; } catch { setStatus('Sign out failed. Please retry.'); } finally { setBusy(false); } }}>Sign out</button> :

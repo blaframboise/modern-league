@@ -13,7 +13,8 @@
     "typecheck": "tsc --noEmit && tsc --project tsconfig.scoring.json --noEmit",
     "test": "node --test --test-isolation=none tests/*.test.ts",
     "test:deployment": "node tests/browser/deployment.cjs",
-    "test:browser": "node tests/browser/results-import.cjs && node tests/browser/supabase-admin.cjs"
+    "test:browser": "node tests/browser/results-import.cjs && node tests/browser/supabase-admin.cjs",
+    "test:browser:secure": "node tests/browser/secure-import.cjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.15",

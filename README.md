@@ -404,7 +404,7 @@ These tests exercise three viewport sizes and the complete fictional review path
 
 ## Phase 8A — Supabase foundation
 
-Optional Supabase client, administrator password sign-in at `/admin`, private draft persistence API, RLS migrations and local PostgreSQL policy tests are now available. Existing demonstrations remain fictional and in-memory. Official approval, publication and uploads are disabled pending trusted server validation and governance decisions. See [Supabase setup and manual migration instructions](docs/SUPABASE.md).
+Optional Supabase client, administrator password sign-in at `/admin`, private draft persistence API, RLS migrations and local PostgreSQL policy tests are now available. Existing demonstrations remain fictional and in-memory. Official approval and publication remain disabled. Phase 8B adds a separately configured trusted private upload/draft workflow; its migration and server deployment require operator review. See [Supabase setup and manual migration instructions](docs/SUPABASE.md).
 
 ## GitHub Pages deployment
 
@@ -446,3 +446,11 @@ navigation, back history and skip links against a static server with no SPA
 fallback. This uses Playwright Chromium (install with
 `npx playwright-core install chromium`, or set `BROWSER_EXECUTABLE_PATH` to an
 installed Chromium executable). The test starts and stops its own static server.
+
+### Phase 8B private screenshot draft infrastructure
+
+The separate `/official-import` administrator route supports private source uploads and
+append-only human review drafts after the reviewed migration and server setup. No AI
+interpretation, approval, publication or deployment is enabled. `/results-import` remains
+a fictional in-memory demonstration. See [setup, Phase 8A ledger reconciliation, retention
+proposal and manual approvals](docs/SCREENSHOT_IMPORT.md).

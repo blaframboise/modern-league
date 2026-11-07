@@ -1,0 +1,191 @@
+-- REVIEW ONLY. Requires the verified/reconciled Phase 8A foundation; do not db push blindly.
+-- Phase 8B drafts use the existing immutable originals/correction journal.
+-- The administrator predicate is needed by signed-in users, not anonymous clients.
+-- Remove the unnecessary anonymous SECURITY DEFINER RPC execution grant.
+revoke execute on function public.is_administrator() from anon;
+
+-- Restrict pre-existing draft access to the owning administrator.
+drop policy admin_read on public.import_drafts;
+create policy admin_read on public.import_drafts for select to authenticated
+ using (public.is_administrator() and created_by = auth.uid());
+drop policy admin_read on public.import_corrections;
+create policy admin_read on public.import_corrections for select to authenticated
+ using (public.is_administrator() and exists (select 1 from public.import_drafts d where d.id = draft_id and d.created_by = auth.uid()));
+-- Production draft creation also moves to the trusted server, so the quota cannot be
+-- bypassed with the browser's former direct INSERT permission.
+drop policy admin_create_draft on public.import_drafts;
+revoke insert on public.import_drafts from authenticated;
+drop policy admin_append_correction on public.import_corrections;
+-- Trusted server replays the domain before appending. Remove direct browser correction writes.
+revoke insert on public.import_corrections from authenticated;
+
+alter table public.screenshot_assets add column created_at timestamptz not null default now();
+alter table public.screenshot_assets add constraint screenshot_draft_hash unique(draft_id, sha256);
+drop policy admin_read on public.screenshot_assets;
+create policy admin_read on public.screenshot_assets for select to authenticated
+ using (public.is_administrator() and exists (select 1 from public.import_drafts d where d.id = draft_id and d.created_by = auth.uid()));
+drop policy admin_read on public.extraction_evidence;
+create policy admin_read on public.extraction_evidence for select to authenticated
+ using (public.is_administrator() and exists (select 1 from public.import_drafts d where d.id = draft_id and d.created_by = auth.uid()));
+
+insert into storage.buckets(id, name, public, file_size_limit, allowed_mime_types)
+values ('tournament-sources','tournament-sources',false,10485760,array['image/jpeg','image/png','image/webp']);
+-- SECURITY DEFINER avoids granting anonymous users metadata access just to evaluate a policy.
+create function public.can_read_tournament_source(p_path text) returns boolean
+language sql stable security definer set search_path = '' as $$
+ select public.is_administrator() and exists (
+ select 1 from public.screenshot_assets a join public.import_drafts d on d.id = a.draft_id
+ where a.object_path = p_path and d.created_by = auth.uid())
+$$;
+revoke all on function public.can_read_tournament_source(text) from public;
+grant execute on function public.can_read_tournament_source(text) to anon, authenticated;
+-- No browser INSERT/UPDATE/DELETE or signed upload policy. Edge Function writes only.
+-- Downloads use authenticated Storage requests, not signed/public URLs.
+create policy tournament_source_owner_read on storage.objects for select to authenticated
+ using (bucket_id = 'tournament-sources' and public.can_read_tournament_source(name));
+
+-- Create at most 500 drafts per administrator. The membership row lock serializes
+-- concurrent creates and attachment checks; existing same-owner IDs are idempotent.
+-- Only the trusted Edge handler may execute this function.
+create function public.create_screenshot_draft(p_draft uuid, p_actor uuid, p_original jsonb)
+returns uuid language plpgsql security definer set search_path = '' as $$
+declare previous_owner uuid; begin
+ perform 1 from private.administrators where user_id = p_actor for update;
+ if not found then raise exception 'Forbidden'; end if;
+ select created_by into previous_owner from public.import_drafts where id = p_draft;
+ if found then
+   if previous_owner <> p_actor then raise exception 'Draft unavailable'; end if;
+   return p_draft;
+ end if;
+ if (select count(*) from public.import_drafts where created_by = p_actor) >= 500
+ then raise exception 'Administrator draft quota exceeded'; end if;
+ if p_original is null or jsonb_typeof(p_original) <> 'object'
+ then raise exception 'Invalid draft original'; end if;
+ insert into public.import_drafts(id, created_by, original)
+ values (p_draft, p_actor, p_original);
+ return p_draft;
+end $$;
+revoke all on function public.create_screenshot_draft(uuid,uuid,jsonb) from public,anon,authenticated;
+grant execute on function public.create_screenshot_draft(uuid,uuid,jsonb) to service_role;
+
+-- Bounded, durable per-administrator rate accounting, not an Edge-memory counter.
+-- One row per administrator/action avoids accumulating an unbounded rate history.
+-- Call before expensive upload buffering or persistent writes. Failed later actions
+-- still consume their request allowance, limiting repeated abuse/retries.
+create table private.screenshot_request_rates (
+ actor uuid not null references auth.users(id),
+ action text not null check (action in ('create','upload','correct','extract','retention-preview','retention-delete-orphan')),
+ window_started_at timestamptz not null,
+ attempts integer not null check (attempts between 1 and 10000),
+ primary key(actor, action)
+);
+alter table private.screenshot_request_rates enable row level security;
+revoke all on private.screenshot_request_rates from public, anon, authenticated, service_role;
+
+create function public.consume_screenshot_request(p_actor uuid, p_action text)
+returns integer language plpgsql security definer set search_path = '' as $$
+declare allowed integer; attempt_count integer; begin
+ allowed := case p_action
+  when 'upload' then 40
+  when 'create' then 60
+  when 'correct' then 120
+  when 'extract' then 20
+  when 'retention-preview' then 20
+  when 'retention-delete-orphan' then 10
+  else null end;
+ if allowed is null then raise exception 'Unsupported action'; end if;
+ -- Ensures the caller still holds administrator status at the mutation boundary.
+ perform 1 from private.administrators where user_id = p_actor for update;
+ if not found then raise exception 'Forbidden'; end if;
+ insert into private.screenshot_request_rates(actor,action,window_started_at,attempts)
+ values(p_actor,p_action,pg_catalog.now(),1)
+ on conflict(actor,action) do update
+ set window_started_at = case
+   when private.screenshot_request_rates.window_started_at <= pg_catalog.now() - interval '1 hour'
+   then pg_catalog.now() else private.screenshot_request_rates.window_started_at end,
+ attempts = case
+   when private.screenshot_request_rates.window_started_at <= pg_catalog.now() - interval '1 hour'
+   then 1 else least(private.screenshot_request_rates.attempts + 1, 10000) end
+ returning attempts into attempt_count;
+ if attempt_count > allowed then
+   -- Keep the over-limit count committed; Edge responds 429, not an exception.
+   return 0;
+ end if;
+ return allowed - attempt_count;
+end $$;
+revoke all on function public.consume_screenshot_request(uuid,text) from public,anon,authenticated;
+grant execute on function public.consume_screenshot_request(uuid,text) to service_role;
+
+-- Count/hash checks serialize per draft. Invoked only after server validates bytes.
+create function public.attach_screenshot(p_draft uuid, p_actor uuid, p_hash text, p_mime text, p_size integer)
+returns public.screenshot_assets language plpgsql security definer set search_path = '' as $$
+declare asset public.screenshot_assets; begin
+ -- Serialize all attachments for this administrator, including across different drafts.
+ -- Otherwise simultaneous draft uploads could exceed the owner-wide byte quota.
+ perform 1 from private.administrators where user_id = p_actor for update;
+ if not found then raise exception 'Forbidden'; end if;
+ perform 1 from public.import_drafts where id = p_draft and created_by = p_actor for update;
+ if not found then raise exception 'Draft not found'; end if;
+ select * into asset from public.screenshot_assets where draft_id = p_draft and sha256 = p_hash;
+ if found then return asset; end if;
+ if (select count(*) from public.screenshot_assets where draft_id = p_draft) >= 8 then raise exception 'Image count limit'; end if;
+ -- 200 MiB of linked sources per administrator. Retry of an existing hash above is free.
+ -- Unlinked Storage objects are not counted: orphan cleanup and rate limits remain required.
+ if (select coalesce(sum(a.byte_size),0) from public.screenshot_assets a
+     join public.import_drafts d on d.id = a.draft_id
+     where d.created_by = p_actor) + p_size > 209715200
+ then raise exception 'Administrator source storage quota exceeded'; end if;
+ insert into public.screenshot_assets(draft_id,object_path,mime_type,byte_size,sha256)
+ values (p_draft,p_actor::text || '/' || p_draft::text || '/' || p_hash,p_mime,p_size,p_hash) returning * into asset;
+ return asset;
+end $$;
+revoke all on function public.attach_screenshot(uuid,uuid,text,text,integer) from public, anon, authenticated;
+grant execute on function public.attach_screenshot(uuid,uuid,text,text,integer) to service_role;
+-- Original/correction/evidence/asset UPDATE and DELETE guards remain intact.
+-- No approval/publication grants or endpoints added.
+-- Restrictive guards prevent a broad pre-existing Storage policy from opening this bucket.
+create policy tournament_source_read_guard on storage.objects as restrictive for select to anon, authenticated
+ using (bucket_id <> 'tournament-sources' or public.can_read_tournament_source(name));
+create policy tournament_source_insert_guard on storage.objects as restrictive for insert to anon, authenticated
+ with check (bucket_id <> 'tournament-sources');
+create policy tournament_source_update_guard on storage.objects as restrictive for update to anon, authenticated
+ using (bucket_id <> 'tournament-sources') with check (bucket_id <> 'tournament-sources');
+create policy tournament_source_delete_guard on storage.objects as restrictive for delete to anon, authenticated
+ using (bucket_id <> 'tournament-sources');
+grant select, insert on public.import_drafts, public.import_corrections, public.screenshot_assets to service_role;
+
+-- Commit ownership/admin/source-set checks under the same parent lock as asset attachment.
+-- Domain replay remains mandatory in Edge code; this RPC is service-only.
+create function public.append_screenshot_review(p_draft uuid, p_actor uuid, p_revision integer,
+ p_snapshot jsonb, p_reason text, p_sources uuid[]) returns void
+language plpgsql security definer set search_path = '' as $$
+declare existing public.import_corrections; begin
+ if not exists(select 1 from private.administrators where user_id = p_actor) then raise exception 'Forbidden'; end if;
+ perform 1 from public.import_drafts where id = p_draft and created_by = p_actor for update;
+ if not found then raise exception 'Draft not found'; end if;
+ select * into existing from public.import_corrections where draft_id = p_draft and revision = p_revision;
+ if found then
+   if existing.snapshot = p_snapshot and existing.reason = p_reason then return; end if;
+   raise exception 'Stale revision';
+ end if;
+ if p_revision <> coalesce((select max(revision) from public.import_corrections where draft_id = p_draft),0) + 1
+ then raise exception 'Stale revision'; end if;
+ if p_sources is null or cardinality(p_sources) = 0 or
+   (select array_agg(id order by id) from public.screenshot_assets where draft_id = p_draft)
+   is distinct from (select array_agg(s order by s) from unnest(p_sources) s)
+ then raise exception 'Source set changed; review before retry'; end if;
+ if p_snapshot->>'reason' is distinct from p_reason then raise exception 'Reason mismatch'; end if;
+ insert into public.import_corrections(draft_id,revision,snapshot,reason,actor)
+ values(p_draft,p_revision,p_snapshot,p_reason,p_actor);
+end $$;
+revoke all on function public.append_screenshot_review(uuid,uuid,integer,jsonb,text,uuid[]) from public,anon,authenticated;
+grant execute on function public.append_screenshot_review(uuid,uuid,integer,jsonb,text,uuid[]) to service_role;
+
+-- Phase 8A row-level guards cannot intercept TRUNCATE (which also bypasses RLS).
+-- Preserve append-only journals even under broad Supabase service-role defaults.
+do $$ declare t text; begin
+ foreach t in array array['import_drafts','import_corrections','extraction_evidence','screenshot_assets','approval_history','tournament_results','player_records','published_results'] loop
+   execute format('revoke truncate on public.%I from public, anon, authenticated, service_role', t);
+   execute format('create trigger immutable_truncate before truncate on public.%I for each statement execute function private.immutable_history()', t);
+ end loop;
+end $$;

@@ -8,6 +8,7 @@ import { PlaceholderPage, sectionContent } from '../pages/PlaceholderPage';
 import { EventsPage, SeasonsPage } from '../pages/CalendarPages';
 import { ResultsReviewPage } from '../pages/ResultsReviewPage';
 import { ResultsImportPage } from '../pages/ResultsImportPage';
+import { OfficialImportPage } from '../pages/OfficialImportPage';
 import { AdminPage } from '../pages/AdminPage';
 import { navigation } from './navigation';
 
@@ -19,7 +20,7 @@ export function App() {
   useEffect(() => {
     setMenuOpen(false);
     window.scrollTo(0, 0);
-    document.title = `${navigation.find(item => item.path === pathname)?.label ?? (pathname === '/admin' ? 'Administrator sign in' : 'Page not found')} | Modern League`;
+    document.title = `${navigation.find(item => item.path === pathname)?.label ?? (pathname === '/official-import' ? 'Private screenshot drafts' : pathname === '/admin' ? 'Administrator sign in' : 'Page not found')} | Modern League`;
     if (!firstRender.current) mainRef.current?.focus();
     firstRender.current = false;
   }, [pathname]);
@@ -35,6 +36,7 @@ export function App() {
     </div></header>
     <main id="main" tabIndex={-1} ref={mainRef}><Routes>
       <Route path="/" element={<HomePage />} />
+      <Route path="/official-import" element={<OfficialImportPage />} />
       <Route path="/admin" element={<AdminPage />} />
       <Route path="/results-import" element={<ResultsImportPage />} />
       <Route path="/results-review" element={<ResultsReviewPage />} />

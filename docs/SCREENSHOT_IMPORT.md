@@ -1,0 +1,328 @@
+# Phase 8B Part 1: secure screenshot import
+
+Status: implementation and SQL review artifacts. No production changes, real screenshots,
+provider credentials, extraction, approval or publication were used/enabled.
+
+`/official-import` is a separate administrator workflow linked from `/admin`. The
+existing `/results-import` remains an explicitly fictional, deterministic mock demo.
+Configuring Supabase never turns the demo into an official import. Public leaderboards
+remain independent; draft values never enter scoring or public projections.
+
+## Audit and reuse
+
+- Phase 6 `src/results/index.ts`: immutable originals and reasoned append-only
+  corrections. Server saves call `correctImport`, never `markReady`/`decideImport`.
+- `src/data/reconstruction.ts`: strict complete history reconstruction and Phase 7
+  extraction evidence replay before every server correction. Exact counts detect
+  truncated histories; no revisions are silently discarded.
+- `src/results/extractionEvidence.ts` and `src/extraction/draft.ts`: preserve observed,
+  suggested, missing, original report versions and value-bound confirmations. Existing
+  extraction drafts can be recovered without stripping their evidence. Manual import
+  drafts have no extraction report because no interpretation has occurred.
+- `src/calendar/index.ts` and all `src/scoring/` modules are unchanged. Existing
+  `validateImport` still delegates calendar/DST, championship and aggregate validation.
+  Drafts may be incomplete/invalid; no operational readiness/approval endpoint exists.
+  Human source review does not establish calendar assignment or official registry identity.
+
+## Trust and private data
+
+The migration creates `tournament-sources`, a **private** bucket: 10 MiB per image,
+eight metadata-linked images per draft, JPEG/PNG/WebP only. No original filenames
+are persisted. Object paths are `user UUID/draft UUID/SHA-256`, generated server-side.
+The browser never obtains a public or signed URL. Authenticated Storage download
+returns a Blob; temporary local object URLs are revoked on replacement, unmount and
+session change. A downloaded copy cannot be revoked; operators must secure their device.
+
+RLS requires both current `is_administrator()` and draft ownership for drafts,
+corrections, evidence, metadata and Storage reads. Other administrators cannot read
+someone else's drafts. Restrictive Storage guards also deny writes and foreign/private
+reads when an unrelated permissive Storage policy exists. Public/anonymous downloads
+are denied. Keep the bucket private in dashboard settings; a future dashboard change
+can invalidate the design and must be reviewed.
+
+Only the Edge Function can create official private drafts, upload or append operational corrections. It validates
+JWTs with `auth.getUser`, then checks `public.is_administrator()` using that caller's
+JWT on **every** request, then verifies draft ownership before using its server-only
+service role. `verify_jwt=false` supports publishable-key clients; it does not remove
+the handler's mandatory JWT/admin checks. Missing origin configuration fails closed;
+CORS allows only `IMPORT_ALLOWED_ORIGIN` (scheme/host/port, no URL path). Origin is an
+additional browser control; JWT/admin/ownership checks are the authority.
+
+Browser MIME/count/size checks are usability checks. Trusted code bounds streamed
+request bytes before buffering, validates MIME and PNG/JPEG/WebP signatures, hashes
+bytes, sets Storage content type and generates paths. Storage enforces size and MIME
+again. These are signature checks, **not full image decoding or malware scanning**.
+Files are untrusted binary data; any future provider must decode under pixel/memory/
+time limits, reject malformed files and defend against decompression bombs before
+sending images externally. SVG/HEIC and arbitrary path/user-ID inputs are rejected.
+
+Server limits correction payloads to 1 MiB and reasons/field notes to 2,000 characters.
+Storage count enforcement locks the parent draft in `attach_screenshot`, rechecks
+administrator membership and ownership, and deduplicates `(draft_id, sha256)` atomically.
+A separate service-only `create_screenshot_draft` RPC now caps drafts at **500 per
+administrator**. It locks the administrator membership row so concurrent create
+requests cannot bypass the limit, and it accepts identical same-owner retries.
+Direct authenticated/browser INSERT into `import_drafts` is revoked in the pending
+8B migration. The earlier browser repository draft-create method is intentionally
+unavailable for official use; the `/official-import` route calls the Edge Function.
+
+The RPC now locks the administrator membership row before attaching, enforcing a
+**200 MiB owner-wide quota on linked source bytes** across all drafts in addition
+to the eight-images-per-draft limit. Existing hash retries do not consume quota.
+Simultaneous uploads for the same owner serialize this check; an over-quota attach
+fails without adding metadata. A storage object already uploaded before such a
+failure can remain an orphan and needs separate cleanup. The quota does **not**
+count unlinked objects or limit the number of drafts, requests, or independent
+upload attempts; do not claim full billing/abuse containment before rate limits,
+per-user draft quotas, cleanup and monitoring are implemented.
+No browser gets execution permission on that service-only function.
+The private, service-only `consume_screenshot_request` RPC now counts authenticated
+administrator requests in PostgreSQL, including retries that later fail. Current
+one-hour limits are **40 uploads, 60 draft creates, 120 corrections, and 20
+unconfigured extraction requests per administrator**. The durable counter is one
+row per administrator/action and resets after an hour; it never grants permission
+to a non-administrator or permits browser invocation. Requests above the limit
+return HTTP 429 before upload buffering. These are protective limits, not a
+promise against distributed abuse, per-IP floods, compromised service credentials,
+or unlimited orphan Storage objects; gateway controls and monitoring remain
+necessary before admitting real participant data. Original and
+correction UPDATE/DELETE triggers remain in place; 8B also blocks TRUNCATE with
+statement triggers and explicit privilege revocation; approval/publication grants remain
+closed. Do not expose service-role keys, database passwords or provider secrets in
+frontend code or `VITE_*`. Only public URL/publishable key belong there.
+
+## Review provenance, recovery and concurrency
+
+Before selecting image files, the browser requires the administrator to affirm that
+upload permission has been obtained and unrelated personal information removed.
+This is a deliberate operator acknowledgment, **not** proof that participants gave
+permission, nor a substitute for the league's approved privacy policy.
+
+1. Create an empty unresolved draft. The client retains a request UUID across retries
+   of a failed creation; the server recognizes a committed UUID owned by that user.
+   No date, year, tournament kind, rounds, player or record is inferred.
+2. Select images. Upload progress is per file. Content hashes make same-draft image
+   retries idempotent (cross-draft duplicates stay separate to avoid leaking existence).
+   Cross-draft/event duplication is not official deduplication or approval reservation.
+3. View private sources. Enter verified values in the advanced JSON review editor.
+   Preserve null/empty missing values; year 0 and empty kind are existing invalid
+   unresolved sentinels. Player IDs need explicit independent registry verification.
+4. Prepare the field evidence form. For **every populated tournament/record field**,
+   explicitly enter one or more source asset UUIDs and a human observation note.
+   `rowId` and `playerId` are structural/registry identities, not image interpretation.
+   Provide a correction reason and confirm source review before saving.
+5. The server checks evidence paths/completeness and that all referenced sources belong
+   to this draft. The immutable correction `reason` contains a version-1 human-review
+   envelope `{version, mode, reason, sources, fields:[{path,sources,note}]}`. Its `values`
+   contains the exact reviewed values. Actor/time/revision remain in existing database
+   columns. This is human evidence, never an AI extraction report. Corrections retain
+   the entire earlier audit; extraction confirmations, if present, remain value-bound.
+6. Refresh and select the saved draft to reconstruct the full history and sources.
+   Unsaved JSON text is deliberately not written into localStorage. Refresh loses
+   **unsaved** text; save before leaving or copy edits to an approved private location.
+   Auth token refresh and duplicate same-user SIGNED_IN events preserve the editor;
+   account changes/sign-out clear private state without mutating the existing session.
+
+A stale revision cannot overwrite another action: unique `(draft_id, revision)` rejects
+races. The server recognizes an exact replayed correction at the same revision, including
+source evidence and explicit extraction confirmations. A different action returns 409;
+The service-only append RPC also locks the draft and rechecks current administrator membership, ownership, revision and the exact source set at commit. UI retains unsaved text. Copy it before reloading and reconciling changes. No automatic
+merge, name matching, registry identity allocation, calendar inference or audit repair.
+For existing long histories the exact-count guard fails closed at API page limits;
+consistent pagination is a future enhancement.
+
+Storage and PostgreSQL are not one transaction. Storage writes precede metadata attach.
+If metadata fails, bytes stay private and unreadable via owner Storage policy until a
+retry attaches them; deterministic hash paths let a retry recover the existing object.
+Do **not** immediately delete on attach failure: concurrent retries could have attached
+it. A batch failure may leave earlier images successfully stored; reload the draft and
+retry the same files. Concurrent ninth uploads may produce unlinked private objects;
+SQL never links more than eight. Storage failures do not create misleading metadata.
+Metadata linking does not prove full decode validity; provider processing must revalidate.
+
+## Versioned server extraction interface
+
+POST `/functions/v1/screenshot-import?action=...`, `Authorization: Bearer <user JWT>`,
+`x-draft-id: <UUID>`. Supported actions:
+
+| Action | Request | Behavior |
+| --- | --- | --- |
+| create | empty JSON | Idempotently create unresolved owned draft |
+| upload | raw bounded image bytes with exact image MIME | Validate/store/link private immutable source |
+| correct | `{revision,values,reason,confirm:[],sources,evidence}` | Replay and append human correction; stale conflicts fail |
+| extract | empty JSON | Authenticate/authorize then return **501 EXTRACTION_NOT_CONFIGURED** |
+
+No approval, publication or official-write action exists. A separate explicitly confirmed, orphan-only retention action is documented above. Do not use a mock in
+the real route. `src/importInfrastructure/provider.ts` defines `ServerExtractionAdapterV1`:
+versioned provider identity, immutable source IDs/hashes/MIME/bytes, cancellation signal,
+and existing Phase 7 `ExtractionReport` v1 output. The deterministic `mockProvider` is
+unchanged for tests/demo. No provider has been chosen, configured or tested.
+
+Before enabling a future adapter: review provider privacy/consent/region/retention,
+set server-only credentials, add timeouts and usage quotas, parse through
+`parseExtraction(report, exactSourceIds)`, reject fictional output, and append a
+versioned report linked to immutable source IDs in an atomic reviewed persistence
+operation. Preserve field missing/suggested/observed distinctions and explicit player
+resolution. Current human originals must not be replaced with later extraction output;
+use a separately designed append-only extraction attempt/link. Provider prompt injection
+must never influence authorization or publication. This interface is preparation only.
+
+## Approved retention rules and manual orphan-only cleanup
+
+The organizer approved the following defaults: orphaned unlinked files become
+eligible after 24 hours; abandoned, unapproved drafts after 90 days of
+inactivity; and published-result source images one year after the competitive
+year ends. A hold blocks cleanup. Evidence, source IDs and human corrections
+remain immutable.
+
+`supabase/verification/screenshot-retention-eligibility.sql` and the
+administrator-only Retention Review panel show candidates for human review.
+`202611060003_screenshot_retention_audit.sql` creates a private append-only
+event journal. `202611060004_screenshot_retention_review.sql` exposes an
+owner-scoped, service-only preview RPC.
+
+`202611060005_screenshot_orphan_cleanup.sql` adds a **manual orphan-only**
+deletion transaction: it checks administrator ownership, source age, lack of
+linked metadata and absence of a hold while holding the same administrator row
+lock used for source attachment. The Edge Function calls the Storage API
+`remove([path])`, checks that the file no longer appears in Storage, then
+records an immutable success event. Pending requests can be retried after
+transient failures. Requests are limited to 10 per administrator per hour.
+The UI requires a human review, an explicit reason and a confirmation.
+
+**Only unlinked, 24-hour-old files are deletable here.** The UI cannot delete
+draft evidence, reviewed images, or published tournament sources. The 90-day
+and one-year candidates are informational until an appeal-aware, backed-up
+operator workflow is separately verified. No scheduled purge exists. This
+manual workflow does not erase backups, external copies or provider records;
+the organizer must arrange participant notice and data-request handling before
+operational use.
+
+The aggregate, path-free report
+[`supabase/verification/screenshot-storage-audit.sql`](../supabase/verification/screenshot-storage-audit.sql)
+tracks orphan counts and estimated bytes; it never changes Storage.
+
+Linked-source and draft-count quotas, rate limits and the owner-only bucket
+reduce but do not eliminate account compromise, distributed abuse or accidental
+sensitive uploads. Gateway monitoring, provider governance and retention
+operations require ongoing review.
+
+See [migration-readiness review and read-only dashboard checklist](MIGRATION_READINESS.md)
+for exact catalog/ledger queries and the checked-in Phase 8A reference.
+
+## Manual approval checklist
+
+No item below was performed against production. **Do not merge or deploy this delivery.**
+
+1. **Reconcile Phase 8A first.** Confirm the production project reference through the
+   dashboard. Export/back up schema and inspect tables, functions, RLS, grants and
+   immutable triggers against `202611060001_foundation.sql` and a fresh local database.
+   Check `supabase migration list --linked` using an authorized workstation. The SQL
+   Editor already applied Phase 8A; do not run it again or edit the historical file.
+   If its ledger entry is absent and schema equivalence has been verified, stop for
+   a separately approved history-only reconciliation plan. This review authorizes
+   no repair command. Investigate divergence with separately reviewed forward changes;
+   never mark an unverified/different schema as applied.
+2. Only after ledger reconciliation, review the pending list with `supabase db push
+   --dry-run` and confirm that **only** `202611060002_secure_screenshot_import.sql` is
+   pending. Do not recommend/execute a live push beforehand. Stop if foundation appears
+   pending or any unexpected migration appears. Remote application needs separate manual
+   approval; this PR authorizes none. SQL Editor application of 8B also needs its own
+   controlled ledger entry; do not mix application methods silently.
+3. On a fresh **disposable local/staging** Supabase, apply migrations in order. Inspect
+   bucket privacy, 10 MiB/MIME restrictions and all permissive/restrictive policies.
+   Check no browser grants permit corrections, asset writes or official writes. Confirm
+   existing admin account/authentication remains unchanged; no auth settings are migrated.
+4. Review and approve retention, real screenshot consent, limits/quotas, independent
+   registry verification, incident handling and source deletion/tombstone governance.
+5. After separate deployment approval, configure Edge Function server secrets:
+   Supabase-managed URL/anon/service-role keys and `IMPORT_ALLOWED_ORIGIN` matching the
+   exact Pages/custom-domain origin. Never configure provider credentials yet. Review
+   function authentication behavior with `verify_jwt=false`, then deploy the function
+   only to staging first. Existing frontend public URL/key configuration is unchanged.
+6. Using synthetic images and separate ordinary/admin/admin-B users in local/staging,
+   test raw function calls (no token, invalid/expired JWT, non-admin, revoked admin,
+   foreign draft), direct Storage requests and private/public URL attempts, retries,
+   concurrent ninth images, stale corrections, refresh recovery and sign-out. The
+   committed test harness covers logic and PostgreSQL policies, not the complete hosted
+   Auth/PostgREST/Storage/Edge gateway. Do not declare production integration verified
+   until these staging checks pass. Real camera/HEIC flows need device checks separately.
+
+## Opt-in OpenAI-assisted transcription (Phase 8C preview)
+
+The organizer approved OpenAI as the screenshot-reading provider for development
+with an initial **$5 per calendar month application-side allowance**. Images are
+sent only after an authenticated administrator chooses **Analyze source with OpenAI**.
+The server checks membership, draft ownership, image metadata, byte count and SHA-256
+digest, then makes a single server-side OpenAI Responses API request.
+
+- Provider: `gpt-4.1-mini`, high-detail input; `store: false`.
+- Output: strict structured JSON, maximum 24 suggested rows, bounded completion
+  tokens. Missing or unclear fields stay `null`. Unresolved names are **never**
+  matched to league player registry IDs. Image text is treated as untrusted data.
+- No source is sent if the `OPENAI_API_KEY` secret is absent, the source does not
+  belong to the administrator's draft, its integrity check fails, or the monthly
+  authorization allowance has been exhausted.
+- Budget: the pending `202611060006_ai_preview_budget.sql` migration reserves
+  **25 cents per request, up to 20 total requests across the league in a UTC
+  calendar month**. The reservation is made before network transmission and
+  intentionally is not refunded on failures. This is a conservative **request
+  allowance, not an exact billing meter or a guaranteed provider spending cap**.
+  Provider-side usage, pricing, and billing limits require separate controls.
+- Only a verified human reviewer can copy the temporary suggestions into the
+  review editor. Copying does not save them; the ordinary field-evidence, reason
+  and revision requirements still apply. The AI never approves, publishes, updates
+  standings, or persists its raw report.
+- The browser receives structured suggestions only, never the OpenAI secret.
+  Raw screenshot bytes are transmitted to OpenAI from the trusted Edge Function.
+  Do not send real tournament images before participant privacy notices and
+  provider processing terms have been reviewed.
+- For future hosting, configure `OPENAI_API_KEY` **only in Supabase Edge Function
+  secrets**, not in GitHub source, Vite environment variables, localStorage or chat.
+  `IMPORT_ALLOWED_ORIGIN` remains set to the exact administrator website origin.
+  No API key is needed for synthetic CI tests.
+
+No live OpenAI API requests have been made by the automated tests. Test fixtures
+inject a deterministic fake response, preserving the no-charge development gate.
+
+## Automated disposable Supabase integration check
+
+The pull request includes `.github/workflows/supabase-local.yml`, which starts
+Supabase services in a disposable GitHub Actions runner and applies checked-in
+migrations **locally**. It requires no production credentials, project link, or
+remote database password. The job is a migration and service-start smoke test,
+not a substitute for real authenticated browser/Storage/Edge gateway attack
+testing. A workflow failure blocks readiness; do not bypass it to deploy.
+This workflow uses GitHub Actions runner minutes and Docker image downloads,
+but does not create a paid Supabase project or modify the production database.
+
+## Verification and limits
+
+`npm run typecheck`, `npm test`, `npm run build`, `npm run test:browser` cover existing
+rules and new Node/PGlite/Playwright synthetic workflows. `npm run test:browser:secure`
+expects a second dev server with a **fake** Supabase configuration described in that test;
+all API requests are intercepted. No real credentials are needed. Tests exercise actual
+server handler code through injected SDK clients and actual PostgreSQL policy evaluation
+with minimal Auth/Storage stubs. Supabase CLI/Docker and an AI provider are not prerequisites
+for these tests, but full local/staging integration and hosted Edge deployment remain separate
+verification requirements. See the PR for observed commands/results and any limitations.
+
+### Observed verification for this delivery
+
+- `npm run typecheck`: passed (frontend, domain and TypeScript tests).
+- `npm test`: 111 passed (after the follow-up migration/security review), including actual handler requests with injected SDK clients
+  and PostgreSQL evaluation of both migrations against synthetic Auth/Storage tables.
+- `npm run build`: passed; Vite reports its existing >500 kB chunk advisory.
+- `BROWSER_EXECUTABLE_PATH=/usr/bin/chromium npm run test:browser`: passed
+  (existing fictional import desktop/mobile/landscape and administrator fallback).
+- `BROWSER_EXECUTABLE_PATH=/usr/bin/chromium npm run test:browser:secure`: passed
+  (synthetic API interception, mobile/desktop upload, evidence review, recovery,
+  non-admin gate, existing session and same-user auth event preservation).
+- Deno 2.9.6 `deno check --no-lock supabase/functions/screenshot-import/index.ts`: passed.
+- No full Supabase Auth/PostgREST/Storage/Edge integration or provider interpretation
+  was run. Dashboard setup, Phase 8A ledger reconciliation and separate operator
+  approval remain mandatory before operational use. No real screenshots were used.
+
+The follow-up review on this branch adds read-only production verification artifacts
+and regression coverage for UUID canonicalization, service-role execution and TRUNCATE.
+See MIGRATION_READINESS.md for findings, remaining blockers and actual verification scope.
