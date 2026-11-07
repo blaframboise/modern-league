@@ -227,6 +227,17 @@ No item below was performed against production. **Do not merge or deploy this de
    Auth/PostgREST/Storage/Edge gateway. Do not declare production integration verified
    until these staging checks pass. Real camera/HEIC flows need device checks separately.
 
+## Automated disposable Supabase integration check
+
+The pull request includes `.github/workflows/supabase-local.yml`, which starts
+Supabase services in a disposable GitHub Actions runner and applies checked-in
+migrations **locally**. It requires no production credentials, project link, or
+remote database password. The job is a migration and service-start smoke test,
+not a substitute for real authenticated browser/Storage/Edge gateway attack
+testing. A workflow failure blocks readiness; do not bypass it to deploy.
+This workflow uses GitHub Actions runner minutes and Docker image downloads,
+but does not create a paid Supabase project or modify the production database.
+
 ## Verification and limits
 
 `npm run typecheck`, `npm test`, `npm run build`, `npm run test:browser` cover existing
