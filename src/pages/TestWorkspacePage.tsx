@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { supabaseConfiguration } from '../data/client';
 import { leagueRepository } from '../data/repository';
 import { effectiveValues, potentialPlayers } from '../results';
 import type { ImportDraft, ImportedResult } from '../results';
 import { suggestDisplayName } from '../importInfrastructure/displayNames';
 import { calculateStandings } from '../scoring/standings';
+import { calculateRegularEventPoints } from '../scoring/regular';
 import type { StandingsInput } from '../scoring/standings';
 import type { Json } from '../data/database';
 
@@ -17,6 +18,8 @@ type Entry = {row:ImportedResult;playerId:string;displayName:string};
 const seasonIds=['s1','s2','s3','s4'];
 const reviewName=(value:string) => suggestDisplayName(value);
 export function TestWorkspacePage() {
+  const [searchParams]=useSearchParams();
+  const incomingDraft=searchParams.get('draft');
   const {client}=supabaseConfiguration;
   const [access,setAccess]=useState('Checking administrator access…');
   const [allowed,setAllowed]=useState(false);
@@ -37,7 +40,8 @@ export function TestWorkspacePage() {
   const [busy,setBusy]=useState(false);
   const [error,setError]=useState('');
   const [message,setMessage]=useState('');
-  const [tab,setTab]=useState<'players'|'events'|'standings'>('players');
+  const [tab,setTab]=useState<'players'|'events'|'standings'>(incomingDraft?'events':'players');
+  const [mappingReviewed,setMappingReviewed]=useState(false);
 
   async function refresh() {
     if (!client) return;
@@ -87,7 +91,7 @@ export function TestWorkspacePage() {
       if(!loaded.corrections.length)throw new Error('Review and save the screenshot results first.');
       const values=effectiveValues(loaded);
       const existing=events.find(e=>e.draft_id===id);
-      setDraft(loaded);setDraftId(id);
+      setDraft(loaded);setDraftId(id);setTab('events');setMappingReviewed(false);
       setEventName(existing?.event_name??values.tournament.name??'');
       setSeason(String(existing?.season_ordinal??1));
       setRounds(String(existing?.scheduled_rounds??values.tournament.scheduledRounds??4));
@@ -96,9 +100,13 @@ export function TestWorkspacePage() {
         playerId:savedResults.find(r=>r.tournament_id===existing?.id && r.row_id===row.rowId)?.player_id??propose(row.importedName),
         displayName:reviewName(row.importedName),
       })));
-      setMessage('New names are ready for test registration. Verify capitalization and suggested matches.');
+      setMessage('Check the player identities, spelling and match records before registering this test tournament.');
     });
   }
+  useEffect(()=>{
+    if(allowed && incomingDraft && draftOptions.some(d=>d.id===incomingDraft) && draftId!==incomingDraft) void loadDraft(incomingDraft);
+  },[allowed,incomingDraft,draftOptions,draftId]);
+
   async function createPlayer() {
     if(!client)return;
     await action(async()=>{
@@ -124,6 +132,7 @@ export function TestWorkspacePage() {
     await action(async()=>{
       const n=Number(rounds),s=Number(season);
       if(!Number.isSafeInteger(n)||n<1||n>20||!seasonIds[s-1])throw new Error('Choose a season and Swiss round count.');
+      if(!mappingReviewed)throw new Error('Confirm that you reviewed the identities and results.');
       if(!entries.length||entries.some(e=>(!e.playerId&&!e.displayName.trim())||e.row.wins===null||e.row.losses===null||e.row.draws===null))
         throw new Error('Every player requires a name or existing match and a complete match record.');
       const existingIds=entries.filter(e=>e.playerId).map(e=>e.playerId);
@@ -135,7 +144,7 @@ export function TestWorkspacePage() {
         p_season:s,p_rounds:n,p_links:links as unknown as Json,
       });
       if(response.error)throw new Error(response.error.message);
-      await refresh();setMessage('New test players registered and tournament linked. Official standings remain unchanged.');
+      await refresh();setTab('standings');setMappingReviewed(false);setMessage('Test tournament saved. The updated private standings are displayed below. Official standings remain unchanged.');
     });
   }
   const input:StandingsInput={
@@ -180,25 +189,27 @@ export function TestWorkspacePage() {
         </form></>}
       </div>}
       {tab==='events'&&<div className="sandbox-section">
-        <h2>Match a reviewed tournament</h2>
+        <h2>Confirm players and test results</h2>
         <p>Select a saved screenshot review. Unrecognized players are registered automatically on save. Verify suggested existing matches.</p>
         <label>Reviewed screenshot <select value={draftId} disabled={busy} onChange={e=>{const id=e.target.value;if(id)void loadDraft(id);}}>
           <option value="">Select a private review</option>{draftOptions.map(d=><option key={d.id} value={d.id}>{events.find(e=>e.draft_id===d.id)?.event_name??`Reviewed draft ${d.id.slice(0,8)}`}</option>)}
         </select></label>
         {draft&&<div className="sandbox-event-editor">
-          <label>Test event name<input value={eventName} maxLength={200} onChange={e=>setEventName(e.target.value)}/></label>
-          <label>Simulated 2027 season<select value={season} onChange={e=>setSeason(e.target.value)}>{seasonIds.map((v,i)=><option key={v} value={String(i+1)}>Season {i+1}</option>)}</select></label>
-          <label>Scheduled Swiss rounds<input type="number" min={1} max={20} value={rounds} onChange={e=>setRounds(e.target.value)}/></label>
-          <div className="sandbox-table"><table><thead><tr><th>Companion name (reviewed)</th><th>W–L–D</th><th>Test player</th></tr></thead><tbody>
+          <label>Test event name<input value={eventName} maxLength={200} onChange={e=>{setEventName(e.target.value);setMappingReviewed(false)}}/></label>
+          <label>Simulated 2027 season<select value={season} onChange={e=>{setSeason(e.target.value);setMappingReviewed(false)}}>{seasonIds.map((v,i)=><option key={v} value={String(i+1)}>Season {i+1}</option>)}</select></label>
+          <label>Scheduled Swiss rounds<input type="number" min={1} max={20} value={rounds} onChange={e=>{setRounds(e.target.value);setMappingReviewed(false)}}/></label>
+          <div className="sandbox-table"><table><thead><tr><th>Companion name</th><th>W</th><th>L</th><th>D</th><th>Place</th><th>Projected points</th><th>Test player / display name</th></tr></thead><tbody>
           {entries.map((entry,i)=><tr key={entry.row.rowId}>
             <td>{entry.row.importedName}</td>
-            <td>{entry.row.wins??'?'}–{entry.row.losses??'?'}–{entry.row.draws??'?'}</td>
-            <td><select aria-label={`Match ${entry.row.importedName}`} value={entry.playerId} disabled={busy} onChange={e=>setEntries(previous=>previous.map((v,index)=>i===index?{...v,playerId:e.target.value}:v))}>
+            <td>{entry.row.wins??'?'}</td><td>{entry.row.losses??'?'}</td><td>{entry.row.draws??'?'}</td><td>{entry.row.finalPosition??'—'}</td>
+            <td>{Number.isSafeInteger(Number(rounds)) && Number(rounds)>0 && entry.row.wins!==null && entry.row.losses!==null && entry.row.draws!==null && entry.row.wins+entry.row.losses+entry.row.draws<=Number(rounds) ? calculateRegularEventPoints({wins:entry.row.wins,draws:entry.row.draws,scheduledRounds:Number(rounds)}).toFixed(2) : '—'}</td>
+            <td><select aria-label={`Match ${entry.row.importedName}`} value={entry.playerId} disabled={busy} onChange={e=>{setEntries(previous=>previous.map((v,index)=>i===index?{...v,playerId:e.target.value}:v));setMappingReviewed(false)}}>
               <option value="">Register new test player</option>{people.map(p=><option value={p.id} key={p.id}>Existing: {p.display_name}</option>)}
-            </select>{!entry.playerId && <input aria-label={`Display name for ${entry.row.importedName}`} maxLength={120} value={entry.displayName} disabled={busy} onChange={e=>setEntries(previous=>previous.map((v,index)=>i===index?{...v,displayName:e.target.value}:v))} />}</td>
+            </select>{!entry.playerId && <input aria-label={`Display name for ${entry.row.importedName}`} maxLength={120} value={entry.displayName} disabled={busy} onChange={e=>{setEntries(previous=>previous.map((v,index)=>i===index?{...v,displayName:e.target.value}:v));setMappingReviewed(false)}} />}</td>
           </tr>)}</tbody></table></div>
-          <p className="sandbox-note">New players are created on save. Select an existing player only after confirming the identity. Original Companion spelling is preserved.</p>
-          <button disabled={busy||!entries.length} onClick={()=>void saveEvent()}>Register new players and save test tournament</button>
+          <p className="sandbox-note">Projected points use regular-event scoring only; placement does not affect regular-event points. To correct the screenshot values, return to <Link to="/official-import">Upload Results</Link> and edit its saved review. New players are created on save. Select an existing player only after confirming identity.</p>
+          <label className="sandbox-confirm"><input type="checkbox" checked={mappingReviewed} onChange={e=>setMappingReviewed(e.target.checked)}/> I verified player identities, display names, match records and test-event details.</label>
+          <button disabled={busy||!entries.length||!mappingReviewed} onClick={()=>void saveEvent()}>Save tournament and update test standings</button>
           <p className="sandbox-note">No official approvals or published results are created.</p>
         </div>}
         {events.length>0&&<div className="sandbox-table"><h3>Matched test tournaments</h3><table><thead><tr><th>Test event</th><th>Season</th><th>Rounds</th><th>Players</th></tr></thead><tbody>
@@ -207,7 +218,7 @@ export function TestWorkspacePage() {
       </div>}
       {tab==='standings'&&<div className="sandbox-section">
         <h2>2027 scoring simulation</h2>
-        <p>Private test leaderboard. These are hypothetical 2027 points calculated from the matched preseason imports—not published league results.</p>
+        <p>Private test leaderboard. These are hypothetical 2027 points calculated from the matched preseason imports—not published league results. <Link to="/official-import">Upload another tournament</Link>.</p>
         {scoringError&&<p role="alert">{scoringError}</p>}
         {standings&&<><label>Period<select value={season} onChange={e=>setSeason(e.target.value)}>{seasonIds.map((id,i)=><option key={id} value={String(i+1)}>Season {i+1}</option>)}<option value="5">Annual</option></select></label>
         <div className="sandbox-table"><table><thead><tr><th>Rank</th><th>Player</th><th>Points</th><th>Events</th></tr></thead><tbody>
