@@ -7,6 +7,7 @@ import { fieldPaths, validateHumanEvidence } from '../importInfrastructure/evide
 import { SOURCE_BUCKET } from '../importInfrastructure/validation';
 import { validateImageFiles } from '../extraction';
 import { suggestedImportValues } from '../importInfrastructure/suggestions';
+import { suggestDisplayName } from '../importInfrastructure/displayNames';
 import { parseImportValues } from '../data/reconstruction';
 import { effectiveValues } from '../results';
 import type { ImportDraft, ImportValues, ImportedResult, Tournament } from '../results';
@@ -172,6 +173,13 @@ export function OfficialImportPage() {
     setValues(previous => previous ? {...previous,results:previous.results.map((row,i)=>i===index?{...row,...patch}:row)} : previous);
     setReviewed(false);
   }
+  function suggestNameCorrections() {
+    setValues(previous => previous ? {...previous,results:previous.results.map(row => ({
+      ...row, importedName:suggestDisplayName(row.importedName),
+    }))} : previous);
+    setReviewed(false);
+    setNotice('Capitalization suggestions applied to the editable review. Check each name, especially Mc/Mac, particles, and preferred spellings before saving.');
+  }
   function addResult() {
     setValues(previous => previous ? {...previous,results:[...previous.results,blankResult()]} : previous);
     setReviewed(false);
@@ -261,7 +269,10 @@ export function OfficialImportPage() {
               {correcting && <td><button aria-label={`Remove player ${i+1}`} disabled={busy||step==='saved'} onClick={()=>setValues(v=>v?{...v,results:v.results.filter((_,n)=>n!==i)}:v)}>Remove</button></td>}
             </tr>)}</tbody></table></div>
           {!values.results.length && <p>No readable player rows were extracted. Use Make corrections to enter results manually.</p>}
-          {correcting && step!=='saved' && <div className="import-actions"><button type="button" disabled={busy} onClick={addResult}>Add player</button></div>}
+          {correcting && step==='review' && <div className="import-actions">
+            <button type="button" disabled={busy} onClick={suggestNameCorrections}>Suggest name capitalization</button>
+            <button type="button" disabled={busy} onClick={addResult}>Add player</button>
+          </div>}
           {step==='review' && <>
             <div className="import-actions">
               <button type="button" disabled={busy} onClick={()=>{setCorrecting(true);setReviewed(false)}}>Make corrections</button>
@@ -274,7 +285,10 @@ export function OfficialImportPage() {
               {correcting?'Save corrected results':'Approve extracted results'}</button>
             <p className="import-hint">Approval here records your review; it does not publish standings.</p>
           </>}
-          {step==='saved' && <button type="button" onClick={reset}>Upload another result</button>}
+          {step==='saved' && <div className="import-actions">
+            <button type="button" onClick={() => {setStep('review');setCorrecting(true);setReviewed(false);setNotice('Editing a saved test draft will append another review revision; the previous version remains in the audit trail.');}}>Edit saved draft</button>
+            <button type="button" onClick={reset}>Upload another result</button>
+          </div>}
         </>}
         {!values && <p>No results are available yet. Retry analysis or select another image.</p>}
       </div>}
