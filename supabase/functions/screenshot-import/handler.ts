@@ -29,6 +29,12 @@ export function importHandler(env: (name: string) => string | undefined, createC
       const actor = identity.data.user.id;
       if (checked(await userClient.rpc('is_administrator')) !== true) return reply({ error: 'Administrator required.' }, 403);
       const action = new URL(request.url).searchParams.get('action');
+      if (!['create', 'upload', 'correct', 'extract'].includes(action ?? '')) return reply({ error: 'Unsupported action.' }, 400);
+      // This rate check is a separate committed database transaction, so failed
+      // requests and retries still count. Check before buffering image bytes.
+      const allowance = await service.rpc('consume_screenshot_request', { p_actor: actor, p_action: action });
+      if (allowance.error) return reply({ error: 'Request limit unavailable. Retry later.' }, 503);
+      if (allowance.data === 0) return reply({ error: 'Hourly request limit reached. Retry after the window resets.' }, 429);
       const id = uuid(request.headers.get('x-draft-id'));
       if (action === 'create') {
         // The service-only RPC holds an administrator lock and enforces the cross-draft
