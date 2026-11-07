@@ -53,6 +53,7 @@ test('Phase 8B real PostgreSQL: owner isolation, private storage, server-only wr
       assert.equal(value.rows[0].ok,true);
     }
     assert.equal((await db.query<{ok:boolean}>('select public.reserve_screenshot_ai_budget($1) as ok',[a])).rows[0].ok,false);
+    assert.equal((await db.query<{ok:boolean}>('select public.reserve_screenshot_ai_budget($1) as ok',[b])).rows[0].ok,false); // separate administrator shares the same league budget
     assert.equal((await db.query<{spent:number;attempts:number}>('select reserved_cents as spent,attempts from private.screenshot_ai_budgets ')).rows[0].spent,500);
     assert.equal((await db.query<{attempts:number}>('select attempts from private.screenshot_ai_budgets ')).rows[0].attempts,20);
     await assert.rejects(db.query('select public.reserve_screenshot_ai_budget($1)',[d]),/Forbidden/);
