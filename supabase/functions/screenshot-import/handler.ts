@@ -31,13 +31,12 @@ export function importHandler(env: (name: string) => string | undefined, createC
       const action = new URL(request.url).searchParams.get('action');
       const id = uuid(request.headers.get('x-draft-id'));
       if (action === 'create') {
-        const existing = checked(await service.from('import_drafts').select('*').eq('id', id).maybeSingle());
-        if (existing) { if (existing.created_by !== actor) return reply({ error: 'Draft unavailable.' }, 404); return reply({ id }); }
-        const result = await service.from('import_drafts').insert({ id, created_by: actor, original: unresolvedOriginal() });
-        if (result.error) { // A concurrent identical create may already have committed.
-          const retry = checked(await service.from('import_drafts').select('created_by').eq('id', id).single());
-          if (retry.created_by !== actor) return reply({ error: 'Draft unavailable.' }, 404);
-        }
+        // The service-only RPC holds an administrator lock and enforces the cross-draft
+        // count quota atomically. No direct browser or Edge table INSERT is allowed.
+        const created = await service.rpc('create_screenshot_draft', {
+          p_draft: id, p_actor: actor, p_original: unresolvedOriginal(),
+        });
+        if (created.error) return reply({ error: 'Unable to create draft. Owner quota or request conflict; reload and retry.' }, 409);
         return reply({ id });
       }
       const original = checked(await service.from('import_drafts').select('*').eq('id', id).maybeSingle());
