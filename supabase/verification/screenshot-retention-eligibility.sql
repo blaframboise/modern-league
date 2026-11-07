@@ -47,8 +47,9 @@ with source_activity as (
 )
 select c.object_path,c.asset_id,c.draft_id,c.retention_reason,c.activity_at
 from candidates c
-where not exists (
-  select 1 from private.screenshot_retention_events e
-  where e.object_path=c.object_path and e.event_type in ('hold','delete_requested','delete_succeeded')
-)
+where coalesce((
+ select e.event_type from private.screenshot_retention_events e
+ where e.object_path=c.object_path
+ order by e.created_at desc,e.id desc limit 1
+),'') not in ('hold','delete_requested','delete_succeeded')
 order by c.retention_reason,c.activity_at,c.object_path;
