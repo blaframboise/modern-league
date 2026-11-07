@@ -10,7 +10,7 @@ const assert = require('node:assert/strict');
     for (const width of [390,1440]) {
       const page = await browser.newPage({ viewport: { width, height: 1000 } });
       const errors = []; page.on('pageerror', error => errors.push(String(error)));
-      const drafts = []; const corrections = []; const assets = []; let admin = true; let requests = 0; let orphanPresent = true;
+      const drafts = []; const corrections = []; const assets = []; let admin = true; let requests = 0; let orphanPresent = true; let extractFailures = 1;
       const user = { id: actor, aud: 'authenticated', role: 'authenticated', email: 'synthetic@example.invalid', app_metadata: {}, user_metadata: {}, created_at: new Date().toISOString() };
       const token = { access_token: 'synthetic-token', refresh_token: 'synthetic-refresh', token_type: 'bearer', expires_at: Math.floor(Date.now()/1000) + 3600, expires_in: 3600, user };
       await page.addInitScript(token => { localStorage.setItem('sb-127-auth-token', JSON.stringify(token)); }, token);
@@ -29,6 +29,7 @@ const assert = require('node:assert/strict');
           if (action === 'retention-delete-orphan') { orphanPresent=false; return reply({deleted:true,auditId:'synthetic-success'}); }
           if (action === 'retention-preview') return reply({candidates:orphanPresent ? [{object_path:`${actor}/${id}/${'c'.repeat(64)}`,asset_id:null,draft_id:null,retention_reason:'orphan_24h',activity_at:'2026-10-01T00:00:00Z'}] : []});
           if (action === 'extract') {
+            if (extractFailures-- > 0) return reply({error:'OpenAI rejected the image analysis request (400). Check model access and request compatibility.'},400);
             const sourceId=request.postDataJSON().sourceId;
             const mk=(value)=>({value,status:value===null?'missing':'suggested',sources:value===null?[]:[sourceId],warnings:[]});
             const metadata=['name','eventId','sourceKey','date','time','timeZone','offset','year','seasonId','kind','scheduledRounds'];
@@ -58,6 +59,9 @@ const assert = require('node:assert/strict');
       await page.getByRole('checkbox',{name:/I have permission to process this screenshot/}).check();
       await page.getByRole('button',{name:'Submit image for analysis'}).click();
       await page.getByRole('heading',{name:'Review extracted results'}).waitFor();
+      await page.getByText('OpenAI rejected the image analysis request',{exact:false}).waitFor();
+      assert.equal(corrections.length,0);
+      await page.getByRole('button',{name:'Retry image analysis'}).click();
       await page.getByText('Extraction complete.',{exact:false}).waitFor();
       assert.equal(await page.getByLabel('Event name').inputValue(),'AI synthetic event');
       assert.equal(await page.getByLabel('Player 1 name').inputValue(),'AI synthetic name');
