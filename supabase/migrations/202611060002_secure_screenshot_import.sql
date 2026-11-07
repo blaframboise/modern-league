@@ -57,7 +57,7 @@ declare previous_owner uuid; begin
    if previous_owner <> p_actor then raise exception 'Draft unavailable'; end if;
    return p_draft;
  end if;
- if (select count(*) from public.import_drafts where created_by = p_actor) >= 100
+ if (select count(*) from public.import_drafts where created_by = p_actor) >= 500
  then raise exception 'Administrator draft quota exceeded'; end if;
  if p_original is null or jsonb_typeof(p_original) <> 'object'
  then raise exception 'Invalid draft original'; end if;
