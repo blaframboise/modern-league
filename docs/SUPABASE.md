@@ -1,6 +1,6 @@
 # Phase 8A — Supabase foundation
 
-No migrations have been applied remotely. No credentials, official data, storage uploads, live extraction, or publication are included. All existing public pages and import/review flows still use their explicitly fictional in-memory data, even when Supabase is configured. Administrator sign-in is at `/admin` (also linked in the footer).
+Phase 8A’s foundation was already applied manually in the production SQL Editor (operator-provided context). Its CLI migration ledger is not yet verified. This implementation has not applied any remote migrations. No production credentials, real screenshot data, live extraction or publication were used for this delivery. New private upload infrastructure is documented in the Phase 8B guide. All existing public pages and fictional import/review demonstrations still use their explicitly fictional in-memory data, even when Supabase is configured. Administrator sign-in is at `/admin` (also linked in the footer).
 
 ## Connect the existing modern-league project
 
@@ -41,17 +41,14 @@ npm run build
 
 The checked-in migration is `supabase/migrations/202611060001_foundation.sql`. `db reset --local` destroys only the local database; never pass a linked/remote option. The automated database suite uses embedded PostgreSQL (PGlite), with minimal Auth role/UID stubs; it does not substitute for testing the real local Supabase Auth/PostgREST stack.
 
-After reviewing SQL and passing local checks, an operator may apply it to the existing project. Do not create a second project. Back up existing data, inspect existing schemas for conflicts, and use the actual dashboard project reference:
+### Existing production Phase 8A: reconcile before any push
 
-```sh
-npx supabase login
-npx supabase link --project-ref YOUR_ACTUAL_PROJECT_REF
-npx supabase db push --dry-run
-# Review the target and migration list; only then, manually:
-npx supabase db push
-```
-
-Alternatively run the migration once through the project's SQL editor, using a controlled migration ledger. Do not mix workflows without reconciling migration history. Never run either remote application step as part of CI or application startup. No remote command was executed for this delivery.
+**Do not reapply `202611060001_foundation.sql`. Do not run `supabase db push` yet.**
+The foundation was already manually applied. Follow the ledger reconciliation and
+manual approval checklist in [Phase 8B setup](SCREENSHOT_IMPORT.md#manual-approval-checklist).
+This is a prerequisite even for recommending a remote push. A fresh disposable local
+database still applies both migrations in order. No live SQL or CLI history repair
+was executed for this delivery.
 
 ## Configure administrator authentication
 
@@ -97,11 +94,11 @@ These are consistency/integrity checks backed by database immutability, not cryp
 
 The pending foundation migration's comment now specifies this format; its SQL structure, RLS, grants and triggers are unchanged. No live migration or conversion was run. Any local experimental rows using the previous cumulative format are rejected and require explicit operator review/export and recreation in a disposable local database, never silent conversion or history loss.
 
-Approval history, normalized tournament/player records, evidence and screenshot metadata, and a separate public snapshot table establish future storage boundaries. Foreign keys require approved decisions for results; unique source/event identities prevent duplicate official events. Record counts are nonnegative and bounded by scheduled rounds. All audit/official rows are immutable. No browser grant enables approvals, publication, calendar/registry writes, extraction evidence writes or screenshot writes. Administrators can read those private records and create/append drafts only. This is a deliberate Phase 8A safety gate, not a complete operational import system.
+Approval history, normalized tournament/player records, evidence and screenshot metadata, and a separate public snapshot table establish future storage boundaries. Foreign keys require approved decisions for results; unique source/event identities prevent duplicate official events. Record counts are nonnegative and bounded by scheduled rounds. All audit/official rows are immutable. No browser grant enables approvals, publication, calendar/registry writes, extraction evidence writes or screenshot writes. In the Phase 8A baseline, administrators could read private records and create/append drafts; Phase 8B narrows reads to owners and moves correction appends behind the server. This is a deliberate Phase 8A safety gate, not a complete operational import system.
 
 Only `published_results.public_snapshot` is the public league projection (plus its result ID and publication time; publisher UUID is excluded by column privileges). Never place screenshots, extraction reports, aliases or sensitive data there. Public player/season/event information will be embedded in a reviewed projection rather than exposing private registry/calendar tables. Public projection payload shape and attribution/privacy require governance review before enabling publication.
 
-No Storage bucket or upload policy is created. Therefore the app uploads no screenshots and has no public object URLs. Before enabling uploads, provision a private bucket with server-side MIME/signature validation, size/count/rate limits, per-admin policies and retention/deletion rules. Existing unrelated project buckets are outside this migration; audit them separately before connecting any upload workflow.
+The Phase 8A migration alone creates no Storage bucket or upload policy. Phase 8B supplies a reviewed private bucket migration and trusted upload function; see SCREENSHOT_IMPORT.md for limits, policies, retention proposals and required manual steps. Existing unrelated project buckets are outside this migration; audit them separately before connecting any upload workflow.
 
 `src/data/database.ts` is an intentionally narrow, typed API subset, not a full generated database schema. Expand it from `supabase gen types typescript --local` after applying locally when adding further endpoints; review generated changes. There is no secret-key client or approval/publish method.
 
@@ -142,3 +139,16 @@ node tests/browser/password-recovery.cjs
 ```
 
 The browser suite intercepts Auth requests and checks the real production entrypoint before HashRouter, password mismatch without a write, successful update, invalid/expired links, and refresh failure at 390px and 1440px. This test build uses placeholders and belongs only in `work/`; do not deploy it. The regular `npm test` includes SDK-level recovery tests.
+
+## Phase 8B superseding boundaries
+
+See [secure screenshot import](SCREENSHOT_IMPORT.md). `/official-import` is the separate
+private draft workflow; `/results-import` remains fictional and in memory. Phase 8B
+restricts draft and source reads to their creating administrator and removes browser
+correction INSERT privileges. The legacy repository `appendCorrection` helper will
+therefore fail closed after migration; operational saves use the trusted Edge Function.
+No scoring, readiness, approval, or publication authorization is introduced.
+
+Before any production reconciliation, follow the [beginner read-only dashboard/SQL
+verification checklist](MIGRATION_READINESS.md). It distinguishes actual schema
+equivalence from migration-ledger entries and does not authorize either to be changed.

@@ -1,0 +1,41 @@
+name: Supabase local integration
+
+on:
+  pull_request:
+    paths:
+      - 'supabase/**'
+      - '.github/workflows/supabase-local.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  local-schema:
+    name: Validate migrations in isolated Supabase
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      # Pin the tested CLI generation. Latest now resolves to CLI 3, whose remote
+      # migration defaults differ. Exact pin also avoids release-lookup rate limits.
+      - uses: supabase/setup-cli@v3
+        with:
+          version: 2.119.0
+      - name: Start disposable local Supabase services
+        run: supabase start -x realtime,imgproxy,mailpit,studio,logflare,vector,supavisor
+      - name: Apply reviewed migrations to disposable database
+        run: supabase db reset --local
+      - name: Verify local service health
+        run: supabase status
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Run authenticated local Auth, Storage, and Edge integration
+        run: |
+          printf 'IMPORT_ALLOWED_ORIGIN=https://league.example\n' > supabase/functions/.env
+          supabase functions serve screenshot-import --env-file supabase/functions/.env > /tmp/modern-league-edge.log 2>&1 &
+          trap 'cat /tmp/modern-league-edge.log' EXIT
+          node --experimental-strip-types tests/integration/supabase-local.mjs
