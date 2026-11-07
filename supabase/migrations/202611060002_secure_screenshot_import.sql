@@ -11,6 +11,10 @@ create policy admin_read on public.import_drafts for select to authenticated
 drop policy admin_read on public.import_corrections;
 create policy admin_read on public.import_corrections for select to authenticated
  using (public.is_administrator() and exists (select 1 from public.import_drafts d where d.id = draft_id and d.created_by = auth.uid()));
+-- Production draft creation also moves to the trusted server, so the quota cannot be
+-- bypassed with the browser's former direct INSERT permission.
+drop policy admin_create_draft on public.import_drafts;
+revoke insert on public.import_drafts from authenticated;
 drop policy admin_append_correction on public.import_corrections;
 -- Trusted server replays the domain before appending. Remove direct browser correction writes.
 revoke insert on public.import_corrections from authenticated;
@@ -39,6 +43,30 @@ grant execute on function public.can_read_tournament_source(text) to anon, authe
 -- Downloads use authenticated Storage requests, not signed/public URLs.
 create policy tournament_source_owner_read on storage.objects for select to authenticated
  using (bucket_id = 'tournament-sources' and public.can_read_tournament_source(name));
+
+-- Create at most 100 drafts per administrator. The membership row lock serializes
+-- concurrent creates and attachment checks; existing same-owner IDs are idempotent.
+-- Only the trusted Edge handler may execute this function.
+create function public.create_screenshot_draft(p_draft uuid, p_actor uuid, p_original jsonb)
+returns uuid language plpgsql security definer set search_path = '' as $
+declare previous_owner uuid; begin
+ perform 1 from private.administrators where user_id = p_actor for update;
+ if not found then raise exception 'Forbidden'; end if;
+ select created_by into previous_owner from public.import_drafts where id = p_draft;
+ if found then
+   if previous_owner <> p_actor then raise exception 'Draft unavailable'; end if;
+   return p_draft;
+ end if;
+ if (select count(*) from public.import_drafts where created_by = p_actor) >= 100
+ then raise exception 'Administrator draft quota exceeded'; end if;
+ if p_original is null or jsonb_typeof(p_original) <> 'object'
+ then raise exception 'Invalid draft original'; end if;
+ insert into public.import_drafts(id, created_by, original)
+ values (p_draft, p_actor, p_original);
+ return p_draft;
+end $;
+revoke all on function public.create_screenshot_draft(uuid,uuid,jsonb) from public,anon,authenticated;
+grant execute on function public.create_screenshot_draft(uuid,uuid,jsonb) to service_role;
 
 -- Count/hash checks serialize per draft. Invoked only after server validates bytes.
 create function public.attach_screenshot(p_draft uuid, p_actor uuid, p_hash text, p_mime text, p_size integer)
