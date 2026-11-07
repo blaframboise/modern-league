@@ -41,7 +41,7 @@ const assert = require('node:assert/strict');
       await page.getByText('Screenshot retention review (read-only)').click();
       await page.getByRole('button',{name:'Check retention eligibility'}).click();
       await page.getByText('Retention review refreshed.',{exact:false}).waitFor();
-      await page.getByText('Abandoned upload',{exact:false}).waitFor();
+      await page.locator('li').filter({hasText:'Abandoned upload — source'}).first().waitFor();
 
       await page.getByRole('button',{name:'Create private draft'}).click();
       await page.getByText('Empty private draft saved.', {exact:false}).waitFor();
