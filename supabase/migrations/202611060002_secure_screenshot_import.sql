@@ -48,7 +48,7 @@ create policy tournament_source_owner_read on storage.objects for select to auth
 -- concurrent creates and attachment checks; existing same-owner IDs are idempotent.
 -- Only the trusted Edge handler may execute this function.
 create function public.create_screenshot_draft(p_draft uuid, p_actor uuid, p_original jsonb)
-returns uuid language plpgsql security definer set search_path = '' as $
+returns uuid language plpgsql security definer set search_path = '' as $$
 declare previous_owner uuid; begin
  perform 1 from private.administrators where user_id = p_actor for update;
  if not found then raise exception 'Forbidden'; end if;
@@ -64,7 +64,7 @@ declare previous_owner uuid; begin
  insert into public.import_drafts(id, created_by, original)
  values (p_draft, p_actor, p_original);
  return p_draft;
-end $;
+end $$;
 revoke all on function public.create_screenshot_draft(uuid,uuid,jsonb) from public,anon,authenticated;
 grant execute on function public.create_screenshot_draft(uuid,uuid,jsonb) to service_role;
 
