@@ -45,12 +45,22 @@ export async function extractWithOpenAI(source: VisionSource, apiKey: string, re
     }),
     signal: AbortSignal.timeout(25000),
   });
-  if (!response.ok) throw new Error('AI provider unavailable or refused the request. No suggestion was accepted.');
+  if (!response.ok) {
+    // Never surface the provider's raw error body or any request contents.
+    // Categorize failures so a real operator can distinguish credentials,
+    // API billing and invalid requests instead of seeing a generic HTTP 400.
+    if (response.status === 401) throw new Error('OpenAI rejected the API key. Check the Supabase OPENAI_API_KEY secret.');
+    if (response.status === 403) throw new Error('OpenAI permissions denied. The API key needs Responses: Write access.');
+    if (response.status === 429) throw new Error('OpenAI quota or rate limit reached. Check API project billing and limits.');
+    if (response.status === 400) throw new Error('OpenAI rejected the image analysis request (400). Check model access and request compatibility.');
+    throw new Error(`OpenAI could not process this screenshot (HTTP ${response.status}). Retry later.`);
+  }
   const json: any = await response.json();
-  if (json.status !== 'completed' || !Array.isArray(json.output)) throw new Error('AI provider response incomplete.');
+  if (json.status !== 'completed' || !Array.isArray(json.output))
+    throw new Error('OpenAI did not finish interpreting this screenshot. Retry analysis or enter results manually.');
   const text = json.output.flatMap((o: any) => o.type === 'message' ? (o.content ?? []) : [])
     .filter((c: any) => c.type === 'output_text').map((c: any) => c.text).join('');
-  if (!text || text.length > 60000) throw new Error('AI provider returned no bounded report.');
+  if (!text || text.length > 60000) throw new Error('OpenAI returned no readable structured results. Try a clearer screenshot.');
   const parsed = JSON.parse(text);
   if (!parsed || !Array.isArray(parsed.results) || parsed.results.length > 24
     || !Array.isArray(parsed.warnings) || parsed.warnings.length > 30) throw new Error('AI suggestion exceeds review limits.');
