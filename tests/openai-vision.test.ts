@@ -47,7 +47,7 @@ test('untrusted model responses and missing usage fail closed',async()=>{
   const bad=async()=>new Response(JSON.stringify({status:'completed',output:[{type:'message',content:[{type:'output_text',text:'{}'}]}],usage:{input_tokens:10,output_tokens:20}}),{status:200});
   await assert.rejects(extractWithOpenAI({id,mime:'image/png',bytes:image},'test-secret',bad as typeof fetch));
   const unavailable=async()=>new Response('provider error',{status:429});
-  await assert.rejects(extractWithOpenAI({id,mime:'image/png',bytes:image},'test-secret',unavailable as typeof fetch),/AI provider unavailable/);
+  await assert.rejects(extractWithOpenAI({id,mime:'image/png',bytes:image},'test-secret',unavailable as typeof fetch),/OpenAI quota or rate limit reached/);
   await assert.rejects(extractWithOpenAI({id,mime:'image/png',bytes:image},'',bad as typeof fetch),/NOT_CONFIGURED/);
   const fake=async()=>new Response(JSON.stringify({status:'completed',output:[{type:'message',content:[{type:'output_text',text:JSON.stringify(fixture())}]}]}),{status:200});
   await assert.rejects(extractWithOpenAI({id,mime:'image/png',bytes:image},'key',fake as typeof fetch),/usage unavailable/);
