@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { supabaseConfiguration } from '../data/client';
 import { leagueRepository } from '../data/repository';
 import { screenshotClient } from '../importInfrastructure/client';
@@ -22,6 +22,7 @@ const blankResult = (): ImportedResult => ({
 const numberOrNull = (text: string) => text.trim() === '' ? null : Number.isSafeInteger(Number(text)) && Number(text) >= 0 ? Number(text) : null;
 
 export function OfficialImportPage() {
+  const navigate=useNavigate();
   const { client, error: configurationError } = supabaseConfiguration;
   const [authorized, setAuthorized] = useState(false);
   const [authStatus, setAuthStatus] = useState('Checking administrator access…');
@@ -199,7 +200,7 @@ export function OfficialImportPage() {
       });
       const loaded = await leagueRepository(client!).loadDraft(draft.importId);
       setDraft(loaded);setValues(effectiveValues(loaded));setStep('saved');setCorrecting(false);
-      setNotice('Reviewed results saved as a private draft. Official publication is not yet enabled.');
+      setNotice('Review saved. Continue to player matching to register participants and calculate test standings. Nothing is published officially.');
     });
   }
   const canReview = !!values && !!draft && !!assets.length;
@@ -286,8 +287,9 @@ export function OfficialImportPage() {
             <p className="import-hint">Approval here records your review; it does not publish standings.</p>
           </>}
           {step==='saved' && <div className="import-actions">
-            <button type="button" onClick={() => {setStep('review');setCorrecting(true);setReviewed(false);setNotice('Editing a saved test draft will append another review revision; the previous version remains in the audit trail.');}}>Edit saved draft</button>
-            <button type="button" onClick={reset}>Upload another result</button>
+            {draft?.corrections.length ? <button type="button" disabled={busy} onClick={()=>navigate(`/test-workspace?draft=${encodeURIComponent(draft.importId)}`)}>Continue to player matching</button> : null}
+            <button type="button" disabled={busy} onClick={() => {setStep('review');setCorrecting(true);setReviewed(false);setNotice('Editing a saved test draft will append another review revision; the previous version remains in the audit trail.');}}>Edit saved draft</button>
+            <button type="button" disabled={busy} onClick={reset}>Upload another result</button>
           </div>}
         </>}
         {!values && <p>No results are available yet. Retry analysis or select another image.</p>}
