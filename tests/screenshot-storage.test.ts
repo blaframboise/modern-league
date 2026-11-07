@@ -35,6 +35,13 @@ test('Phase 8B real PostgreSQL: owner isolation, private storage, server-only wr
         assert.equal((await db.query<{allowed:boolean}>(`select has_function_privilege($1,$2,'EXECUTE') as allowed`,[role,signature])).rows[0].allowed,role==='service_role');
       }
     }
+    await db.exec('set role service_role');
+    await assert.rejects(db.exec('truncate public.import_drafts cascade'));
+    await db.exec('reset role');
+    await assert.rejects(db.exec('truncate public.import_drafts cascade'), /Immutable history/);
+    await db.exec(`insert into private.administrators(user_id,reason) values ('${a}','test'),('${b}','test');
+      insert into public.import_drafts(id,created_by,original) values('${d}','${a}','{}');
+      insert into storage.objects(bucket_id,name) values('tournament-sources','${a}/${d}/${hash}');`);
     // Persistent request controls are available only to the trusted service role.
     // Each action is separately counted; denied attempts do not reset the hour.
     for (let i = 0; i < 40; i++) {
@@ -50,13 +57,6 @@ test('Phase 8B real PostgreSQL: owner isolation, private storage, server-only wr
     await db.query("update private.screenshot_request_rates set window_started_at=now()-interval '2 hours' where actor=$1 and action='upload'",[a]);
     assert.equal(Number((await db.query<{remaining:number}>("select public.consume_screenshot_request($1,'upload') as remaining",[a])).rows[0].remaining),39);
 
-    await db.exec('set role service_role');
-    await assert.rejects(db.exec('truncate public.import_drafts cascade'));
-    await db.exec('reset role');
-    await assert.rejects(db.exec('truncate public.import_drafts cascade'), /Immutable history/);
-    await db.exec(`insert into private.administrators(user_id,reason) values ('${a}','test'),('${b}','test');
-      insert into public.import_drafts(id,created_by,original) values('${d}','${a}','{}');
-      insert into storage.objects(bucket_id,name) values('tournament-sources','${a}/${d}/${hash}');`);
     assert.deepEqual((await db.query('select public,file_size_limit from storage.buckets')).rows, [{ public: false, file_size_limit: 10485760 }]);
     await db.exec(`set role authenticated; set request.jwt.claim.sub='${a}';`);
     assert.equal((await db.query('select * from public.import_drafts')).rows.length, 1);
