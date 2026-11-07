@@ -1,6 +1,6 @@
 # Proposed screenshot privacy and retention policy — operator approval required
 
-Status: **PROPOSAL ONLY. Not enabled in the website or database.**
+Status: **Policy defaults approved by league organizer. Retention review/audit code is in draft PR #12; no live cleanup or deletion is enabled.**
 Applies only to official Modern League tournament screenshots; the fictional demo remains separate.
 
 ## Data and access
@@ -23,7 +23,22 @@ Applies only to official Modern League tournament screenshots; the fictional dem
 
 Deletion must be auditable: record actor, authorization, reason, source path/hash, date, attempted action, outcome and retries in an append-only tombstone. Never rewrite or silently discard prior correction history. A deleted source must display as unavailable, not be reassigned or treated as proof it was never uploaded.
 
-Until a tombstone and reviewed deletion process exist, the system only produces a read-only orphan inventory; it **does not** delete bytes or promise automatic erasure.
+The pending database migration `202611060003_screenshot_retention_audit.sql`
+adds an immutable, private event journal for operator holds, hold releases, deletion
+requests and their outcomes. Browser roles cannot write it; only a trusted
+server role can invoke the audited recording function.
+
+`supabase/verification/screenshot-retention-eligibility.sql` now reports
+**candidate** orphans and sources past the approved 90-day / one-year rules.
+It excludes active holds and pending requests, and never deletes bytes.
+An approved result that has not been published does not become eligible as an
+abandoned unapproved draft.
+
+**There is no purge worker or deletion endpoint in this release.** Deletion
+requires implementation and separate verification of two-stage deletion,
+in-flight upload locking, backups/appeals, immutable outcome evidence and
+operator approval before it is safe to enable. The current controls create a
+reviewable foundation, not a claim of automatic expiration or erasure.
 
 ## AI provider decision (not yet authorized)
 
