@@ -60,9 +60,16 @@ export function importHandler(env: (name: string) => string | undefined, createC
         // If the request fails mid-flight, the durable pending journal survives,
         // preventing reattachment. The same authorized action can retry.
         const storage = service.storage.from(SOURCE_BUCKET);
-        const removed = await storage.remove([path]);
-        if (removed.error) return reply({ error: 'Storage removal unconfirmed; retry the same cleanup.' }, 503);
         const folder = parts.slice(0, 2).join('/');
+        // A retry may arrive after Storage removed the object but before the
+        // success event was written. Verify absence first so a missing-file
+        // Storage API error never leaves a successful purge stuck indefinitely.
+        const before = await storage.list(folder, { limit: 100, search: parts[2] });
+        if (before.error) return reply({ error: 'Storage presence could not be checked; retry cleanup.' }, 503);
+        if ((before.data ?? []).some((file: any) => file.name === parts[2])) {
+          const removed = await storage.remove([path]);
+          if (removed.error) return reply({ error: 'Storage removal unconfirmed; retry the same cleanup.' }, 503);
+        }
         const remaining = await storage.list(folder, { limit: 100, search: parts[2] });
         if (remaining.error || (remaining.data ?? []).some((file: any) => file.name === parts[2])) {
           return reply({ error: 'Storage absence could not be verified; retry cleanup.' }, 503);
