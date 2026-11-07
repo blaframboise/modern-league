@@ -41,6 +41,7 @@ function harness({ user = true, admin = true, owner = actor, failAttach = false,
       objects.set(path, bytes); return { error: null };
     } }; } },
     async rpc(name: string, args: any) {
+      if (name === 'consume_screenshot_request') return { data: 10, error: null };
       if (name === 'create_screenshot_draft') {
         if (args.p_actor !== owner) return { error: { message: 'Draft unavailable' } };
         return { data: args.p_draft, error: null };
