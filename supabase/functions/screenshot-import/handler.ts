@@ -29,7 +29,7 @@ export function importHandler(env: (name: string) => string | undefined, createC
       const actor = identity.data.user.id;
       if (checked(await userClient.rpc('is_administrator')) !== true) return reply({ error: 'Administrator required.' }, 403);
       const action = new URL(request.url).searchParams.get('action');
-      if (!['create', 'upload', 'correct', 'extract', 'retention-preview'].includes(action ?? '')) return reply({ error: 'Unsupported action.' }, 400);
+      if (!['create', 'upload', 'correct', 'extract', 'retention-preview', 'retention-delete-orphan'].includes(action ?? '')) return reply({ error: 'Unsupported action.' }, 400);
       // This rate check is a separate committed database transaction, so failed
       // requests and retries still count. Check before buffering image bytes.
       const allowance = await service.rpc('consume_screenshot_request', { p_actor: actor, p_action: action });
@@ -38,6 +38,40 @@ export function importHandler(env: (name: string) => string | undefined, createC
       if (action === 'retention-preview') {
         const candidates = checked(await service.rpc('preview_screenshot_retention', { p_actor: actor }));
         return reply({ candidates: candidates ?? [] });
+      }
+      if (action === 'retention-delete-orphan') {
+        const body = JSON.parse(new TextDecoder().decode(await boundedBody(request, 4096)));
+        if (body?.confirm !== true || typeof body.objectPath !== 'string'
+            || typeof body.reason !== 'string' || !body.reason.trim()
+            || body.reason.length > 2000) return reply({ error: 'Operator confirmation and reason required.' }, 400);
+        const path = body.objectPath;
+        const parts = path.split('/');
+        if (parts.length !== 3 || parts[0] !== actor || !/^[0-9a-f]{64}$/.test(parts[2])) {
+          return reply({ error: 'Invalid or foreign object path.' }, 400);
+        }
+        // The database atomically verifies orphan age and absence of a linked
+        // immutable asset, locks the operator, and journals a resumable request.
+        const requestResult = await service.rpc('prepare_orphan_screenshot_cleanup', {
+          p_actor: actor, p_path: path, p_reason: body.reason,
+        });
+        if (requestResult.error) return reply({ error: 'Source is held, linked or not eligible for cleanup.' }, 409);
+        const requestId = requestResult.data;
+        // Never delete from storage.objects using SQL: use the Storage API.
+        // If the request fails mid-flight, the durable pending journal survives,
+        // preventing reattachment. The same authorized action can retry.
+        const storage = service.storage.from(SOURCE_BUCKET);
+        const removed = await storage.remove([path]);
+        if (removed.error) return reply({ error: 'Storage removal unconfirmed; retry the same cleanup.' }, 503);
+        const folder = parts.slice(0, 2).join('/');
+        const remaining = await storage.list(folder, { limit: 100, search: parts[2] });
+        if (remaining.error || (remaining.data ?? []).some((file: any) => file.name === parts[2])) {
+          return reply({ error: 'Storage absence could not be verified; retry cleanup.' }, 503);
+        }
+        const complete = await service.rpc('finish_orphan_screenshot_cleanup', {
+          p_actor: actor, p_path: path, p_request: requestId,
+        });
+        if (complete.error) return reply({ error: 'Storage removed, but audit confirmation is pending; retry cleanup.' }, 503);
+        return reply({ deleted: true, auditId: complete.data });
       }
       const id = uuid(request.headers.get('x-draft-id'));
       if (action === 'create') {
