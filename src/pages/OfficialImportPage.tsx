@@ -73,7 +73,7 @@ export function OfficialImportPage() {
     finally { if (request === generation.current) setBusy(false); }
   }
   return <section className="container admin-page secure-import"><p className="eyebrow">PRIVATE / ADMINISTRATOR DRAFTS</p><h1>Screenshot import drafts</h1>
-    <p>Private source storage and human review only. AI extraction is not configured. Approval and publication are disabled. Missing fields and player identities remain unresolved.</p>
+    <p>Private source storage and human review only. Optional AI suggestions require a configured server key and available request budget. Approval and publication are disabled. Missing fields and player identities remain unresolved.</p>
     <p><Link to="/results-import">Fictional in-memory demonstration</Link> · <Link to="/admin">Administrator sign in</Link></p>
     <p role="status">{client ? status : 'Supabase is not configured. No upload or persistence is available.'}</p>
     {authorized && <>
@@ -146,7 +146,7 @@ export function OfficialImportPage() {
             // Refresh metadata without discarding unsaved review text.
             const result = await client!.from('screenshot_assets').select('*').eq('draft_id', draft.importId);
             if (result.error) throw new Error('Upload may have succeeded. Reload to recover sources.');
-            if (request === generation.current) { setAssets(result.data as unknown as Asset[]); setReviewed(false); setStatus('Sources saved privately. Re-select identical files to retry safely.'); }
+            if (request === generation.current) { setAssets(result.data as unknown as Asset[]); setSuggestion(null); setReviewed(false); setStatus('Sources saved privately. Re-select identical files to retry safely.'); }
           });
         }} /></label>
         <p>AI assistance is optional. One private screenshot is sent to OpenAI only when you press Analyze. Suggestions are not saved or published, and player identities are never automatically matched. A server-side budget allowance may block requests.</p>
