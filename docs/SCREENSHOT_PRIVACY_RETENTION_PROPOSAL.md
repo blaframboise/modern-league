@@ -38,14 +38,24 @@ owner-scoped read-only RPC consumed by the authenticated `/official-import`
 administrator page. The page presents candidate reasons and short hashes, not
 full source URLs; it does **not** offer a delete button. Only the trusted Edge
 Function can request this private list, and each request consumes an hourly
-rate-limit allowance. Holds and retention decisions are not yet editable
-from the website, and no job initiates file removal.
+rate-limit allowance. Source holds still require a trusted operator; the website offers only manual, confirmed orphan cleanup, not bulk or scheduled deletion.
 
-**There is no purge worker or deletion endpoint in this release.** Deletion
-requires implementation and separate verification of two-stage deletion,
-in-flight upload locking, backups/appeals, immutable outcome evidence and
-operator approval before it is safe to enable. The current controls create a
-reviewable foundation, not a claim of automatic expiration or erasure.
+The pending `202611060005_screenshot_orphan_cleanup.sql` migration and trusted
+Edge handler implement **manual orphan-only deletion** after 24 hours. The
+administrator must refresh candidate eligibility, supply a reason, and confirm
+permanent removal. A database transaction checks the source is unlinked,
+checks its age and current hold, serializes against asset attachment, and
+records a resumable deletion request. The trusted server deletes using the
+Storage API, verifies absence, then appends an immutable success event.
+Interrupted attempts can be retried against the pending request.
+
+Only these **unlinked orphan files** may be removed by this UI. Neither
+90-day draft sources nor one-year published evidence can be deleted through
+this endpoint; their policy is represented as review candidates, but
+source deletion remains disabled pending review of appeals, notifications
+and backup/provider retention. No scheduled purge is enabled. The operation
+must pass isolated integration and browser verification before live use.
+Deleted bytes may persist in external backups according to their policies.
 
 ## AI provider decision (not yet authorized)
 
