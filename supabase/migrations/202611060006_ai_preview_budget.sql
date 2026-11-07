@@ -14,20 +14,18 @@ alter table private.screenshot_ai_budgets enable row level security;
 revoke all on private.screenshot_ai_budgets from public,anon,authenticated,service_role;
 
 create function public.reserve_screenshot_ai_budget(p_actor uuid)
-returns integer language plpgsql security definer set search_path = '' as $$
-declare reserved integer; begin
+returns boolean language plpgsql security definer set search_path = '' as $$
+declare accepted boolean; begin
  perform 1 from private.administrators where user_id=p_actor for update;
  if not found then raise exception 'Forbidden'; end if;
  insert into private.screenshot_ai_budgets(actor,month_utc,reserved_cents,attempts)
  values(p_actor,date_trunc('month',pg_catalog.now() at time zone 'UTC')::date,25,1)
  on conflict (actor,month_utc) do update
-  set reserved_cents=private.screenshot_ai_budgets.reserved_cents +
-       case when private.screenshot_ai_budgets.reserved_cents<=475 then 25 else 0 end,
-      attempts=private.screenshot_ai_budgets.attempts +
-       case when private.screenshot_ai_budgets.reserved_cents<=475 then 1 else 0 end
- returning reserved_cents into reserved;
- if reserved>=500 then return 0; end if;
- return 500-reserved;
+  set reserved_cents=private.screenshot_ai_budgets.reserved_cents+25,
+      attempts=private.screenshot_ai_budgets.attempts+1
+  where private.screenshot_ai_budgets.reserved_cents<=475
+ returning true into accepted;
+ return coalesce(accepted,false);
 end $$;
 revoke all on function public.reserve_screenshot_ai_budget(uuid) from public,anon,authenticated;
 grant execute on function public.reserve_screenshot_ai_budget(uuid) to service_role;
