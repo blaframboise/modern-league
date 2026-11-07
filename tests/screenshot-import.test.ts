@@ -41,6 +41,7 @@ function harness({ user = true, admin = true, owner = actor, failAttach = false,
       objects.set(path, bytes); return { error: null };
     } }; } },
     async rpc(name: string, args: any) {
+      if (name === 'preview_screenshot_retention') return { data: [{object_path: `${actor}/${id}/${'a'.repeat(64)}`,asset_id:null,draft_id:null,retention_reason:'orphan_24h',activity_at:'2026-10-01T00:00:00Z'}],error:null };
       if (name === 'consume_screenshot_request') return rateUnavailable ? { data: null, error: { message: 'unavailable' } } : { data: rateLimited ? 0 : 10, error: null };
       if (name === 'create_screenshot_draft') {
         if (args.p_actor !== owner) return { error: { message: 'Draft unavailable' } };
@@ -71,6 +72,14 @@ test('bounded trusted image signature/MIME/size/identifier checks', async () => 
   assert.equal(uuid('ABCDEFAB-1234-4ABC-8DEF-ABCDEF123456'), 'abcdefab-1234-4abc-8def-abcdef123456');
   await assert.rejects(boundedBody(new Request('http://localhost', { method: 'POST', body: png }), 2));
   assert.deepEqual(await boundedBody(new Request('http://localhost', { method: 'POST', body: png })), png);
+});
+test('private retention preview uses verified administrator session and does not write storage', async () => {
+  const h=harness();
+  const result=await h.request('retention-preview');
+  assert.equal(result.status,200);
+  assert.equal(result.body.candidates[0].retention_reason,'orphan_24h');
+  assert.deepEqual(h.stats(),{uploads:0,reads:0});
+  assert.equal((await harness({admin:false}).request('retention-preview')).status,403);
 });
 test('draft creation calls the trusted service RPC and keeps the same request ID', async () => {
   const h = harness();
