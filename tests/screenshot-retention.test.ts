@@ -18,7 +18,7 @@ test('Approved retention eligibility honors inactive 90-day drafts, appeals and 
     create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);
     create table storage.objects(id uuid default gen_random_uuid(),bucket_id text,name text,metadata jsonb,created_at timestamptz default now());
     alter table storage.objects enable row level security;`);
-  for (const file of ['202611060001_foundation.sql','202611060002_secure_screenshot_import.sql','202611060003_screenshot_retention_audit.sql','202611060004_screenshot_retention_review.sql'])
+  for (const file of ['202611060001_foundation.sql','202611060002_secure_screenshot_import.sql','202611060003_screenshot_retention_audit.sql','202611060004_screenshot_retention_review.sql','202611060005_screenshot_orphan_cleanup.sql'])
    await db.exec(await readFile(new URL(`../supabase/migrations/${file}`,import.meta.url),'utf8'));
   await db.exec(`insert into private.administrators(user_id,reason) values('${actor}','test');
     insert into public.import_drafts(id,created_by,created_at,original)
@@ -27,6 +27,20 @@ test('Approved retention eligibility honors inactive 90-day drafts, appeals and 
       values('${draft}','${objectPath}','image/png',123,'${hash}',now()-interval '91 days');
     insert into storage.objects(bucket_id,name,metadata,created_at)
       values('tournament-sources','${objectPath}','{"size":"123"}',now()-interval '91 days');`);
+  // A separate aged unlinked fixture: only this one may be physically purged.
+  const orphanPath=`${actor}/${draft}/${'b'.repeat(64)}`;
+  await db.query("insert into storage.objects(bucket_id,name,metadata,created_at) values ('tournament-sources',$1,'{}',now()-interval '48 hours')",[orphanPath]);
+  await assert.rejects(db.query('select public.prepare_orphan_screenshot_cleanup($1,$2,$3)',[actor,objectPath,'Linked screenshot']),/Source linked/);
+  const requested=await db.query<{id:string}>('select public.prepare_orphan_screenshot_cleanup($1,$2,$3) as id',[actor,orphanPath,'Orphan reviewed']);
+  const requestId=requested.rows[0].id;
+  assert.equal((await db.query<{id:string}>('select public.prepare_orphan_screenshot_cleanup($1,$2,$3) as id',[actor,orphanPath,'Retry reviewed orphan'])).rows[0].id,requestId);
+  await assert.rejects(db.query('select public.finish_orphan_screenshot_cleanup($1,$2,$3)',[actor,orphanPath,requestId]),/Storage object still present/);
+  // Simulate the Storage API's completed removal in an isolated PostgreSQL test.
+  // Production deletion exclusively uses storage.from(bucket).remove(...).
+  await db.query('delete from storage.objects where name=$1',[orphanPath]);
+  await db.query('select public.finish_orphan_screenshot_cleanup($1,$2,$3)',[actor,orphanPath,requestId]);
+  const deleted=await db.query<{event_type:string}>('select event_type from private.screenshot_retention_events where object_path=$1 order by created_at',[orphanPath]);
+  assert.deepEqual(deleted.rows.map(row=>row.event_type),['delete_requested','delete_succeeded']);
   const eligibility=await readFile(new URL('../supabase/verification/screenshot-retention-eligibility.sql',import.meta.url),'utf8');
   let rows=(await db.query<{object_path:string;retention_reason:string}>(eligibility)).rows;
   const preview=await db.query<{object_path:string;retention_reason:string}>(
