@@ -41,6 +41,7 @@ declare new_id uuid; last_type text; begin
      then raise exception 'Invalid retention details'; end if;
   select event_type into last_type from private.screenshot_retention_events
     where object_path=p_path order by created_at desc,id desc limit 1;
+  if last_type='delete_succeeded' then raise exception 'Source already deleted'; end if;
   if p_event='release_hold' and last_type is distinct from 'hold'
     then raise exception 'No active hold'; end if;
   if last_type='hold' and p_event in ('delete_requested','delete_succeeded')
@@ -59,3 +60,32 @@ revoke all on function public.record_screenshot_retention_event(uuid,text,text,t
   from public,anon,authenticated;
 grant execute on function public.record_screenshot_retention_event(uuid,text,text,text,jsonb)
   to service_role;
+
+-- A recorded successful purge permanently revokes source download authorization.
+-- Metadata is immutable and remains as an audit record, not a live file promise.
+create or replace function public.can_read_tournament_source(p_path text) returns boolean
+language sql stable security definer set search_path = '' as $
+ select public.is_administrator() and exists (
+   select 1 from public.screenshot_assets a
+   join public.import_drafts d on d.id=a.draft_id
+   where a.object_path=p_path and d.created_by=auth.uid()
+ ) and not exists (
+   select 1 from private.screenshot_retention_events e
+   where e.object_path=p_path and e.event_type='delete_succeeded'
+ )
+$;
+
+-- Lock out relinking an object while a reviewed purge is pending or completed.
+-- An orphan upload retry must start a separately reviewed recovery rather than
+-- silently restoring old evidence after it entered a deletion workflow.
+create function private.reject_retired_source_link() returns trigger
+language plpgsql set search_path = '' as $
+begin
+ if exists (
+  select 1 from private.screenshot_retention_events e
+  where e.object_path=new.object_path and e.event_type in ('delete_requested','delete_succeeded')
+ ) then raise exception 'Source retained for deletion review; cannot relink'; end if;
+ return new;
+end $;
+create trigger reject_retired_source_link before insert on public.screenshot_assets
+ for each row execute function private.reject_retired_source_link();
