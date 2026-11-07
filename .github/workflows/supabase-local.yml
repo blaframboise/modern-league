@@ -10,10 +10,6 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: supabase-local-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
-
 jobs:
   local-schema:
     name: Validate migrations in isolated Supabase
@@ -30,6 +26,3 @@ jobs:
         run: supabase db reset --local
       - name: Verify local service health
         run: supabase status
-      - name: Clean up disposable services
-        if: always()
-        run: supabase stop --no-backup
