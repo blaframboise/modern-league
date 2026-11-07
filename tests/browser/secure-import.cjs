@@ -125,7 +125,7 @@ const assert = require('node:assert/strict');
       await page.getByRole('heading',{name:'Test workspace'}).waitFor();
       await page.getByLabel('Preferred leaderboard name').fill('test player');
       await page.getByRole('button',{name:'Add test player'}).click();
-      await page.getByText('Test Player',{exact:true}).waitFor();
+      await page.getByRole('cell',{name:'Test Player',exact:true}).waitFor();
       await page.getByRole('button',{name:'Tournament matching'}).click();
       await page.getByLabel('Reviewed screenshot').selectOption(drafts[0].id);
       await page.getByLabel('Match Verified player').selectOption(sandboxPlayers[0].id);
