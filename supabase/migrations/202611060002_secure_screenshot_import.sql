@@ -74,7 +74,7 @@ grant execute on function public.create_screenshot_draft(uuid,uuid,jsonb) to ser
 -- still consume their request allowance, limiting repeated abuse/retries.
 create table private.screenshot_request_rates (
  actor uuid not null references auth.users(id),
- action text not null check (action in ('create','upload','correct','extract','retention-preview')),
+ action text not null check (action in ('create','upload','correct','extract','retention-preview','retention-delete-orphan')),
  window_started_at timestamptz not null,
  attempts integer not null check (attempts between 1 and 10000),
  primary key(actor, action)
@@ -91,6 +91,7 @@ declare allowed integer; attempt_count integer; begin
   when 'correct' then 120
   when 'extract' then 20
   when 'retention-preview' then 20
+  when 'retention-delete-orphan' then 10
   else null end;
  if allowed is null then raise exception 'Unsupported action'; end if;
  -- Ensures the caller still holds administrator status at the mutation boundary.
