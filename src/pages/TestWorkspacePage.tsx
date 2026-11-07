@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabaseConfiguration } from '../data/client';
 import { leagueRepository } from '../data/repository';
-import { effectiveValues, normalizeName, potentialPlayers } from '../results';
+import { effectiveValues, potentialPlayers } from '../results';
 import type { ImportDraft, ImportedResult } from '../results';
 import { suggestDisplayName } from '../importInfrastructure/displayNames';
 import { calculateStandings } from '../scoring/standings';
@@ -51,7 +51,7 @@ export function TestWorkspacePage() {
     ]);
     if(pr.error||ar.error||ev.error||re.error) throw new Error('Test workspace could not be loaded.');
     setPeople(pr.data ?? []);setAliases(ar.data ?? []);
-    setDraftOptions(dr);setEvents(ev.data ?? []);setSavedResults(re.data ?? []);
+    setDraftOptions(dr ?? []);setEvents(ev.data ?? []);setSavedResults(re.data ?? []);
   }
   useEffect(()=>{
     if(!client){setAccess('Supabase is not configured.');return;}
