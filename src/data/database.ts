@@ -14,7 +14,7 @@ export interface Database {
       published_results: Table<{ result_id: string; public_snapshot: Json; published_at: string }, never>;
     };
     Views: { [_ in never]: never };
-    Functions: { is_administrator: { Args: Record<PropertyKey, never>; Returns: boolean }; save_sandbox_tournament: { Args: {p_draft:string;p_revision:number;p_name:string;p_season:number;p_rounds:number;p_links:Json};Returns:string } };
+    Functions: { is_administrator: { Args: Record<PropertyKey, never>; Returns: boolean }; import_sandbox_tournament_with_players: { Args: {p_draft:string;p_revision:number;p_name:string;p_season:number;p_rounds:number;p_links:Json};Returns:string }; save_sandbox_tournament: { Args: {p_draft:string;p_revision:number;p_name:string;p_season:number;p_rounds:number;p_links:Json};Returns:string } };
     Enums: { [_ in never]: never };
     CompositeTypes: { [_ in never]: never };
   };

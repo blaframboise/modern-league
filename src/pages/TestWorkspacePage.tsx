@@ -13,7 +13,7 @@ type Person = {id:string;display_name:string;created_at:string};
 type Alias = {player_id:string;alias:string};
 type Tournament = {id:string;draft_id:string;revision:number;event_name:string;season_ordinal:number;scheduled_rounds:number;created_at:string};
 type Result = {tournament_id:string;row_id:string;player_id:string;wins:number;losses:number;draws:number};
-type Entry = {row:ImportedResult;playerId:string};
+type Entry = {row:ImportedResult;playerId:string;displayName:string};
 const seasonIds=['s1','s2','s3','s4'];
 const reviewName=(value:string) => suggestDisplayName(value);
 export function TestWorkspacePage() {
@@ -94,8 +94,9 @@ export function TestWorkspacePage() {
       setEntries(values.results.map(row=>({
         row,
         playerId:savedResults.find(r=>r.tournament_id===existing?.id && r.row_id===row.rowId)?.player_id??propose(row.importedName),
+        displayName:reviewName(row.importedName),
       })));
-      setMessage('Review each suggested player match. No matching is saved until you confirm.');
+      setMessage('New names are ready for test registration. Verify capitalization and suggested matches.');
     });
   }
   async function createPlayer() {
@@ -123,17 +124,18 @@ export function TestWorkspacePage() {
     await action(async()=>{
       const n=Number(rounds),s=Number(season);
       if(!Number.isSafeInteger(n)||n<1||n>20||!seasonIds[s-1])throw new Error('Choose a season and Swiss round count.');
-      if(!entries.length||entries.some(e=>!e.playerId||e.row.wins===null||e.row.losses===null||e.row.draws===null))
-        throw new Error('Every player must have a confirmed identity and complete match record.');
-      if(new Set(entries.map(e=>e.playerId)).size!==entries.length)throw new Error('One registered player appears more than once. Correct the mapping.');
+      if(!entries.length||entries.some(e=>(!e.playerId&&!e.displayName.trim())||e.row.wins===null||e.row.losses===null||e.row.draws===null))
+        throw new Error('Every player requires a name or existing match and a complete match record.');
+      const existingIds=entries.filter(e=>e.playerId).map(e=>e.playerId);
+      if(new Set(existingIds).size!==existingIds.length)throw new Error('One registered player appears more than once. Correct the mapping.');
       if(entries.some(e=>e.row.wins!+e.row.losses!+e.row.draws!>n))throw new Error('Match totals exceed scheduled rounds.');
-      const links=entries.map(e=>({row_id:e.row.rowId,player_id:e.playerId,wins:e.row.wins!,losses:e.row.losses!,draws:e.row.draws!}));
-      const response=await client.rpc('save_sandbox_tournament',{
+      const links=entries.map(e=>({row_id:e.row.rowId,player_id:e.playerId||null,display_name:e.playerId?null:e.displayName.trim(),wins:e.row.wins!,losses:e.row.losses!,draws:e.row.draws!}));
+      const response=await client.rpc('import_sandbox_tournament_with_players',{
         p_draft:draft.importId,p_revision:draft.corrections.length,p_name:eventName.trim(),
         p_season:s,p_rounds:n,p_links:links as unknown as Json,
       });
       if(response.error)throw new Error(response.error.message);
-      await refresh();setMessage('Test tournament linked. Official records and public leaderboards remain unchanged.');
+      await refresh();setMessage('New test players registered and tournament linked. Official standings remain unchanged.');
     });
   }
   const input:StandingsInput={
@@ -179,7 +181,7 @@ export function TestWorkspacePage() {
       </div>}
       {tab==='events'&&<div className="sandbox-section">
         <h2>Match a reviewed tournament</h2>
-        <p>Select a saved screenshot review, then associate each player with a test registry entry. Any matching suggestions must be checked.</p>
+        <p>Select a saved screenshot review. Unrecognized players are registered automatically on save. Verify suggested existing matches.</p>
         <label>Reviewed screenshot <select value={draftId} disabled={busy} onChange={e=>{const id=e.target.value;if(id)void loadDraft(id);}}>
           <option value="">Select a private review</option>{draftOptions.map(d=><option key={d.id} value={d.id}>{events.find(e=>e.draft_id===d.id)?.event_name??`Reviewed draft ${d.id.slice(0,8)}`}</option>)}
         </select></label>
@@ -187,16 +189,16 @@ export function TestWorkspacePage() {
           <label>Test event name<input value={eventName} maxLength={200} onChange={e=>setEventName(e.target.value)}/></label>
           <label>Simulated 2027 season<select value={season} onChange={e=>setSeason(e.target.value)}>{seasonIds.map((v,i)=><option key={v} value={String(i+1)}>Season {i+1}</option>)}</select></label>
           <label>Scheduled Swiss rounds<input type="number" min={1} max={20} value={rounds} onChange={e=>setRounds(e.target.value)}/></label>
-          <div className="sandbox-table"><table><thead><tr><th>Companion name (reviewed)</th><th>W–L–D</th><th>Match to registered player</th></tr></thead><tbody>
+          <div className="sandbox-table"><table><thead><tr><th>Companion name (reviewed)</th><th>W–L–D</th><th>Test player</th></tr></thead><tbody>
           {entries.map((entry,i)=><tr key={entry.row.rowId}>
             <td>{entry.row.importedName}</td>
             <td>{entry.row.wins??'?'}–{entry.row.losses??'?'}–{entry.row.draws??'?'}</td>
             <td><select aria-label={`Match ${entry.row.importedName}`} value={entry.playerId} disabled={busy} onChange={e=>setEntries(previous=>previous.map((v,index)=>i===index?{...v,playerId:e.target.value}:v))}>
-              <option value="">Unresolved — choose player</option>{people.map(p=><option value={p.id} key={p.id}>{p.display_name}</option>)}
-            </select></td>
+              <option value="">Register new test player</option>{people.map(p=><option value={p.id} key={p.id}>Existing: {p.display_name}</option>)}
+            </select>{!entry.playerId && <input aria-label={`Display name for ${entry.row.importedName}`} maxLength={120} value={entry.displayName} disabled={busy} onChange={e=>setEntries(previous=>previous.map((v,index)=>i===index?{...v,displayName:e.target.value}:v))} />}</td>
           </tr>)}</tbody></table></div>
-          {!people.length&&<p>No players exist. Create registry entries in the Players tab first.</p>}
-          <button disabled={busy||!entries.length||!people.length} onClick={()=>void saveEvent()}>Save matched test tournament</button>
+          <p className="sandbox-note">New players are created on save. Select an existing player only after confirming the identity. Original Companion spelling is preserved.</p>
+          <button disabled={busy||!entries.length} onClick={()=>void saveEvent()}>Register new players and save test tournament</button>
           <p className="sandbox-note">No official approvals or published results are created.</p>
         </div>}
         {events.length>0&&<div className="sandbox-table"><h3>Matched test tournaments</h3><table><thead><tr><th>Test event</th><th>Season</th><th>Rounds</th><th>Players</th></tr></thead><tbody>

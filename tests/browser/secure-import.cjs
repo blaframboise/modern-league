@@ -33,11 +33,18 @@ const assert = require('node:assert/strict');
         }
         if (url.pathname === '/rest/v1/sandbox_tournaments') return reply(sandboxTournaments);
         if (url.pathname === '/rest/v1/sandbox_results') return reply(sandboxResults);
-        if (url.pathname === '/rest/v1/rpc/save_sandbox_tournament') {
+        if (url.pathname === '/rest/v1/rpc/import_sandbox_tournament_with_players') {
           const args=request.postDataJSON();
           const id='00000000-0000-4000-8000-000000000010';
           sandboxTournaments.push({id,draft_id:args.p_draft,revision:args.p_revision,event_name:args.p_name,season_ordinal:args.p_season,scheduled_rounds:args.p_rounds,created_at:new Date().toISOString()});
-          args.p_links.forEach(row=>sandboxResults.push({tournament_id:id,...row,player_id:row.player_id, row_id:row.row_id}));
+          args.p_links.forEach((row,index)=>{
+            let playerId=row.player_id;
+            if(!playerId){
+              playerId=`00000000-0000-4000-8000-${String(index+20).padStart(12,'0')}`;
+              sandboxPlayers.push({id:playerId,display_name:row.display_name,created_at:new Date().toISOString()});
+            }
+            sandboxResults.push({tournament_id:id,row_id:row.row_id,player_id:playerId,wins:row.wins,losses:row.losses,draws:row.draws});
+          });
           return reply(id);
         }
         if (url.pathname === '/rest/v1/import_drafts') return reply(url.searchParams.has('id') ? drafts.find(d => `eq.${d.id}` === url.searchParams.get('id')) : drafts);
@@ -128,13 +135,15 @@ const assert = require('node:assert/strict');
       await page.getByRole('cell',{name:'Test Player',exact:true}).waitFor();
       await page.getByRole('button',{name:'Tournament matching'}).click();
       await page.getByLabel('Reviewed screenshot').selectOption(drafts[0].id);
-      await page.getByLabel('Match Verified player').selectOption(sandboxPlayers[0].id);
-      await page.getByRole('button',{name:'Save matched test tournament'}).click();
-      await page.getByText('Test tournament linked.',{exact:false}).waitFor();
+      assert.equal(await page.getByLabel('Match Verified player').inputValue(),'');
+      assert.equal(await page.getByLabel('Display name for Verified player').inputValue(),'Verified Player');
+      await page.getByRole('button',{name:'Register new players and save test tournament'}).click();
+      await page.getByText('New test players registered and tournament linked.',{exact:false}).waitFor();
+      assert.ok(sandboxPlayers.some(p=>p.display_name==='Verified Player'));
       assert.equal(sandboxTournaments.length,1);
       assert.equal(sandboxResults.length,1);
       await page.getByRole('button',{name:'Test leaderboard'}).click();
-      await page.getByText('Test Player',{exact:true}).waitFor();
+      await page.getByRole('cell',{name:'Verified Player',exact:true}).waitFor();
       admin = false; const before = requests;
       await page.reload();
       await page.getByText('Administrator sign-in required.').waitFor();
