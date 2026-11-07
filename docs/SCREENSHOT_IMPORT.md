@@ -75,7 +75,17 @@ failure can remain an orphan and needs separate cleanup. The quota does **not**
 count unlinked objects or limit the number of drafts, requests, or independent
 upload attempts; do not claim full billing/abuse containment before rate limits,
 per-user draft quotas, cleanup and monitoring are implemented.
-No browser gets execution permission on that service-only function. Original and
+No browser gets execution permission on that service-only function.
+The private, service-only `consume_screenshot_request` RPC now counts authenticated
+administrator requests in PostgreSQL, including retries that later fail. Current
+one-hour limits are **40 uploads, 60 draft creates, 120 corrections, and 20
+unconfigured extraction requests per administrator**. The durable counter is one
+row per administrator/action and resets after an hour; it never grants permission
+to a non-administrator or permits browser invocation. Requests above the limit
+return HTTP 429 before upload buffering. These are protective limits, not a
+promise against distributed abuse, per-IP floods, compromised service credentials,
+or unlimited orphan Storage objects; gateway controls and monitoring remain
+necessary before admitting real participant data. Original and
 correction UPDATE/DELETE triggers remain in place; 8B also blocks TRUNCATE with
 statement triggers and explicit privilege revocation; approval/publication grants remain
 closed. Do not expose service-role keys, database passwords or provider secrets in
@@ -182,7 +192,7 @@ source references must remain visibly unavailable rather than silently reassigne
 Storage byte deletion does not delete metadata, backups or copies. Confirm backup/log
 retention and data subject requests before real use. Until approved, do not onboard
 real screenshot data that needs a retention promise. The linked-source byte quota is implemented, but **unlinked
-object limits, gateway rate limits and monitoring** remain launch requirements.
+object limits, per-IP gateway controls and monitoring** remain launch requirements.
 The linked-only quota does not cap storage billing from orphaned uploads; do not
 onboard real screenshots until a reviewed retention and cleanup process exists.
 
