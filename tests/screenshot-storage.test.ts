@@ -17,7 +17,7 @@ test('Phase 8B real PostgreSQL: owner isolation, private storage, server-only wr
       insert into auth.users values ('${a}'),('${b}');
       create schema storage;
       create table storage.buckets(id text primary key, name text, public boolean, file_size_limit bigint, allowed_mime_types text[]);
-      create table storage.objects(id uuid default gen_random_uuid(),bucket_id text,name text);
+      create table storage.objects(id uuid default gen_random_uuid(),bucket_id text,name text, metadata jsonb, created_at timestamptz not null default now());
       alter table storage.objects enable row level security;
       grant usage on schema storage to anon,authenticated;
       grant all on storage.objects to anon,authenticated;
@@ -125,6 +125,19 @@ test('Phase 8B real PostgreSQL: owner isolation, private storage, server-only wr
       '${a}'::uuid, '{}'::jsonb from generate_series(200, 694) g;`);
     await assert.rejects(db.query("select public.create_screenshot_draft($1,$2,$3::jsonb)", ['00000000-0000-4000-8000-000000000099',a,'{}']), /Administrator draft quota exceeded/);
     await db.query("select public.create_screenshot_draft($1,$2,$3::jsonb)", [createDraftId,a,'{}']); // existing retry remains legal at cap
+
+    // Read-only monitoring counts Storage orphans without exposing paths.
+    await db.query(`insert into storage.objects(bucket_id,name,metadata,created_at)
+      values('tournament-sources','orphan-test', '{"size": "123"}', now() - interval '48 hours')`);
+    const audit = await readFile(new URL('../supabase/verification/screenshot-storage-audit.sql', import.meta.url), 'utf8');
+    await db.exec('begin read only');
+    const auditRows = await db.query<{stored_objects:number;linked_objects:number;unlinked_objects:number;estimated_unlinked_bytes:number;unlinked_older_than_24h:number}>(audit);
+    await db.exec('rollback');
+    assert.equal(Number(auditRows.rows[0].stored_objects),2);
+    assert.equal(Number(auditRows.rows[0].linked_objects),1);
+    assert.equal(Number(auditRows.rows[0].unlinked_objects),1);
+    assert.equal(Number(auditRows.rows[0].estimated_unlinked_bytes),123);
+    assert.equal(Number(auditRows.rows[0].unlinked_older_than_24h),1);
 
     const quotaHash = 'e'.repeat(64);
     await assert.rejects(
