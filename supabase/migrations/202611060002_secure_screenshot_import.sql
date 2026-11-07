@@ -83,7 +83,7 @@ alter table private.screenshot_request_rates enable row level security;
 revoke all on private.screenshot_request_rates from public, anon, authenticated, service_role;
 
 create function public.consume_screenshot_request(p_actor uuid, p_action text)
-returns integer language plpgsql security definer set search_path = '' as $
+returns integer language plpgsql security definer set search_path = '' as $$
 declare allowed integer; attempt_count integer; begin
  allowed := case p_action
   when 'upload' then 40
@@ -110,7 +110,7 @@ declare allowed integer; attempt_count integer; begin
    return 0;
  end if;
  return allowed - attempt_count;
-end $;
+end $$;
 revoke all on function public.consume_screenshot_request(uuid,text) from public,anon,authenticated;
 grant execute on function public.consume_screenshot_request(uuid,text) to service_role;
 
