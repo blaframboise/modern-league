@@ -28,10 +28,11 @@ test('Phase 8B real PostgreSQL: owner isolation, private storage, server-only wr
     await db.exec('begin; set local role service_role; truncate public.import_drafts cascade; rollback;');
     await db.exec(await readFile(new URL('../supabase/migrations/202611060002_secure_screenshot_import.sql', import.meta.url), 'utf8'));
     await db.exec(await readFile(new URL('../supabase/migrations/202611060003_screenshot_retention_audit.sql', import.meta.url), 'utf8'));
+    await db.exec(await readFile(new URL('../supabase/migrations/202611060004_screenshot_retention_review.sql', import.meta.url), 'utf8'));
     // The administrator predicate remains available to signed-in users, but not anonymously.
     assert.equal((await db.query<{allowed:boolean}>("select has_function_privilege('anon','public.is_administrator()','EXECUTE') as allowed")).rows[0].allowed, false);
     assert.equal((await db.query<{allowed:boolean}>("select has_function_privilege('authenticated','public.is_administrator()','EXECUTE') as allowed")).rows[0].allowed, true);
-    for (const signature of ['public.attach_screenshot(uuid,uuid,text,text,integer)','public.append_screenshot_review(uuid,uuid,integer,jsonb,text,uuid[])','public.create_screenshot_draft(uuid,uuid,jsonb)','public.consume_screenshot_request(uuid,text)']) {
+    for (const signature of ['public.attach_screenshot(uuid,uuid,text,text,integer)','public.append_screenshot_review(uuid,uuid,integer,jsonb,text,uuid[])','public.create_screenshot_draft(uuid,uuid,jsonb)','public.consume_screenshot_request(uuid,text)','public.preview_screenshot_retention(uuid)']) {
       for (const role of ['anon','authenticated','service_role']) {
         assert.equal((await db.query<{allowed:boolean}>(`select has_function_privilege($1,$2,'EXECUTE') as allowed`,[role,signature])).rows[0].allowed,role==='service_role');
       }
