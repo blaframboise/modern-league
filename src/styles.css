@@ -167,3 +167,31 @@ h1, h2, h3, p { margin: 0; }h1 { font-size: clamp(42px, 4.6vw, 64px); font-weigh
   font-weight: 400;
 }
 .guided-import select:focus-visible { outline: 2px solid #dec38b; outline-offset: 2px; }
+
+
+/* Private preseason sandbox and post-auth admin navigation. */
+.admin-tools{display:flex;flex-wrap:wrap;gap:1rem;margin:1.5rem 0}
+.admin-tools a{display:inline-flex;align-items:center;min-height:44px;padding:.85rem 1rem;border:1px solid #bda46c;border-radius:.4rem;color:#f0e2c1}
+.admin-tools a:hover{background:#292a23}
+.sandbox-workspace{max-width:1100px;overflow-wrap:anywhere}
+.sandbox-workspace .sandbox-tabs{display:flex;flex-wrap:wrap;gap:.65rem;margin:1.4rem 0}
+.sandbox-workspace .sandbox-tabs button{background:#272a26;color:#f4f1e9;border:1px solid #777}
+.sandbox-workspace .sandbox-tabs button[aria-pressed=true]{background:#dec38b;color:#181b15;border-color:#dec38b}
+.sandbox-section{padding:clamp(1rem,3vw,1.7rem);background:#181c18;border:1px solid #4b5249;border-radius:12px;display:grid;gap:1.2rem}
+.sandbox-section h2{font-size:1.5rem}
+.sandbox-section form{max-width:none;display:flex;align-items:end;flex-wrap:wrap;gap:.9rem}
+.sandbox-section form label{min-width:180px;flex:1}
+.sandbox-section label{display:grid;gap:.35rem;min-width:0}
+.sandbox-section input,.sandbox-section select,.sandbox-section textarea{background:#24252a;color:#f4f1e9;border:1px solid #929aa0;border-radius:.35rem;padding:.65rem;min-height:44px;min-width:0;max-width:100%;color-scheme:dark}
+.sandbox-section select option{background:#fff;color:#17191d}
+.sandbox-section button{background:#dec38b;color:#171913;border:1px solid #dec38b;border-radius:.4rem;padding:.75rem}
+.sandbox-section button:disabled{opacity:.5}
+.sandbox-table{max-width:100%;overflow-x:auto}
+.sandbox-table table{border-collapse:collapse;width:100%;min-width:450px}
+.sandbox-table th,.sandbox-table td{padding:.6rem;text-align:left;border-bottom:1px solid #454b43}
+.sandbox-table td select{min-width:185px}
+.sandbox-event-editor{display:grid;gap:1rem}
+.sandbox-error{color:#f1a9a9}
+.sandbox-success{color:#c9e2c0}
+.sandbox-note{font-size:.88rem;color:#c1c6bc}
+@media(max-width:600px){.admin-tools{flex-direction:column}.sandbox-section{padding:1rem}}

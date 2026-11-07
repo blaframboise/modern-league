@@ -10,17 +10,40 @@ import { ResultsReviewPage } from '../pages/ResultsReviewPage';
 import { ResultsImportPage } from '../pages/ResultsImportPage';
 import { OfficialImportPage } from '../pages/OfficialImportPage';
 import { AdminPage } from '../pages/AdminPage';
+import { TestWorkspacePage } from '../pages/TestWorkspacePage';
+import { supabaseConfiguration } from '../data/client';
+import { leagueRepository } from '../data/repository';
 import { navigation } from './navigation';
 
 export function App() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  useEffect(() => {
+    const client=supabaseConfiguration.client;
+    if(!client) return;
+    let active=true;let version=0;
+    async function update() {
+      const current=++version;
+      try {
+        const {data}=await client!.auth.getUser();
+        const admin=!!data.user && await leagueRepository(client!).isAdministrator();
+        if(active&&current===version)setIsAdmin(admin);
+      } catch {if(active&&current===version)setIsAdmin(false);}
+    }
+    void update();
+    const {data:{subscription}}=client.auth.onAuthStateChange(() => {
+      setTimeout(()=>{if(active)void update();},0);
+    });
+    return ()=>{active=false;version++;subscription.unsubscribe();};
+  },[]);
+
   const { pathname } = useLocation();
   const mainRef = useRef<HTMLElement>(null);
   const firstRender = useRef(true);
   useEffect(() => {
     setMenuOpen(false);
     window.scrollTo(0, 0);
-    document.title = `${navigation.find(item => item.path === pathname)?.label ?? (pathname === '/official-import' ? 'Private screenshot drafts' : pathname === '/admin' ? 'Administrator sign in' : 'Page not found')} | Modern League`;
+    document.title = `${navigation.find(item => item.path === pathname)?.label ?? (pathname === '/official-import' ? 'Private screenshot drafts' : pathname === '/admin' ? 'League administration' : pathname === '/test-workspace' ? 'Private test workspace' : 'Page not found')} | Modern League`;
     if (!firstRender.current) mainRef.current?.focus();
     firstRender.current = false;
   }, [pathname]);
@@ -31,6 +54,7 @@ export function App() {
       <button className="menu-toggle" aria-label={menuOpen ? 'Close navigation' : 'Open navigation'} aria-expanded={menuOpen} aria-controls="primary-nav" onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X /> : <Menu />}</button>
       <nav id="primary-nav" aria-label="Main navigation" className={menuOpen ? 'navigation open' : 'navigation'} onKeyDown={event => { if (event.key === 'Escape') setMenuOpen(false); }}>
         {navigation.map(item => <NavLink key={item.path} to={item.path} end={item.path === '/'}>{item.label}</NavLink>)}
+        {isAdmin && <NavLink to="/admin" end={false}>Admin</NavLink>}
       </nav>
       <span className="header-season"><span className="status-dot" />2027 SEASON</span>
     </div></header>
@@ -38,6 +62,7 @@ export function App() {
       <Route path="/" element={<HomePage />} />
       <Route path="/official-import" element={<OfficialImportPage />} />
       <Route path="/admin" element={<AdminPage />} />
+      <Route path="/test-workspace" element={<TestWorkspacePage />} />
       <Route path="/results-import" element={<ResultsImportPage />} />
       <Route path="/results-review" element={<ResultsReviewPage />} />
       <Route path="/leaderboards" element={<LeaderboardPage />} />
