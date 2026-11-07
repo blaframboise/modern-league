@@ -731,11 +731,6 @@
   },
   {
     "section": "constraints",
-    "object_name": "private.administrators.administrators_granted_at_not_null",
-    "definition": "NOT NULL granted_at; validated=true"
-  },
-  {
-    "section": "constraints",
     "object_name": "private.administrators.administrators_pkey",
     "definition": "PRIMARY KEY (user_id); validated=true"
   },
@@ -746,18 +741,8 @@
   },
   {
     "section": "constraints",
-    "object_name": "private.administrators.administrators_reason_not_null",
-    "definition": "NOT NULL reason; validated=true"
-  },
-  {
-    "section": "constraints",
     "object_name": "private.administrators.administrators_user_id_fkey",
     "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id); validated=true"
-  },
-  {
-    "section": "constraints",
-    "object_name": "private.administrators.administrators_user_id_not_null",
-    "definition": "NOT NULL user_id; validated=true"
   },
   {
     "section": "constraints",
@@ -766,23 +751,8 @@
   },
   {
     "section": "constraints",
-    "object_name": "public.approval_history.approval_history_actor_not_null",
-    "definition": "NOT NULL actor; validated=true"
-  },
-  {
-    "section": "constraints",
-    "object_name": "public.approval_history.approval_history_created_at_not_null",
-    "definition": "NOT NULL created_at; validated=true"
-  },
-  {
-    "section": "constraints",
     "object_name": "public.approval_history.approval_history_decision_check",
     "definition": "CHECK (decision = ANY (ARRAY['approved'::text, 'rejected'::text])); validated=true"
-  },
-  {
-    "section": "constraints",
-    "object_name": "public.approval_history.approval_history_decision_not_null",
-    "definition": "NOT NULL decision; validated=true"
   },
   {
     "section": "constraints",
@@ -796,18 +766,8 @@
   },
   {
     "section": "constraints",
-    "object_name": "public.approval_history.approval_history_draft_id_not_null",
-    "definition": "NOT NULL draft_id; validated=true"
-  },
-  {
-    "section": "constraints",
     "object_name": "public.approval_history.approval_history_id_decision_key",
     "definition": "UNIQUE (id, decision); validated=true"
-  },
-  {
-    "section": "constraints",
-    "object_name": "public.approval_history.approval_history_id_not_null",
-    "definition": "NOT NULL id; validated=true"
   },
   {
     "section": "constraints",
@@ -821,43 +781,13 @@
   },
   {
     "section": "constraints",
-    "object_name": "public.approval_history.approval_history_reason_not_null",
-    "definition": "NOT NULL reason; validated=true"
-  },
-  {
-    "section": "constraints",
     "object_name": "public.approval_history.approval_history_revision_check",
     "definition": "CHECK (revision >= 0); validated=true"
   },
   {
     "section": "constraints",
-    "object_name": "public.approval_history.approval_history_revision_not_null",
-    "definition": "NOT NULL revision; validated=true"
-  },
-  {
-    "section": "constraints",
-    "object_name": "public.approval_history.approval_history_validated_snapshot_not_null",
-    "definition": "NOT NULL validated_snapshot; validated=true"
-  },
-  {
-    "section": "constraints",
-    "object_name": "public.extraction_evidence.extraction_evidence_created_at_not_null",
-    "definition": "NOT NULL created_at; validated=true"
-  },
-  {
-    "section": "constraints",
     "object_name": "public.extraction_evidence.extraction_evidence_draft_id_fkey",
     "definition": "FOREIGN KEY (draft_id) REFERENCES import_drafts(id); validated=true"
-  },
-  {
-    "section": "constraints",
-    "object_name": "public.extraction_evidence.extraction_evidence_draft_id_not_null",
-    "definition": "NOT NULL draft_id; validated=true"
-  },
-  {
-    "section": "constraints",
-    "object_name": "public.extraction_evidence.extraction_evidence_id_not_null",
-    "definition": "NOT NULL id; validated=true"
   },
   {
     "section": "constraints",
@@ -871,23 +801,8 @@
   },
   {
     "section": "constraints",
-    "object_name": "public.extraction_evidence.extraction_evidence_report_not_null",
-    "definition": "NOT NULL report; validated=true"
-  },
-  {
-    "section": "constraints",
     "object_name": "public.import_corrections.import_corrections_actor_fkey",
     "definition": "FOREIGN KEY (actor) REFERENCES auth.users(id); validated=true"
-  },
-  {
-    "section": "constraints",
-    "object_name": "public.import_corrections.import_corrections_actor_not_null",
-    "definition": "NOT NULL actor; validated=true"
-  },
-  {
-    "section": "constraints",
-    "object_name": "public.import_corrections.import_corrections_created_at_not_null",
-    "definition": "NOT NULL created_at; validated=true"
   },
   {
     "section": "constraints",
@@ -896,18 +811,8 @@
   },
   {
     "section": "constraints",
-    "object_name": "public.import_corrections.import_corrections_draft_id_not_null",
-    "definition": "NOT NULL draft_id; validated=true"
-  },
-  {
-    "section": "constraints",
     "object_name": "public.import_corrections.import_corrections_draft_id_revision_key",
     "definition": "UNIQUE (draft_id, revision); validated=true"
-  },
-  {
-    "section": "constraints",
-    "object_name": "public.import_corrections.import_corrections_id_not_null",
-    "definition": "NOT NULL id; validated=true"
   },
   {
     "section": "constraints",
@@ -921,18 +826,8 @@
   },
   {
     "section": "constraints",
-    "object_name": "public.import_corrections.import_corrections_reason_not_null",
-    "definition": "NOT NULL reason; validated=true"
-  },
-  {
-    "section": "constraints",
     "object_name": "public.import_corrections.import_corrections_revision_check",
     "definition": "CHECK (revision > 0); validated=true"
-  },
-  {
-    "section": "constraints",
-    "object_name": "public.import_corrections.import_corrections_revision_not_null",
-    "definition": "NOT NULL revision; validated=true"
   },
   {
     "section": "constraints",
@@ -941,28 +836,8 @@
   },
   {
     "section": "constraints",
-    "object_name": "public.import_corrections.import_corrections_snapshot_not_null",
-    "definition": "NOT NULL snapshot; validated=true"
-  },
-  {
-    "section": "constraints",
-    "object_name": "public.import_drafts.import_drafts_created_at_not_null",
-    "definition": "NOT NULL created_at; validated=true"
-  },
-  {
-    "section": "constraints",
     "object_name": "public.import_drafts.import_drafts_created_by_fkey",
     "definition": "FOREIGN KEY (created_by) REFERENCES auth.users(id); validated=true"
-  },
-  {
-    "section": "constraints",
-    "object_name": "public.import_drafts.import_drafts_created_by_not_null",
-    "definition": "NOT NULL created_by; validated=true"
-  },
-  {
-    "section": "constraints",
-    "object_name": "public.import_drafts.import_drafts_id_not_null",
-    "definition": "NOT NULL id; validated=true"
   },
   {
     "section": "constraints",
@@ -971,28 +846,13 @@
   },
   {
     "section": "constraints",
-    "object_name": "public.import_drafts.import_drafts_original_not_null",
-    "definition": "NOT NULL original; validated=true"
-  },
-  {
-    "section": "constraints",
     "object_name": "public.import_drafts.import_drafts_pkey",
     "definition": "PRIMARY KEY (id); validated=true"
   },
   {
     "section": "constraints",
-    "object_name": "public.league_seasons.league_seasons_id_not_null",
-    "definition": "NOT NULL id; validated=true"
-  },
-  {
-    "section": "constraints",
     "object_name": "public.league_seasons.league_seasons_league_year_check",
     "definition": "CHECK (league_year >= 2027); validated=true"
-  },
-  {
-    "section": "constraints",
-    "object_name": "public.league_seasons.league_seasons_league_year_not_null",
-    "definition": "NOT NULL league_year; validated=true"
   },
   {
     "section": "constraints",
@@ -1006,11 +866,6 @@
   },
   {
     "section": "constraints",
-    "object_name": "public.league_seasons.league_seasons_ordinal_not_null",
-    "definition": "NOT NULL ordinal; validated=true"
-  },
-  {
-    "section": "constraints",
     "object_name": "public.league_seasons.league_seasons_pkey",
     "definition": "PRIMARY KEY (id); validated=true"
   },
@@ -1018,16 +873,6 @@
     "section": "constraints",
     "object_name": "public.player_identities.player_identities_alias_check",
     "definition": "CHECK (length(TRIM(BOTH FROM alias)) > 0); validated=true"
-  },
-  {
-    "section": "constraints",
-    "object_name": "public.player_identities.player_identities_alias_not_null",
-    "definition": "NOT NULL alias; validated=true"
-  },
-  {
-    "section": "constraints",
-    "object_name": "public.player_identities.player_identities_id_not_null",
-    "definition": "NOT NULL id; validated=true"
   },
   {
     "section": "constraints",
@@ -1041,11 +886,6 @@
   },
   {
     "section": "constraints",
-    "object_name": "public.player_identities.player_identities_player_id_not_null",
-    "definition": "NOT NULL player_id; validated=true"
-  },
-  {
-    "section": "constraints",
     "object_name": "public.player_records.player_records_check",
     "definition": "CHECK ((wins::bigint + losses + draws) <= scheduled_rounds); validated=true"
   },
@@ -1053,11 +893,6 @@
     "section": "constraints",
     "object_name": "public.player_records.player_records_draws_check",
     "definition": "CHECK (draws >= 0); validated=true"
-  },
-  {
-    "section": "constraints",
-    "object_name": "public.player_records.player_records_draws_not_null",
-    "definition": "NOT NULL draws; validated=true"
   },
   {
     "section": "constraints",
@@ -1071,11 +906,6 @@
   },
   {
     "section": "constraints",
-    "object_name": "public.player_records.player_records_losses_not_null",
-    "definition": "NOT NULL losses; validated=true"
-  },
-  {
-    "section": "constraints",
     "object_name": "public.player_records.player_records_pkey",
     "definition": "PRIMARY KEY (result_id, player_id); validated=true"
   },
@@ -1086,23 +916,8 @@
   },
   {
     "section": "constraints",
-    "object_name": "public.player_records.player_records_player_id_not_null",
-    "definition": "NOT NULL player_id; validated=true"
-  },
-  {
-    "section": "constraints",
-    "object_name": "public.player_records.player_records_result_id_not_null",
-    "definition": "NOT NULL result_id; validated=true"
-  },
-  {
-    "section": "constraints",
     "object_name": "public.player_records.player_records_result_id_scheduled_rounds_fkey",
     "definition": "FOREIGN KEY (result_id, scheduled_rounds) REFERENCES tournament_results(id, scheduled_rounds); validated=true"
-  },
-  {
-    "section": "constraints",
-    "object_name": "public.player_records.player_records_scheduled_rounds_not_null",
-    "definition": "NOT NULL scheduled_rounds; validated=true"
   },
   {
     "section": "constraints",
@@ -1111,23 +926,8 @@
   },
   {
     "section": "constraints",
-    "object_name": "public.player_records.player_records_wins_not_null",
-    "definition": "NOT NULL wins; validated=true"
-  },
-  {
-    "section": "constraints",
     "object_name": "public.players.players_display_name_check",
     "definition": "CHECK (length(TRIM(BOTH FROM display_name)) > 0); validated=true"
-  },
-  {
-    "section": "constraints",
-    "object_name": "public.players.players_display_name_not_null",
-    "definition": "NOT NULL display_name; validated=true"
-  },
-  {
-    "section": "constraints",
-    "object_name": "public.players.players_id_not_null",
-    "definition": "NOT NULL id; validated=true"
   },
   {
     "section": "constraints",
@@ -1146,23 +946,8 @@
   },
   {
     "section": "constraints",
-    "object_name": "public.published_results.published_results_public_snapshot_not_null",
-    "definition": "NOT NULL public_snapshot; validated=true"
-  },
-  {
-    "section": "constraints",
-    "object_name": "public.published_results.published_results_published_at_not_null",
-    "definition": "NOT NULL published_at; validated=true"
-  },
-  {
-    "section": "constraints",
     "object_name": "public.published_results.published_results_published_by_fkey",
     "definition": "FOREIGN KEY (published_by) REFERENCES auth.users(id); validated=true"
-  },
-  {
-    "section": "constraints",
-    "object_name": "public.published_results.published_results_published_by_not_null",
-    "definition": "NOT NULL published_by; validated=true"
   },
   {
     "section": "constraints",
@@ -1171,18 +956,8 @@
   },
   {
     "section": "constraints",
-    "object_name": "public.published_results.published_results_result_id_not_null",
-    "definition": "NOT NULL result_id; validated=true"
-  },
-  {
-    "section": "constraints",
     "object_name": "public.scheduled_events.scheduled_events_check",
     "definition": "CHECK (kind = 'annual'::text AND season_id IS NULL OR kind <> 'annual'::text AND season_id IS NOT NULL); validated=true"
-  },
-  {
-    "section": "constraints",
-    "object_name": "public.scheduled_events.scheduled_events_id_not_null",
-    "definition": "NOT NULL id; validated=true"
   },
   {
     "section": "constraints",
@@ -1191,38 +966,13 @@
   },
   {
     "section": "constraints",
-    "object_name": "public.scheduled_events.scheduled_events_kind_not_null",
-    "definition": "NOT NULL kind; validated=true"
-  },
-  {
-    "section": "constraints",
     "object_name": "public.scheduled_events.scheduled_events_league_year_check",
     "definition": "CHECK (league_year >= 2027); validated=true"
   },
   {
     "section": "constraints",
-    "object_name": "public.scheduled_events.scheduled_events_league_year_not_null",
-    "definition": "NOT NULL league_year; validated=true"
-  },
-  {
-    "section": "constraints",
-    "object_name": "public.scheduled_events.scheduled_events_local_date_not_null",
-    "definition": "NOT NULL local_date; validated=true"
-  },
-  {
-    "section": "constraints",
-    "object_name": "public.scheduled_events.scheduled_events_local_time_not_null",
-    "definition": "NOT NULL local_time; validated=true"
-  },
-  {
-    "section": "constraints",
     "object_name": "public.scheduled_events.scheduled_events_name_check",
     "definition": "CHECK (length(TRIM(BOTH FROM name)) > 0); validated=true"
-  },
-  {
-    "section": "constraints",
-    "object_name": "public.scheduled_events.scheduled_events_name_not_null",
-    "definition": "NOT NULL name; validated=true"
   },
   {
     "section": "constraints",
@@ -1236,23 +986,8 @@
   },
   {
     "section": "constraints",
-    "object_name": "public.scheduled_events.scheduled_events_scheduled_rounds_not_null",
-    "definition": "NOT NULL scheduled_rounds; validated=true"
-  },
-  {
-    "section": "constraints",
     "object_name": "public.scheduled_events.scheduled_events_season_id_fkey",
     "definition": "FOREIGN KEY (season_id) REFERENCES league_seasons(id); validated=true"
-  },
-  {
-    "section": "constraints",
-    "object_name": "public.scheduled_events.scheduled_events_starts_at_not_null",
-    "definition": "NOT NULL starts_at; validated=true"
-  },
-  {
-    "section": "constraints",
-    "object_name": "public.scheduled_events.scheduled_events_time_zone_not_null",
-    "definition": "NOT NULL time_zone; validated=true"
   },
   {
     "section": "constraints",
@@ -1261,23 +996,8 @@
   },
   {
     "section": "constraints",
-    "object_name": "public.screenshot_assets.screenshot_assets_byte_size_not_null",
-    "definition": "NOT NULL byte_size; validated=true"
-  },
-  {
-    "section": "constraints",
     "object_name": "public.screenshot_assets.screenshot_assets_draft_id_fkey",
     "definition": "FOREIGN KEY (draft_id) REFERENCES import_drafts(id); validated=true"
-  },
-  {
-    "section": "constraints",
-    "object_name": "public.screenshot_assets.screenshot_assets_draft_id_not_null",
-    "definition": "NOT NULL draft_id; validated=true"
-  },
-  {
-    "section": "constraints",
-    "object_name": "public.screenshot_assets.screenshot_assets_id_not_null",
-    "definition": "NOT NULL id; validated=true"
   },
   {
     "section": "constraints",
@@ -1286,18 +1006,8 @@
   },
   {
     "section": "constraints",
-    "object_name": "public.screenshot_assets.screenshot_assets_mime_type_not_null",
-    "definition": "NOT NULL mime_type; validated=true"
-  },
-  {
-    "section": "constraints",
     "object_name": "public.screenshot_assets.screenshot_assets_object_path_key",
     "definition": "UNIQUE (object_path); validated=true"
-  },
-  {
-    "section": "constraints",
-    "object_name": "public.screenshot_assets.screenshot_assets_object_path_not_null",
-    "definition": "NOT NULL object_path; validated=true"
   },
   {
     "section": "constraints",
@@ -1311,11 +1021,6 @@
   },
   {
     "section": "constraints",
-    "object_name": "public.screenshot_assets.screenshot_assets_sha256_not_null",
-    "definition": "NOT NULL sha256; validated=true"
-  },
-  {
-    "section": "constraints",
     "object_name": "public.tournament_results.tournament_results_approval_id_decision_fkey",
     "definition": "FOREIGN KEY (approval_id, decision) REFERENCES approval_history(id, decision); validated=true"
   },
@@ -1326,18 +1031,8 @@
   },
   {
     "section": "constraints",
-    "object_name": "public.tournament_results.tournament_results_approval_id_not_null",
-    "definition": "NOT NULL approval_id; validated=true"
-  },
-  {
-    "section": "constraints",
     "object_name": "public.tournament_results.tournament_results_decision_check",
     "definition": "CHECK (decision = 'approved'::text); validated=true"
-  },
-  {
-    "section": "constraints",
-    "object_name": "public.tournament_results.tournament_results_decision_not_null",
-    "definition": "NOT NULL decision; validated=true"
   },
   {
     "section": "constraints",
@@ -1348,16 +1043,6 @@
     "section": "constraints",
     "object_name": "public.tournament_results.tournament_results_event_id_key",
     "definition": "UNIQUE (event_id); validated=true"
-  },
-  {
-    "section": "constraints",
-    "object_name": "public.tournament_results.tournament_results_event_id_not_null",
-    "definition": "NOT NULL event_id; validated=true"
-  },
-  {
-    "section": "constraints",
-    "object_name": "public.tournament_results.tournament_results_id_not_null",
-    "definition": "NOT NULL id; validated=true"
   },
   {
     "section": "constraints",
@@ -1376,11 +1061,6 @@
   },
   {
     "section": "constraints",
-    "object_name": "public.tournament_results.tournament_results_scheduled_rounds_not_null",
-    "definition": "NOT NULL scheduled_rounds; validated=true"
-  },
-  {
-    "section": "constraints",
     "object_name": "public.tournament_results.tournament_results_source_key_check",
     "definition": "CHECK (length(TRIM(BOTH FROM source_key)) > 0); validated=true"
   },
@@ -1388,11 +1068,6 @@
     "section": "constraints",
     "object_name": "public.tournament_results.tournament_results_source_key_key",
     "definition": "UNIQUE (source_key); validated=true"
-  },
-  {
-    "section": "constraints",
-    "object_name": "public.tournament_results.tournament_results_source_key_not_null",
-    "definition": "NOT NULL source_key; validated=true"
   },
   {
     "section": "functions",

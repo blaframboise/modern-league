@@ -52,16 +52,55 @@ service-role keys, database passwords or real tournament screenshots for these c
 Open [phase8a-inventory.sql](../supabase/verification/phase8a-inventory.sql), copy the
 entire SELECT into the new SQL Editor tab, then click **Run**. It reads PostgreSQL
 catalogs only, not application records. Compare the result's `section`, `object_name`
-and `definition` columns against **all 352 rows** in
+and `definition` columns against **all 287 normalized rows** in
 [PHASE8A_REFERENCE.json](PHASE8A_REFERENCE.json). That reference is generated from the
 unchanged checked-in foundation in a fresh local database, and an automated test
 checks that the SELECT works inside a read-only transaction and matches the reference.
 
+#### PostgreSQL catalog normalization: NOT NULL
+
+The previous PGlite reference contained 352 rows. The operator reports that the
+production export contains 287 exact matches, no conflicting definitions, no extra
+objects, and exactly 65 reference-only constraint entries named `*_not_null`. All
+68 column definitions, including their `not_null` flags, match. This review uses
+that supplied comparison; it has not independently downloaded the production export
+or connected to production.
+
+Local inspection confirms PostgreSQL **18.6 (PGlite 0.5.15)** records 65 NOT NULL
+constraints in `pg_constraint` with **`contype = 'n'`**, in addition to the existing
+`pg_attribute.attnotnull` flags. PostgreSQL 18 introduced these catalog entries;
+earlier PostgreSQL versions expose column nullability through `attnotnull` without
+those additional constraint rows. These are generated representations of real
+NOT NULL enforcement, not 65 additional independent safeguards. The production
+version was not supplied; the read-only environment inventory reports it separately.
+
+The inventory SELECT now excludes **only validated** `pg_constraint.contype = 'n'`
+entries. Its column section still includes all 68 definitions and all 65 true NOT NULL flags. The updated
+reference therefore has **287 rows**, matching the reported production export.
+Unvalidated NOT NULL entries remain visible as potential validation drift.
+CHECK (`c`), primary-key (`p`), unique (`u`) and foreign-key (`f`) constraints remain
+included. Do not ignore a row solely because its name ends with `_not_null`: a real
+CHECK constraint can have that name. A changed/missing `not_null` column flag remains
+a genuine schema difference requiring investigation.
+
+For an export already produced with the old SELECT, the reported 287 production
+rows can be compared directly with the updated 287-row reference; no production
+SQL needs to be changed or rerun for this known difference. If comparing an old
+352-row reference/export, normalize only the 65 confirmed validated `contype='n'` entries
+(the old reference renders them as `NOT NULL <column>; validated=true`) and require
+the complete column definitions/nullability flags to match. Investigate any other
+missing, changed or extra row; row counts alone never establish equivalence.
+
+Under the supplied exact comparison, the 65 omitted constraint rows are **not a
+missing-safeguard blocker**. This resolves that inventory comparison discrepancy
+only. It does not verify owners, environment-specific RPC/Storage policies, actual
+ledger state, or authorize migration/ledger repair, push, merge or deployment.
+
 The reference has these expectations:
 
 - 13 tables: `private.administrators` plus 12 public application tables. Each is a
-  regular table with RLS enabled. No table/column/constraint/index/trigger/policy
-  from the file may be missing. `screenshot_assets.created_at`, the hash uniqueness
+  regular table with RLS enabled. All listed column definitions, CHECK/primary-key/
+  unique/foreign-key constraints, indexes, triggers and policies must match. `screenshot_assets.created_at`, the hash uniqueness
   constraint and all 8B helpers must **not yet** exist in a pure 8A schema.
 - Original `admin_read` policies are permissive SELECT for authenticated on all
   12 public application tables. `published_results` additionally has `public_read`
@@ -276,3 +315,16 @@ API interception/images, not production. The Vite >500 kB bundle advisory remain
 Catalog, environment, aggregate and ledger SELECTs are exercised in read-only local
 transactions. No remote schema/ledger access, writes, migration, merge or deployment
 was performed.
+
+### Catalog normalization follow-up
+
+The revised comparison was verified locally against PostgreSQL 18.6/PGlite. It
+produces 287 rows, retaining all 68 column definitions and 65 true NOT NULL flags.
+Regressions ensure dropping NOT NULL still changes the inventory, unvalidated NOT NULL
+entries remain visible, and genuine CHECK constraints named `*_not_null` are retained.
+The operator-reported production export was not independently re-read here; no
+production SQL, historical migration or ledger was changed.
+
+For this catalog-only follow-up, `npm run typecheck` and `npm test` (111 passed)
+were rerun. The build/browser/Deno results above refer to the preceding infrastructure
+review; this follow-up changes only verification SQL, its reference, guidance and tests.

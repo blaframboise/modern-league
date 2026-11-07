@@ -1,5 +1,9 @@
 -- READ ONLY. No application rows, tokens, keys or user identities are read.
 -- Run this whole SELECT in the dashboard SQL Editor BEFORE Phase 8B.
+-- Normalize NOT NULL across PostgreSQL versions: column attnotnull flags capture nullability.
+-- PostgreSQL 18 also emits pg_constraint contype='n'; omit validated duplicates only.
+-- Keep unvalidated NOT NULL constraints visible as potential validation drift.
+-- Never filter constraint names by suffix; CHECK/FK/PK/UNIQUE constraints stay included.
 -- Compare every row with docs/PHASE8A_REFERENCE.json; see MIGRATION_READINESS.md.
 with targets(schema_name, table_name) as (values
  ('private','administrators'),
@@ -27,6 +31,7 @@ with targets(schema_name, table_name) as (values
  select 'constraints',r.schema_name||'.'||r.table_name||'.'||c.conname,
    pg_get_constraintdef(c.oid,true)||'; validated='||c.convalidated
  from relations r join pg_constraint c on c.conrelid=r.oid
+ where c.contype <> 'n' or not c.convalidated
  union all
  select 'indexes',r.schema_name||'.'||r.table_name||'.'||c.relname,pg_get_indexdef(i.indexrelid)
  from relations r join pg_index i on i.indrelid=r.oid join pg_class c on c.oid=i.indexrelid
