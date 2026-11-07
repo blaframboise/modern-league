@@ -16,3 +16,10 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+      - name: Verify secure screenshot review in headless browser
+        env:
+          VITE_SUPABASE_URL: http://127.0.0.1:54321
+          VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_synthetic
+        run: |
+          npm run dev -- --host 127.0.0.1 --port 5174 > /tmp/modern-league-vite.log 2>&1 &
+          BROWSER_EXECUTABLE_PATH="$(command -v google-chrome || command -v chromium)" npm run test:browser:secure
