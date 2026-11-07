@@ -1,5 +1,9 @@
 -- REVIEW ONLY. Requires the verified/reconciled Phase 8A foundation; do not db push blindly.
 -- Phase 8B drafts use the existing immutable originals/correction journal.
+-- The administrator predicate is needed by signed-in users, not anonymous clients.
+-- Remove the unnecessary anonymous SECURITY DEFINER RPC execution grant.
+revoke execute on function public.is_administrator() from anon;
+
 -- Restrict pre-existing draft access to the owning administrator.
 drop policy admin_read on public.import_drafts;
 create policy admin_read on public.import_drafts for select to authenticated
