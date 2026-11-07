@@ -10,7 +10,7 @@ const assert = require('node:assert/strict');
     for (const width of [390,1440]) {
       const page = await browser.newPage({ viewport: { width, height: 1000 } });
       const errors = []; page.on('pageerror', error => errors.push(String(error)));
-      const drafts = []; const corrections = []; const assets = []; let admin = true; let requests = 0;
+      const drafts = []; const corrections = []; const assets = []; let admin = true; let requests = 0; let orphanPresent = true;
       const user = { id: actor, aud: 'authenticated', role: 'authenticated', email: 'synthetic@example.invalid', app_metadata: {}, user_metadata: {}, created_at: new Date().toISOString() };
       const token = { access_token: 'synthetic-token', refresh_token: 'synthetic-refresh', token_type: 'bearer', expires_at: Math.floor(Date.now()/1000) + 3600, expires_in: 3600, user };
       await page.addInitScript(token => { localStorage.setItem('sb-127-auth-token', JSON.stringify(token)); }, token);
