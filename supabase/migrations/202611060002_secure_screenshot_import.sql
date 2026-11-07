@@ -68,6 +68,52 @@ end $$;
 revoke all on function public.create_screenshot_draft(uuid,uuid,jsonb) from public,anon,authenticated;
 grant execute on function public.create_screenshot_draft(uuid,uuid,jsonb) to service_role;
 
+-- Bounded, durable per-administrator rate accounting, not an Edge-memory counter.
+-- One row per administrator/action avoids accumulating an unbounded rate history.
+-- Call before expensive upload buffering or persistent writes. Failed later actions
+-- still consume their request allowance, limiting repeated abuse/retries.
+create table private.screenshot_request_rates (
+ actor uuid not null references auth.users(id),
+ action text not null check (action in ('create','upload','correct','extract')),
+ window_started_at timestamptz not null,
+ attempts integer not null check (attempts between 1 and 10000),
+ primary key(actor, action)
+);
+alter table private.screenshot_request_rates enable row level security;
+revoke all on private.screenshot_request_rates from public, anon, authenticated, service_role;
+
+create function public.consume_screenshot_request(p_actor uuid, p_action text)
+returns integer language plpgsql security definer set search_path = '' as $
+declare allowed integer; attempt_count integer; begin
+ allowed := case p_action
+  when 'upload' then 40
+  when 'create' then 60
+  when 'correct' then 120
+  when 'extract' then 20
+  else null end;
+ if allowed is null then raise exception 'Unsupported action'; end if;
+ -- Ensures the caller still holds administrator status at the mutation boundary.
+ perform 1 from private.administrators where user_id = p_actor for update;
+ if not found then raise exception 'Forbidden'; end if;
+ insert into private.screenshot_request_rates(actor,action,window_started_at,attempts)
+ values(p_actor,p_action,pg_catalog.now(),1)
+ on conflict(actor,action) do update
+ set window_started_at = case
+   when private.screenshot_request_rates.window_started_at <= pg_catalog.now() - interval '1 hour'
+   then pg_catalog.now() else private.screenshot_request_rates.window_started_at end,
+ attempts = case
+   when private.screenshot_request_rates.window_started_at <= pg_catalog.now() - interval '1 hour'
+   then 1 else least(private.screenshot_request_rates.attempts + 1, 10000) end
+ returning attempts into attempt_count;
+ if attempt_count > allowed then
+   -- Keep the over-limit count committed; Edge responds 429, not an exception.
+   return 0;
+ end if;
+ return allowed - attempt_count;
+end $;
+revoke all on function public.consume_screenshot_request(uuid,text) from public,anon,authenticated;
+grant execute on function public.consume_screenshot_request(uuid,text) to service_role;
+
 -- Count/hash checks serialize per draft. Invoked only after server validates bytes.
 create function public.attach_screenshot(p_draft uuid, p_actor uuid, p_hash text, p_mime text, p_size integer)
 returns public.screenshot_assets language plpgsql security definer set search_path = '' as $$
