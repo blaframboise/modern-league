@@ -28,6 +28,14 @@ const assert = require('node:assert/strict');
           requests++; const id = request.headers()['x-draft-id']; const action = url.searchParams.get('action');
           if (action === 'retention-delete-orphan') { orphanPresent=false; return reply({deleted:true,auditId:'synthetic-success'}); }
           if (action === 'retention-preview') return reply({candidates:orphanPresent ? [{object_path:`${actor}/${id}/${'c'.repeat(64)}`,asset_id:null,draft_id:null,retention_reason:'orphan_24h',activity_at:'2026-10-01T00:00:00Z'}] : []});
+          if (action === 'extract') {
+            const sourceId=request.postDataJSON().sourceId;
+            const mk=(value)=>({value,status:value===null?'missing':'suggested',sources:value===null?[]:[sourceId],warnings:[]});
+            const metadata=['name','eventId','sourceKey','date','time','timeZone','offset','year','seasonId','kind','scheduledRounds'];
+            const tournament=Object.fromEntries(metadata.map(k=>[k,mk(k==='name'?'AI synthetic event':null)]));
+            const fields=Object.fromEntries(['importedName','wins','losses','draws','finalPosition'].map(k=>[k,mk(k==='importedName'?'AI synthetic name':null)]));
+            return reply({report:{version:1,provider:'OpenAI test fixture',fictional:false,warnings:['Synthetic preview'],tournament,results:[{rowId:'suggested-1',fields}]},usage:{input_tokens:1,output_tokens:1}});
+          }
           if (action === 'create') { drafts.push({ id, created_by: actor, original: { tournament: { eventId:'',sourceKey:'',name:'',date:'',start:null,year:0,kind:'',scheduledRounds:null }, results:[] } }); return reply({ id }); }
           if (action === 'upload') { assets.push({ id: assetId, draft_id: id, object_path: `${actor}/${id}/synthetic`, mime_type:'image/png',byte_size:68,sha256:'a'.repeat(64) }); return reply(assets[0]); }
           if (action === 'correct') {
@@ -57,6 +65,13 @@ const assert = require('node:assert/strict');
       assert.equal(await page.locator('input[type=file]').isEnabled(),true);
       await page.locator('input[type=file]').setInputFiles({ name:'synthetic.png',mimeType:'image/png',buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j4ZkAAAAASUVORK5CYII=', 'base64') });
       await page.getByText('Sources saved privately.',{exact:false}).waitFor();
+      await page.getByRole('button',{name:'Analyze source with OpenAI'}).click();
+      await page.getByText('AI suggestions received.',{exact:false}).waitFor();
+      await page.getByRole('button',{name:/Copy suggestions into review editor/}).click();
+      await page.getByText('Suggestions copied to the editable review form only.',{exact:false}).waitFor();
+      assert.equal(JSON.parse(await page.getByLabel('Review values',{exact:false}).inputValue()).tournament.name,'AI synthetic event');
+      assert.equal(corrections.length,0);
+
       await page.getByRole('button',{name:`View source ${assetId}`}).click();
       await page.getByRole('img',{name:'Private tournament source for human evidence review'}).waitFor();
       const editor = page.getByLabel('Review values', {exact:false});
