@@ -82,9 +82,9 @@ function harness({ user = true, admin = true, owner = actor, failAttach = false,
     aiCalls++;
     const body=JSON.parse(options.body);
     assert.equal(body.store,false);
-    const tournament=Object.fromEntries(metadataKeys.map(k=>[k,null]));
+    const tournament:Record<string,string|number|null>=Object.fromEntries(metadataKeys.map(k=>[k,null]));
     tournament.name='Synthetic AI event';
-    const fields=Object.fromEntries(rowKeys.map(k=>[k,null]));
+    const fields:Record<string,string|number|null>=Object.fromEntries(rowKeys.map(k=>[k,null]));
     fields.importedName='Unverified synthetic player';fields.wins=1;
     return new Response(JSON.stringify({status:'completed',
       output:[{type:'message',content:[{type:'output_text',text:JSON.stringify({tournament,results:[fields],warnings:[]})}]}],
