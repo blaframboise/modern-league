@@ -117,6 +117,7 @@ const assert = require('node:assert/strict');
       await page.getByRole('button',{name:'Continue to player matching'}).click();
       await page.getByRole('heading',{name:'Test workspace'}).waitFor();
       await page.getByRole('heading',{name:'Confirm players and test results'}).waitFor();
+      await page.getByLabel('Match Verified player').waitFor();
       assert.equal(await page.getByLabel('Reviewed screenshot').inputValue(),drafts[0].id);
       assert.equal(await page.getByLabel('Match Verified player').inputValue(),'');
       assert.equal(await page.getByLabel('Display name for Verified player').inputValue(),'Verified Player');
