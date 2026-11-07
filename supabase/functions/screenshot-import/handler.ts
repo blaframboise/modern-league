@@ -5,9 +5,9 @@ import { boundedBody, SOURCE_BUCKET, unresolvedOriginal, uuid, validateImageByte
 import { reconstructImportDraft, parseImportValues, sameHistory } from '../../../src/data/reconstruction.ts';
 import { correctImport } from '../../../src/results/index.ts';
 import { validateHumanEvidence } from '../../../src/importInfrastructure/evidence.ts';
-import { configuredExtractionAdapter } from '../../../src/importInfrastructure/provider.ts';
+import { extractWithOpenAI } from '../../../src/importInfrastructure/openaiVision.ts';
 
-export function importHandler(env: (name: string) => string | undefined, createClient: Factory) {
+export function importHandler(env: (name: string) => string | undefined, createClient: Factory, providerFetch: typeof fetch = fetch) {
   const url = env('SUPABASE_URL')!;
   const key = env('SUPABASE_ANON_KEY')!;
   const service = createClient(url, env('SUPABASE_SERVICE_ROLE_KEY')!, { auth: { persistSession: false, autoRefreshToken: false } });
@@ -135,7 +135,26 @@ export function importHandler(env: (name: string) => string | undefined, createC
         return reply({ revision: body.revision });
       }
       if (action === 'extract') {
-        configuredExtractionAdapter(); // Intentionally unavailable; no mock output persisted as real evidence.
+        const apiKey = env('OPENAI_API_KEY');
+        if (!apiKey) return reply({error: 'EXTRACTION_NOT_CONFIGURED: OpenAI server key missing.'},501);
+        const input = JSON.parse(new TextDecoder().decode(await boundedBody(request,4096)));
+        const sourceId = uuid(input?.sourceId);
+        const metadata = checked(await service.from('screenshot_assets').select('*').eq('draft_id',id));
+        const source = metadata.find((asset:any) => asset.id === sourceId);
+        if (!source) return reply({error:'Source unavailable for this draft.'},404);
+        const reserved = await service.rpc('reserve_screenshot_ai_budget',{p_actor:actor});
+        if (reserved.error) return reply({error:'AI budget cannot be verified. No image was sent.'},503);
+        if (reserved.data !== true) return reply({error:'Monthly AI request budget reached. Manual review remains available.'},429);
+        const downloaded = await service.storage.from(SOURCE_BUCKET).download(source.object_path);
+        if (downloaded.error || !downloaded.data) return reply({error:'Private source unavailable. No image was sent.'},503);
+        const bytes = new Uint8Array(await downloaded.data.arrayBuffer());
+        if (bytes.length !== source.byte_size) throw new Error('Source size changed; no image sent.');
+        validateImageBytes(bytes,source.mime_type);
+        const sha = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('');
+        if (sha !== source.sha256) throw new Error('Source hash mismatch; no image sent.');
+        const suggestion = await extractWithOpenAI({id:source.id,mime:source.mime_type,bytes},apiKey,providerFetch);
+        // The report is not persisted, approved, or published; human review must save revisions separately.
+        return reply({report:suggestion.report,usage:suggestion.usage,budget:'$0.25 reserved for this request against a $5 monthly application allowance'});
       }
       return reply({ error: 'Unsupported action.' }, 400);
     } catch (error) {
