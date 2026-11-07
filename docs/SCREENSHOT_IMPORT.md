@@ -93,6 +93,11 @@ frontend code or `VITE_*`. Only public URL/publishable key belong there.
 
 ## Review provenance, recovery and concurrency
 
+Before selecting image files, the browser requires the administrator to affirm that
+upload permission has been obtained and unrelated personal information removed.
+This is a deliberate operator acknowledgment, **not** proof that participants gave
+permission, nor a substitute for the league's approved privacy policy.
+
 1. Create an empty unresolved draft. The client retains a request UUID across retries
    of a failed creation; the server recognizes a committed UUID owned by that user.
    No date, year, tournament kind, rounds, player or record is inferred.
