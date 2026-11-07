@@ -33,6 +33,8 @@ declare new_id uuid; last_type text; begin
   if p_path is null or length(p_path) not between 1 and 512
      or p_path !~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/[0-9a-f]{64}$'
   then raise exception 'Invalid source path'; end if;
+  if split_part(p_path,'/',1) <> p_actor::text
+     then raise exception 'Source must belong to requesting administrator'; end if;
   if p_event not in ('hold','release_hold','delete_requested','delete_succeeded','delete_failed')
      or p_event is null then raise exception 'Unsupported retention event'; end if;
   if p_reason is null or length(trim(p_reason)) not between 1 and 2000
