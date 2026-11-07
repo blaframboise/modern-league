@@ -248,6 +248,43 @@ No item below was performed against production. **Do not merge or deploy this de
    Auth/PostgREST/Storage/Edge gateway. Do not declare production integration verified
    until these staging checks pass. Real camera/HEIC flows need device checks separately.
 
+## Opt-in OpenAI-assisted transcription (Phase 8C preview)
+
+The organizer approved OpenAI as the screenshot-reading provider for development
+with an initial **$5 per calendar month application-side allowance**. Images are
+sent only after an authenticated administrator chooses **Analyze source with OpenAI**.
+The server checks membership, draft ownership, image metadata, byte count and SHA-256
+digest, then makes a single server-side OpenAI Responses API request.
+
+- Provider: `gpt-4.1-mini`, high-detail input; `store: false`.
+- Output: strict structured JSON, maximum 24 suggested rows, bounded completion
+  tokens. Missing or unclear fields stay `null`. Unresolved names are **never**
+  matched to league player registry IDs. Image text is treated as untrusted data.
+- No source is sent if the `OPENAI_API_KEY` secret is absent, the source does not
+  belong to the administrator's draft, its integrity check fails, or the monthly
+  authorization allowance has been exhausted.
+- Budget: the pending `202611060006_ai_preview_budget.sql` migration reserves
+  **25 cents per request, up to 20 total requests across the league in a UTC
+  calendar month**. The reservation is made before network transmission and
+  intentionally is not refunded on failures. This is a conservative **request
+  allowance, not an exact billing meter or a guaranteed provider spending cap**.
+  Provider-side usage, pricing, and billing limits require separate controls.
+- Only a verified human reviewer can copy the temporary suggestions into the
+  review editor. Copying does not save them; the ordinary field-evidence, reason
+  and revision requirements still apply. The AI never approves, publishes, updates
+  standings, or persists its raw report.
+- The browser receives structured suggestions only, never the OpenAI secret.
+  Raw screenshot bytes are transmitted to OpenAI from the trusted Edge Function.
+  Do not send real tournament images before participant privacy notices and
+  provider processing terms have been reviewed.
+- For future hosting, configure `OPENAI_API_KEY` **only in Supabase Edge Function
+  secrets**, not in GitHub source, Vite environment variables, localStorage or chat.
+  `IMPORT_ALLOWED_ORIGIN` remains set to the exact administrator website origin.
+  No API key is needed for synthetic CI tests.
+
+No live OpenAI API requests have been made by the automated tests. Test fixtures
+inject a deterministic fake response, preserving the no-charge development gate.
+
 ## Automated disposable Supabase integration check
 
 The pull request includes `.github/workflows/supabase-local.yml`, which starts
