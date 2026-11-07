@@ -44,12 +44,21 @@ create policy tournament_source_owner_read on storage.objects for select to auth
 create function public.attach_screenshot(p_draft uuid, p_actor uuid, p_hash text, p_mime text, p_size integer)
 returns public.screenshot_assets language plpgsql security definer set search_path = '' as $$
 declare asset public.screenshot_assets; begin
- if not exists(select 1 from private.administrators where user_id = p_actor) then raise exception 'Forbidden'; end if;
+ -- Serialize all attachments for this administrator, including across different drafts.
+ -- Otherwise simultaneous draft uploads could exceed the owner-wide byte quota.
+ perform 1 from private.administrators where user_id = p_actor for update;
+ if not found then raise exception 'Forbidden'; end if;
  perform 1 from public.import_drafts where id = p_draft and created_by = p_actor for update;
  if not found then raise exception 'Draft not found'; end if;
  select * into asset from public.screenshot_assets where draft_id = p_draft and sha256 = p_hash;
  if found then return asset; end if;
  if (select count(*) from public.screenshot_assets where draft_id = p_draft) >= 8 then raise exception 'Image count limit'; end if;
+ -- 200 MiB of linked sources per administrator. Retry of an existing hash above is free.
+ -- Unlinked Storage objects are not counted: orphan cleanup and rate limits remain required.
+ if (select coalesce(sum(a.byte_size),0) from public.screenshot_assets a
+     join public.import_drafts d on d.id = a.draft_id
+     where d.created_by = p_actor) + p_size > 209715200
+ then raise exception 'Administrator source storage quota exceeded'; end if;
  insert into public.screenshot_assets(draft_id,object_path,mime_type,byte_size,sha256)
  values (p_draft,p_actor::text || '/' || p_draft::text || '/' || p_hash,p_mime,p_size,p_hash) returning * into asset;
  return asset;
