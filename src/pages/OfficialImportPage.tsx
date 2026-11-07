@@ -23,6 +23,7 @@ export function OfficialImportPage() {
   const [reason, setReason] = useState('');
   const [evidence, setEvidence] = useState('[]');
   const [reviewed, setReviewed] = useState(false);
+  const [uploadConfirmed, setUploadConfirmed] = useState(false);
   const [busy, setBusy] = useState(false);
   const generation = useRef(0);
   const currentUser = useRef<string | null>(null);
@@ -34,7 +35,7 @@ export function OfficialImportPage() {
     let active = true;
     async function verify() {
       const request = ++generation.current;
-      setBusy(false); setAuthorized(false); setDrafts([]); setDraft(null); setAssets([]); setText(''); clearPreview();
+      setBusy(false); setAuthorized(false); setDrafts([]); setDraft(null); setAssets([]); setText(''); setUploadConfirmed(false); clearPreview();
       try {
         const { data } = await client!.auth.getUser();
         if (currentUser.current !== (data.user?.id ?? null)) createId.current = crypto.randomUUID();
@@ -56,7 +57,7 @@ export function OfficialImportPage() {
     const response = await client!.from('screenshot_assets').select('*').eq('draft_id', id);
     if (response.error) throw new Error('Unable to recover source metadata.');
     if (request !== generation.current) return;
-    clearPreview(); setDraft(loaded); setAssets((response.data ?? []) as unknown as Asset[]);
+    clearPreview(); setUploadConfirmed(false); setDraft(loaded); setAssets((response.data ?? []) as unknown as Asset[]);
     setText(JSON.stringify(effectiveValues(loaded), null, 2)); setReason(''); setEvidence('[]'); setReviewed(false);
   }
   async function run(action: (request: number) => Promise<void>) {
@@ -83,9 +84,11 @@ export function OfficialImportPage() {
       </select></label>
       {draft && <>
         <h2>Source images ({assets.length}/8)</h2>
-        <label>Upload JPEG, PNG or WebP (10 MiB each, eight per draft)<input type="file" accept="image/jpeg,image/png,image/webp" multiple disabled={busy} onChange={event => {
+        <label><input type="checkbox" checked={uploadConfirmed} disabled={busy} onChange={event => setUploadConfirmed(event.target.checked)} /> I have permission to upload these tournament screenshots and have removed unrelated personal information. Screenshots are privately stored, not published, and AI processing is currently disabled.</label>
+        <label>Upload JPEG, PNG or WebP (10 MiB each, eight per draft)<input type="file" accept="image/jpeg,image/png,image/webp" multiple disabled={busy || !uploadConfirmed} onChange={event => {
           const files = Array.from(event.target.files ?? []); event.target.value = '';
           void run(async request => {
+            if (!uploadConfirmed) throw new Error('Confirm source permission before uploading.');
             validateImageFiles(files);
             for (let i = 0; i < files.length; i++) {
               if (request !== generation.current) return;
