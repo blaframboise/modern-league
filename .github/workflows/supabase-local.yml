@@ -17,9 +17,11 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
-      - uses: supabase/setup-cli@v1
+      # Pin the tested CLI generation. Latest now resolves to CLI 3, whose remote
+      # migration defaults differ. Exact pin also avoids release-lookup rate limits.
+      - uses: supabase/setup-cli@v3
         with:
-          version: latest
+          version: 2.119.0
       - name: Start disposable local Supabase services
         run: supabase start
       - name: Apply reviewed migrations to disposable database
