@@ -119,6 +119,7 @@ const assert = require('node:assert/strict');
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
       await page.goto(`${process.env.SECURE_BASE_URL || 'http://127.0.0.1:5174'}/admin`);
       await page.getByRole('link',{name:'Test players, tournament matching and leaderboard'}).waitFor();
+      if (width < 600) await page.getByRole('button',{name:'Open navigation'}).click();
       await page.getByRole('link',{name:'Admin',exact:true}).waitFor();
       await page.getByRole('link',{name:'Test players, tournament matching and leaderboard'}).click();
       await page.getByRole('heading',{name:'Test workspace'}).waitFor();
