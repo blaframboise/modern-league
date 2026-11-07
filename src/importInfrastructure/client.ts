@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '../data/database.ts';
 export function screenshotClient(client: SupabaseClient<Database>) {
-  return async (action: 'create' | 'upload' | 'correct' | 'extract', id: string, body?: File | Record<string, unknown>) => {
+  return async (action: 'create' | 'upload' | 'correct' | 'extract' | 'retention-preview', id: string, body?: File | Record<string, unknown>) => {
     const result = await client.functions.invoke(`screenshot-import?action=${action}`, {
       headers: { 'x-draft-id': id }, body: body instanceof File ? body : body === undefined ? {} : body,
     });
