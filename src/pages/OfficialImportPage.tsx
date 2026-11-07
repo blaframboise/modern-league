@@ -20,6 +20,8 @@ export function OfficialImportPage() {
   const [draft, setDraft] = useState<ImportDraft | null>(null);
   const [assets, setAssets] = useState<Asset[]>([]);
   const [retentionCandidates, setRetentionCandidates] = useState<RetentionCandidate[] | null>(null);
+  const [cleanupReason, setCleanupReason] = useState('');
+  const [cleanupConfirmed, setCleanupConfirmed] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [text, setText] = useState('');
   const [reason, setReason] = useState('');
@@ -37,7 +39,7 @@ export function OfficialImportPage() {
     let active = true;
     async function verify() {
       const request = ++generation.current;
-      setBusy(false); setAuthorized(false); setDrafts([]); setDraft(null); setAssets([]); setRetentionCandidates(null); setText(''); setUploadConfirmed(false); clearPreview();
+      setBusy(false); setAuthorized(false); setDrafts([]); setDraft(null); setAssets([]); setRetentionCandidates(null); setCleanupConfirmed(false); setCleanupReason(''); setText(''); setUploadConfirmed(false); clearPreview();
       try {
         const { data } = await client!.auth.getUser();
         if (currentUser.current !== (data.user?.id ?? null)) createId.current = crypto.randomUUID();
@@ -79,15 +81,37 @@ export function OfficialImportPage() {
           const data = await screenshotClient(client!)('retention-preview', crypto.randomUUID());
           if (request !== generation.current) return;
           setRetentionCandidates((data.candidates ?? []) as RetentionCandidate[]);
+          setCleanupConfirmed(false);
           setStatus('Retention review refreshed. No source images were deleted.');
         })}>Check retention eligibility</button>
         {retentionCandidates && <div>
           <p>{retentionCandidates.length} candidate source{retentionCandidates.length === 1 ? '' : 's'} for operator review (maximum 100).</p>
+          <p>Only abandoned, unlinked images are eligible for deletion here. Draft evidence and published tournament sources cannot be deleted through this interface.</p>
+          <label>Reason for deleting an abandoned upload
+            <textarea value={cleanupReason} maxLength={2000} disabled={busy} onChange={event => {setCleanupReason(event.target.value); setCleanupConfirmed(false);}} />
+          </label>
+          <label><input type="checkbox" checked={cleanupConfirmed} disabled={busy} onChange={event => setCleanupConfirmed(event.target.checked)} />
+            I verified this abandoned upload is eligible for removal, understand deletion is permanent, and have recorded my reason.
+          </label>
           <ul>{retentionCandidates.map(item => <li key={item.object_path}>
             {item.retention_reason === 'orphan_24h' ? 'Abandoned upload' :
               item.retention_reason === 'abandoned_unapproved_90d' ? 'Inactive unapproved draft' : 'Published tournament retention period ended'}
             {' — '}source {item.object_path.split('/').at(-1)?.slice(0, 12)}
             {', '}last activity {new Date(item.activity_at).toLocaleDateString()}
+            {item.retention_reason === 'orphan_24h' && <button
+              disabled={busy || !cleanupConfirmed || !cleanupReason.trim()}
+              onClick={() => void run(async request => {
+                const response = await screenshotClient(client!)('retention-delete-orphan',crypto.randomUUID(), {
+                  objectPath: item.object_path, reason: cleanupReason, confirm: true,
+                });
+                if (!response?.deleted) throw new Error('Deletion not confirmed; review before retrying.');
+                const fresh = await screenshotClient(client!)('retention-preview', crypto.randomUUID());
+                if (request === generation.current) {
+                  setRetentionCandidates((fresh.candidates ?? []) as RetentionCandidate[]);
+                  setCleanupConfirmed(false);
+                  setStatus('The abandoned upload was permanently removed and the audit was recorded.');
+                }
+              })}>Permanently delete aged orphan</button>}
           </li>)}</ul>
         </div>}
       </details>
