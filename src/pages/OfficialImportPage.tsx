@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { supabaseConfiguration } from '../data/client';
 import { leagueRepository } from '../data/repository';
 import { screenshotClient } from '../importInfrastructure/client';
@@ -23,6 +23,9 @@ const numberOrNull = (text: string) => text.trim() === '' ? null : Number.isSafe
 
 export function OfficialImportPage() {
   const navigate=useNavigate();
+  const [searchParams]=useSearchParams();
+  const requestedDraft=searchParams.get('draft');
+  const autoLoadedDraft=useRef<string|null>(null);
   const { client, error: configurationError } = supabaseConfiguration;
   const [authorized, setAuthorized] = useState(false);
   const [authStatus, setAuthStatus] = useState('Checking administrator access…');
@@ -89,6 +92,12 @@ export function OfficialImportPage() {
     });
     return () => { active = false; generation.current++; subscription.unsubscribe(); if (previewUrl.current) URL.revokeObjectURL(previewUrl.current); };
   }, [client]);
+
+  useEffect(()=>{
+    if (!authorized || !requestedDraft || !drafts.some(item=>item.id===requestedDraft) || autoLoadedDraft.current===requestedDraft) return;
+    autoLoadedDraft.current=requestedDraft;
+    void loadDraft(requestedDraft);
+  },[authorized,requestedDraft,drafts]);
 
   async function perform(work: () => Promise<void>) {
     if (busy) return;
