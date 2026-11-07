@@ -30,11 +30,26 @@ test('Phase 8B real PostgreSQL: owner isolation, private storage, server-only wr
     // The administrator predicate remains available to signed-in users, but not anonymously.
     assert.equal((await db.query<{allowed:boolean}>("select has_function_privilege('anon','public.is_administrator()','EXECUTE') as allowed")).rows[0].allowed, false);
     assert.equal((await db.query<{allowed:boolean}>("select has_function_privilege('authenticated','public.is_administrator()','EXECUTE') as allowed")).rows[0].allowed, true);
-    for (const signature of ['public.attach_screenshot(uuid,uuid,text,text,integer)','public.append_screenshot_review(uuid,uuid,integer,jsonb,text,uuid[])','public.create_screenshot_draft(uuid,uuid,jsonb)']) {
+    for (const signature of ['public.attach_screenshot(uuid,uuid,text,text,integer)','public.append_screenshot_review(uuid,uuid,integer,jsonb,text,uuid[])','public.create_screenshot_draft(uuid,uuid,jsonb)','public.consume_screenshot_request(uuid,text)']) {
       for (const role of ['anon','authenticated','service_role']) {
         assert.equal((await db.query<{allowed:boolean}>(`select has_function_privilege($1,$2,'EXECUTE') as allowed`,[role,signature])).rows[0].allowed,role==='service_role');
       }
     }
+    // Persistent request controls are available only to the trusted service role.
+    // Each action is separately counted; denied attempts do not reset the hour.
+    for (let i = 0; i < 40; i++) {
+      const result = await db.query<{remaining:number}>("select public.consume_screenshot_request($1,'upload') as remaining",[a]);
+      assert.equal(Number(result.rows[0].remaining),39-i);
+    }
+    assert.equal(Number((await db.query<{remaining:number}>("select public.consume_screenshot_request($1,'upload') as remaining",[a])).rows[0].remaining),0);
+    assert.equal(Number((await db.query<{remaining:number}>("select public.consume_screenshot_request($1,'upload') as remaining",[a])).rows[0].remaining),0);
+    assert.equal(Number((await db.query<{remaining:number}>("select public.consume_screenshot_request($1,'create') as remaining",[a])).rows[0].remaining),59);
+    await assert.rejects(db.query("select public.consume_screenshot_request($1,'unknown')",[a]),/Unsupported action/);
+    await assert.rejects(db.query("select public.consume_screenshot_request($1,'upload')",[d]),/Forbidden/);
+    // Reset only the upload window in this disposable database.
+    await db.query("update private.screenshot_request_rates set window_started_at=now()-interval '2 hours' where actor=$1 and action='upload'",[a]);
+    assert.equal(Number((await db.query<{remaining:number}>("select public.consume_screenshot_request($1,'upload') as remaining",[a])).rows[0].remaining),39);
+
     await db.exec('set role service_role');
     await assert.rejects(db.exec('truncate public.import_drafts cascade'));
     await db.exec('reset role');
