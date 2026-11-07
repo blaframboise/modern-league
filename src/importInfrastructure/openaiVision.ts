@@ -2,7 +2,7 @@
 import { metadataKeys, parseExtraction, rowKeys } from '../extraction/index.ts';
 import type { ExtractionReport } from '../extraction/index.ts';
 const MODEL = 'gpt-4.1-mini';
-const field = (numeric: boolean) => ({ type: ['string', 'number', 'null'] as const, description: numeric ? 'Nonnegative whole number or null' : 'Visible text or null' });
+const field = (numeric: boolean) => ({ type: numeric ? ['integer', 'null'] : ['string', 'null'], description: numeric ? 'Nonnegative whole number or null' : 'Visible text or null' });
 const tournamentProperties = Object.fromEntries(metadataKeys.map(k => [k, field(k === 'year' || k === 'scheduledRounds')]));
 const resultProperties = Object.fromEntries(rowKeys.map(k => [k, field(k !== 'importedName')]));
 const schema = {
