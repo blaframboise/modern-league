@@ -33,6 +33,13 @@ server role can invoke the audited recording function.
 It excludes active holds and pending requests, and never deletes bytes.
 An approved result that has not been published does not become eligible as an
 abandoned unapproved draft.
+The pending `202611060004_screenshot_retention_review.sql` migration provides an
+owner-scoped read-only RPC consumed by the authenticated `/official-import`
+administrator page. The page presents candidate reasons and short hashes, not
+full source URLs; it does **not** offer a delete button. Only the trusted Edge
+Function can request this private list, and each request consumes an hourly
+rate-limit allowance. Holds and retention decisions are not yet editable
+from the website, and no job initiates file removal.
 
 **There is no purge worker or deletion endpoint in this release.** Deletion
 requires implementation and separate verification of two-stage deletion,
