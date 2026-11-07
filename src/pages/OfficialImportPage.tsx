@@ -11,6 +11,7 @@ import { effectiveValues } from '../results';
 import type { ImportDraft } from '../results';
 
 type Asset = { id: string; object_path: string; sha256: string; mime_type: string; byte_size: number };
+type RetentionCandidate = { object_path: string; asset_id: string | null; draft_id: string | null; retention_reason: string; activity_at: string };
 export function OfficialImportPage() {
   const { client } = supabaseConfiguration;
   const [authorized, setAuthorized] = useState(false);
@@ -18,6 +19,7 @@ export function OfficialImportPage() {
   const [drafts, setDrafts] = useState<{ id: string }[]>([]);
   const [draft, setDraft] = useState<ImportDraft | null>(null);
   const [assets, setAssets] = useState<Asset[]>([]);
+  const [retentionCandidates, setRetentionCandidates] = useState<RetentionCandidate[] | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [text, setText] = useState('');
   const [reason, setReason] = useState('');
@@ -35,7 +37,7 @@ export function OfficialImportPage() {
     let active = true;
     async function verify() {
       const request = ++generation.current;
-      setBusy(false); setAuthorized(false); setDrafts([]); setDraft(null); setAssets([]); setText(''); setUploadConfirmed(false); clearPreview();
+      setBusy(false); setAuthorized(false); setDrafts([]); setDraft(null); setAssets([]); setRetentionCandidates(null); setText(''); setUploadConfirmed(false); clearPreview();
       try {
         const { data } = await client!.auth.getUser();
         if (currentUser.current !== (data.user?.id ?? null)) createId.current = crypto.randomUUID();
@@ -70,6 +72,25 @@ export function OfficialImportPage() {
     <p><Link to="/results-import">Fictional in-memory demonstration</Link> · <Link to="/admin">Administrator sign in</Link></p>
     <p role="status">{client ? status : 'Supabase is not configured. No upload or persistence is available.'}</p>
     {authorized && <>
+      <details>
+        <summary>Screenshot retention review (read-only)</summary>
+        <p>Approved policy: unlinked uploads older than 24 hours, unapproved drafts inactive for 90 days, and published tournament sources one year after the competitive year ends may be reviewed for cleanup. Holds and pending deletions are excluded. No files are deleted by this screen.</p>
+        <button disabled={busy} onClick={() => void run(async request => {
+          const data = await screenshotClient(client!)('retention-preview', crypto.randomUUID());
+          if (request !== generation.current) return;
+          setRetentionCandidates((data.candidates ?? []) as RetentionCandidate[]);
+          setStatus('Retention review refreshed. No source images were deleted.');
+        })}>Check retention eligibility</button>
+        {retentionCandidates && <div>
+          <p>{retentionCandidates.length} candidate source{retentionCandidates.length === 1 ? '' : 's'} for operator review (maximum 100).</p>
+          <ul>{retentionCandidates.map(item => <li key={item.object_path}>
+            {item.retention_reason === 'orphan_24h' ? 'Abandoned upload' :
+              item.retention_reason === 'abandoned_unapproved_90d' ? 'Inactive unapproved draft' : 'Published tournament retention period ended'}
+            {' — '}source {item.object_path.split('/').at(-1)?.slice(0, 12)}
+            {', '}last activity {new Date(item.activity_at).toLocaleDateString()}
+          </li>)}</ul>
+        </div>}
+      </details>
       <button disabled={busy} onClick={() => void run(async request => {
         const id = createId.current;
         await screenshotClient(client!)('create', id);
