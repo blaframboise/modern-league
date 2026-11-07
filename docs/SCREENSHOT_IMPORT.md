@@ -159,6 +159,14 @@ Proposed, **not scheduled or implemented automatically**:
   history) for audit under a separately approved retention duration; redact personal data
   only through a reviewed governance process, never by rewriting history ad hoc.
 
+A **read-only** aggregate inventory is now checked in as
+[`supabase/verification/screenshot-storage-audit.sql`](../supabase/verification/screenshot-storage-audit.sql).
+It reports linked/unlinked object counts, approximate byte usage and unlinked objects
+older than 24 hours, without exposing image names, hashes or user IDs. It does not
+remove objects, prove safe deletion, or prevent creation of new orphans. Use it only
+after 8B has been installed in a controlled environment; the bucket and metadata
+must exist.
+
 There is currently no browser deletion or retention worker. A production purge needs
 an append-only tombstone/deletion audit migration and dry-run operator tooling first;
 existing asset immutability intentionally forbids destructive metadata edits. Record
