@@ -110,3 +110,41 @@ h1, h2, h3, p { margin: 0; }h1 { font-size: clamp(42px, 4.6vw, 64px); font-weigh
 .secure-import select { min-height: 44px; }
 .secure-import input[type=checkbox] { justify-self: start; }
 .secure-import li { margin-block: .8rem; }
+
+
+/* Guided official-results import: keep administration details out of the primary flow. */
+.guided-import {max-width: 1050px; padding-bottom: 4rem}
+.guided-import .import-intro {margin-bottom: 1.5rem}
+.guided-import .import-intro p:not(.eyebrow) {max-width: 48rem; color: var(--muted, #667085)}
+.guided-import .import-progress {display:flex;gap:.5rem;flex-wrap:wrap;margin:1.25rem 0}
+.guided-import .import-progress span {border:1px solid #a2aab5;border-radius:999px;padding:.4rem .8rem;font-size:.9rem;opacity:.65}
+.guided-import .import-progress span.current {opacity:1;font-weight:700;border-color:#4388c6}
+.guided-import .import-panel {border:1px solid #bac5d1;border-radius:16px;padding:clamp(1rem,3vw,2rem);margin:1rem 0;max-width:100%;background:var(--panel,transparent)}
+.guided-import .import-panel h2 {margin-top:0}
+.guided-import .import-file {display:flex;flex-direction:column;align-items:flex-start;gap:1rem;border:2px dashed #91a2b4;border-radius:12px;padding:2rem;cursor:pointer;font-weight:700}
+.guided-import .import-file input {max-width:100%;font-weight:400}
+.guided-import .import-preview {display:block;max-width:100%;max-height:460px;margin:1rem auto;border-radius:8px;object-fit:contain}
+.guided-import .import-processing-preview {max-height:220px;opacity:.6}
+.guided-import .import-thumb {width:145px;max-height:130px;object-fit:contain;border-radius:6px}
+.guided-import .import-review-head {display:flex;justify-content:space-between;gap:1.5rem;align-items:start;flex-wrap:wrap}
+.guided-import .import-consent {display:flex;gap:.65rem;align-items:flex-start;margin:1.5rem 0;max-width:48rem}
+.guided-import .import-consent input {width:auto;flex:none;margin-top:.25rem}
+.guided-import .import-actions {display:flex;gap:.75rem;flex-wrap:wrap;margin:1rem 0}
+.guided-import .import-hint {font-size:.9rem;opacity:.8}
+.guided-import .import-feedback {display:flex;align-items:flex-start;gap:.75rem;padding:1rem 0;max-width:58rem}
+.guided-import .import-error {color:#b03535;overflow-wrap:anywhere}
+.guided-import .import-spinner {border:3px solid #d1d5db;border-top-color:#3982c5;border-radius:50%;width:18px;height:18px;flex:none;animation:import-spin 1s linear infinite}
+@keyframes import-spin {to {transform:rotate(360deg)}}
+.guided-import .import-event-fields {display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.9rem;margin:1.5rem 0}
+.guided-import .import-event-fields label {display:flex;flex-direction:column;gap:.35rem;min-width:0}
+.guided-import input:not([type=checkbox]),.guided-import select,.guided-import textarea {max-width:100%}
+.guided-import .import-table-scroll {width:100%;overflow-x:auto;margin:1rem 0}
+.guided-import .import-results-table {width:100%;border-collapse:collapse;min-width:490px}
+.guided-import .import-results-table th,.guided-import .import-results-table td {border-bottom:1px solid #aeb9c6;padding:.45rem .3rem;text-align:left}
+.guided-import .import-results-table td input {width:100%;min-width:0}
+.guided-import .import-results-table td:not(:first-child) input {max-width:85px}
+.guided-import .import-results-table input:disabled,.guided-import .import-event-fields input:disabled,.guided-import select:disabled {opacity:1}
+.guided-import .import-secondary {margin-top:2rem;border-top:1px solid #8c98a5;padding-top:1rem}
+.guided-import .import-secondary summary {cursor:pointer}
+.guided-import .import-secondary-content {display:grid;gap:1rem;padding:1rem 0}
+@media(max-width:600px){.guided-import .import-thumb{width:100px}.guided-import .import-panel{padding:1rem}.guided-import .import-progress span{font-size:.8rem}}
