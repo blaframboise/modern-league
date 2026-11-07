@@ -75,7 +75,7 @@ const assert = require('node:assert/strict');
       await page.getByRole('button',{name:`View source ${assetId}`}).click();
       await page.getByRole('img',{name:'Private tournament source for human evidence review'}).waitFor();
       const editor = page.getByLabel('Review values', {exact:false});
-      const values = JSON.parse(await editor.inputValue()); values.tournament.name = 'Synthetic manual name';
+      const values = JSON.parse(await editor.inputValue()); values.tournament.name = 'Synthetic manual name'; values.results = [];
       await editor.fill(JSON.stringify(values));
       await page.getByRole('button',{name:'Prepare field evidence form'}).click();
       await page.getByLabel('Field evidence JSON',{exact:false}).fill(JSON.stringify([{ path:'tournament.name',sources:[assetId],note:'Synthetic visible name' }]));
