@@ -172,7 +172,7 @@ test('Phase 8B real PostgreSQL: owner isolation, private storage, server-only wr
     assert.ok(eligible.rows.some(row=>row.object_path===orphanPath && row.retention_reason==='orphan_24h'));
     await assert.rejects(db.query(
       "select public.record_screenshot_retention_event($1,$2,'hold','test hold','{}'::jsonb)",
-      [b,orphanPath]),/Forbidden/);
+      [d,orphanPath]),/Forbidden/);
     await db.query(
       "select public.record_screenshot_retention_event($1,$2,'hold','Under appeal','{}'::jsonb)",[a,orphanPath]);
     eligible = await db.query(retentionSql);
