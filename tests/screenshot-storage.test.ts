@@ -27,6 +27,7 @@ test('Phase 8B real PostgreSQL: owner isolation, private storage, server-only wr
     await db.exec('grant all on all tables in schema public to service_role;');
     await db.exec('begin; set local role service_role; truncate public.import_drafts cascade; rollback;');
     await db.exec(await readFile(new URL('../supabase/migrations/202611060002_secure_screenshot_import.sql', import.meta.url), 'utf8'));
+    await db.exec(await readFile(new URL('../supabase/migrations/202611060003_screenshot_retention_audit.sql', import.meta.url), 'utf8'));
     // The administrator predicate remains available to signed-in users, but not anonymously.
     assert.equal((await db.query<{allowed:boolean}>("select has_function_privilege('anon','public.is_administrator()','EXECUTE') as allowed")).rows[0].allowed, false);
     assert.equal((await db.query<{allowed:boolean}>("select has_function_privilege('authenticated','public.is_administrator()','EXECUTE') as allowed")).rows[0].allowed, true);
@@ -153,6 +154,45 @@ test('Phase 8B real PostgreSQL: owner isolation, private storage, server-only wr
     assert.equal(Number(auditRows.rows[0].unlinked_objects),1);
     assert.equal(Number(auditRows.rows[0].estimated_unlinked_bytes),123);
     assert.equal(Number(auditRows.rows[0].unlinked_older_than_24h),1);
+
+    // Retention governance stays service-only: no browser read/write or delete.
+    for (const role of ['anon','authenticated']) {
+      assert.equal((await db.query<{ok:boolean}>(
+        "select has_function_privilege($1,'public.record_screenshot_retention_event(uuid,text,text,text,jsonb)','EXECUTE') as ok",
+        [role])).rows[0].ok,false);
+    }
+    assert.equal((await db.query<{ok:boolean}>(
+      "select has_function_privilege('service_role','public.record_screenshot_retention_event(uuid,text,text,text,jsonb)','EXECUTE') as ok"
+    )).rows[0].ok,true);
+    const orphanPath = `${a}/${d}/${'b'.repeat(64)}`;
+    await db.query(`insert into storage.objects(bucket_id,name,created_at,metadata)
+      values('tournament-sources',$1,now()-interval '48 hours','{"size":"321"}')`,[orphanPath]);
+    const retentionSql = await readFile(new URL('../supabase/verification/screenshot-retention-eligibility.sql',import.meta.url),'utf8');
+    let eligible = await db.query<{object_path:string;retention_reason:string}>(retentionSql);
+    assert.ok(eligible.rows.some(row=>row.object_path===orphanPath && row.retention_reason==='orphan_24h'));
+    await assert.rejects(db.query(
+      "select public.record_screenshot_retention_event($1,$2,'hold','test hold','{}'::jsonb)",
+      [b,orphanPath]),/Forbidden/);
+    await db.query(
+      "select public.record_screenshot_retention_event($1,$2,'hold','Under appeal','{}'::jsonb)",[a,orphanPath]);
+    eligible = await db.query(retentionSql);
+    assert.ok(!eligible.rows.some((row:any)=>row.object_path===orphanPath));
+    await assert.rejects(db.query(
+      "select public.record_screenshot_retention_event($1,$2,'delete_requested','Cannot delete held source','{}'::jsonb)",[a,orphanPath]),/Source is held/);
+    await db.query(
+      "select public.record_screenshot_retention_event($1,$2,'release_hold','Appeal resolved','{}'::jsonb)",[a,orphanPath]);
+    eligible = await db.query(retentionSql);
+    assert.ok(eligible.rows.some((row:any)=>row.object_path===orphanPath));
+    await db.query(
+      "select public.record_screenshot_retention_event($1,$2,'delete_requested','Reviewed orphan cleanup','{}'::jsonb)",[a,orphanPath]);
+    eligible = await db.query(retentionSql);
+    assert.ok(!eligible.rows.some((row:any)=>row.object_path===orphanPath));
+    await assert.rejects(db.exec("update private.screenshot_retention_events set reason='rewritten'"),/Immutable history/);
+    await assert.rejects(db.exec("delete from private.screenshot_retention_events"),/Immutable history/);
+    await assert.rejects(db.exec("truncate private.screenshot_retention_events"),/Immutable history/);
+    // No byte removal happens by calling the retention journal.
+    assert.equal((await db.query<{count:number}>(
+      "select count(*)::int as count from storage.objects where name=$1",[orphanPath])).rows[0].count,1);
 
     const quotaHash = 'e'.repeat(64);
     await assert.rejects(
