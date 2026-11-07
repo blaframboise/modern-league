@@ -5,7 +5,7 @@ export function suggestDisplayName(raw: string): string {
   // Preserve deliberate mixed-case spelling: McDonald, DeVito, iPhone-like handles.
   // Also preserve single-word nicknames and initials; these need a human decision.
   const parts = normalized.split(' ');
-  if (parts.length < 2 || parts.some(part => part.length === 1 || /\d|@|_/u.test(part))) return normalized;
+  if (parts.length < 2 || parts.some(part => part.length === 1 || /\d|@|_|\./u.test(part))) return normalized;
   return parts.map(part => {
     if (/[\p{Ll}]/u.test(part) && /[\p{Lu}]/u.test(part)) return part;
     return part.toLocaleLowerCase('en-US').replace(/(^|[-'’])([\p{L}])/gu,
