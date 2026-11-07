@@ -122,7 +122,7 @@ test('Phase 8B real PostgreSQL: owner isolation, private storage, server-only wr
     // Add synthetic drafts to the cap. These are local-disposable test rows only.
     await db.exec(`insert into public.import_drafts(id,created_by,original)
       select ('00000000-0000-4000-8000-' || lpad(to_hex(g),12,'0'))::uuid,
-      '${a}'::uuid, '{}'::jsonb from generate_series(200, 294) g;`);
+      '${a}'::uuid, '{}'::jsonb from generate_series(200, 694) g;`);
     await assert.rejects(db.query("select public.create_screenshot_draft($1,$2,$3::jsonb)", ['00000000-0000-4000-8000-000000000099',a,'{}']), /Administrator draft quota exceeded/);
     await db.query("select public.create_screenshot_draft($1,$2,$3::jsonb)", [createDraftId,a,'{}']); // existing retry remains legal at cap
 
