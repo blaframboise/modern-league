@@ -7,6 +7,8 @@ import { screenshotClient } from '../importInfrastructure/client';
 import { fieldPaths, validateHumanEvidence } from '../importInfrastructure/evidence';
 import { SOURCE_BUCKET } from '../importInfrastructure/validation';
 import { validateImageFiles } from '../extraction';
+import type { ExtractionReport } from '../extraction';
+import { suggestedImportValues } from '../importInfrastructure/suggestions';
 import { effectiveValues } from '../results';
 import type { ImportDraft } from '../results';
 
@@ -28,6 +30,7 @@ export function OfficialImportPage() {
   const [evidence, setEvidence] = useState('[]');
   const [reviewed, setReviewed] = useState(false);
   const [uploadConfirmed, setUploadConfirmed] = useState(false);
+  const [suggestion, setSuggestion] = useState<{sourceId:string;report:ExtractionReport}|null>(null);
   const [busy, setBusy] = useState(false);
   const generation = useRef(0);
   const currentUser = useRef<string | null>(null);
@@ -39,7 +42,7 @@ export function OfficialImportPage() {
     let active = true;
     async function verify() {
       const request = ++generation.current;
-      setBusy(false); setAuthorized(false); setDrafts([]); setDraft(null); setAssets([]); setRetentionCandidates(null); setCleanupConfirmed(false); setCleanupReason(''); setText(''); setUploadConfirmed(false); clearPreview();
+      setBusy(false); setAuthorized(false); setDrafts([]); setDraft(null); setAssets([]); setRetentionCandidates(null); setCleanupConfirmed(false); setCleanupReason(''); setText(''); setUploadConfirmed(false); setSuggestion(null); clearPreview();
       try {
         const { data } = await client!.auth.getUser();
         if (currentUser.current !== (data.user?.id ?? null)) createId.current = crypto.randomUUID();
@@ -61,7 +64,7 @@ export function OfficialImportPage() {
     const response = await client!.from('screenshot_assets').select('*').eq('draft_id', id);
     if (response.error) throw new Error('Unable to recover source metadata.');
     if (request !== generation.current) return;
-    clearPreview(); setUploadConfirmed(false); setDraft(loaded); setAssets((response.data ?? []) as unknown as Asset[]);
+    clearPreview(); setUploadConfirmed(false); setSuggestion(null); setDraft(loaded); setAssets((response.data ?? []) as unknown as Asset[]);
     setText(JSON.stringify(effectiveValues(loaded), null, 2)); setReason(''); setEvidence('[]'); setReviewed(false);
   }
   async function run(action: (request: number) => Promise<void>) {
@@ -146,12 +149,34 @@ export function OfficialImportPage() {
             if (request === generation.current) { setAssets(result.data as unknown as Asset[]); setReviewed(false); setStatus('Sources saved privately. Re-select identical files to retry safely.'); }
           });
         }} /></label>
-        <ul>{assets.map(asset => <li key={asset.id}><button disabled={busy} onClick={() => void run(async request => {
+        <p>AI assistance is optional. One private screenshot is sent to OpenAI only when you press Analyze. Suggestions are not saved or published, and player identities are never automatically matched. A server-side budget allowance may block requests.</p>
+        <ul>{assets.map(asset => <li key={asset.id}>
+          <button disabled={busy} onClick={() => void run(async request => {
+            const result = await screenshotClient(client!)('extract',draft.importId,{sourceId:asset.id});
+            if (request !== generation.current) return;
+            setSuggestion({sourceId:asset.id,report:result.report as ExtractionReport});
+            setStatus('AI suggestions received. Review against the original screenshot before using any values.');
+          })}>Analyze source with OpenAI</button>{' '}
+          <button disabled={busy} onClick={() => void run(async request => {
           const result = await client!.storage.from(SOURCE_BUCKET).download(asset.object_path);
           if (result.error) throw new Error('Private source unavailable. Check access and retry.');
           if (request === generation.current) { clearPreview(); const url = URL.createObjectURL(result.data); urls.current.push(url); setPreview(url); }
         })}>View source {asset.id}</button> — {asset.byte_size} bytes · SHA-256 {asset.sha256}</li>)}</ul>
         {preview && <img src={preview} alt="Private tournament source for human evidence review" style={{ maxWidth: '100%', maxHeight: 600 }} />}
+        {suggestion && <section aria-label="Unverified AI extraction suggestions">
+          <h3>Unverified AI suggestions</h3>
+          <p>Source: {suggestion.sourceId}. These values have not been checked or saved. Verify each field, player name and result against the private screenshot.</p>
+          <ul>{suggestion.report.warnings.map((warning,index)=><li key={index}>{warning}</li>)}</ul>
+          <pre style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere',maxHeight:320,overflow:'auto'}}>{JSON.stringify(suggestion.report,null,2)}</pre>
+          <button disabled={busy} onClick={() => {
+            try {
+              const proposed=suggestedImportValues(suggestion.report,suggestion.sourceId);
+              setText(JSON.stringify(proposed,null,2));
+              setEvidence('[]'); setReason(''); setReviewed(false);
+              setStatus('Suggestions copied to the editable review form only. Review and add field evidence before saving.');
+            } catch { setStatus('AI suggestions are invalid. No edits applied.'); }
+          }}>Copy suggestions into review editor (does not save)</button>
+        </section>}
         <p>No image interpretation has run. Enter only information you can verify from the linked sources. Use null/empty values for unresolved fields. Player IDs require explicit registry verification; names never resolve identities.</p>
         <p>Unsaved edits are lost on refresh or navigation. Save a review revision before leaving; failed saves retain your text.</p>
         <label>Review values (JSON; every saved revision remains in the audit history)<textarea rows={18} value={text} disabled={busy} onChange={event => { setText(event.target.value); setReviewed(false); }} /></label>
