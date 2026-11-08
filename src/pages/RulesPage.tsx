@@ -14,13 +14,13 @@ export function RulesPage(){
     <header className="rules-intro">
       <p className="eyebrow">2027 / LEAGUE RULES</p>
       <h1>The rules<span className="gold">.</span></h1>
-      <p className="page-description">How league points, standings, championships, and seasonal titles work. These scoring rules govern the 2027 series. Administrative procedures not yet settled are identified separately below.</p>
+      <p className="page-description">How league points, standings, championships, and seasonal titles work. These scoring rules govern the 2027 series. Eternal Games administers tournament play and official match results; Modern League calculates league standings using those results.</p>
       <nav className="rules-jump" aria-label="On this page">
         <button type="button" onClick={()=>jumpToRulesSection('rules-regular')}>Regular events</button>
         <button type="button" onClick={()=>jumpToRulesSection('rules-season')}>Seasons &amp; eligibility</button>
         <button type="button" onClick={()=>jumpToRulesSection('rules-championship')}>Championships</button>
         <button type="button" onClick={()=>jumpToRulesSection('rules-ties')}>Tiebreakers</button>
-        <button type="button" onClick={()=>jumpToRulesSection('rules-pending')}>Policies under review</button>
+        <button type="button" onClick={()=>jumpToRulesSection('rules-pending')}>Administration &amp; privacy</button>
       </nav>
     </header>
     <div className="rules-sections">
@@ -34,9 +34,9 @@ export function RulesPage(){
       <section id="rules-regular" className="rules-section" tabIndex={-1}>
         <p className="eyebrow">02 / REGULAR EVENTS</p><h2>Earn up to 10 points per event.</h2>
         <div className="rules-formula"><span>REGULAR EVENT POINTS</span><strong>10 × (3W + D) ÷ (3R)</strong></div>
-        <p><strong>W</strong> is wins, <strong>D</strong> is draws, and <strong>R</strong> is the event's scheduled number of Swiss rounds. Losses earn no match points. The denominator stays the scheduled number of rounds, even if a player drops early.</p>
+        <p><strong>W</strong> is wins, <strong>D</strong> is draws, and <strong>R</strong> is the event's scheduled number of Swiss rounds. Losses earn no match points. An unplayed round for an individual player earns zero unless the official store result records a win or draw. If the store cancels a round for the entire event, its final reported round count determines the denominator.</p>
         <p>For example, in a four-round tournament, a 3–1–0 record earns 7.50 league points; a 3–0–1 record earns 8.33 league points.</p>
-        <p>Byes and intentional draws count as recorded in the official match result. Points are calculated without intermediate rounding and displayed to two decimal places.</p>
+        <p>Byes, draws, drops, and disqualifications are treated according to the store's official records. Modern League does not independently change tournament outcomes. Points are calculated without intermediate rounding and displayed to two decimal places.</p>
       </section>
       <section id="rules-season" className="rules-section" tabIndex={-1}>
         <p className="eyebrow">03 / SEASONAL STANDINGS</p><h2>Your best {SEASON_COUNTED_RESULTS} regular events count.</h2>
@@ -47,7 +47,7 @@ export function RulesPage(){
           <div><strong>{ANNUAL_MINIMUM_EVENTS}</strong><span>Regular events required for the annual cumulative title</span></div>
         </div>
         <p>The <strong>Regular Season Champion</strong> is the highest-ranked eligible player before that season's championship. The <strong>Overall Season Champion</strong> is the highest-ranked eligible player after championship points are added. The <strong>Annual Overall Champion</strong> is the highest-ranked eligible player across the league year.</p>
-        <p>Players below the participation minimum still appear in standings and earn points, but cannot receive the corresponding cumulative title. These minimums do <strong>not</strong> establish who may enter a championship tournament; admission rules are still under review.</p>
+        <p>Players below the participation minimum still appear in standings and earn points, but cannot receive the corresponding cumulative title. These minimums do <strong>not</strong> restrict participation in any tournament or championship. Eternal Games determines admission, registration, capacity, and participation. Eligibility to win a cumulative league title is a separate matter.</p>
       </section>
       <section id="rules-championship" className="rules-section" tabIndex={-1}>
         <p className="eyebrow">04 / CHAMPIONSHIPS</p><h2>Swiss performance and final placement.</h2>
@@ -76,16 +76,17 @@ export function RulesPage(){
         </ol>
       </section>
       <section id="rules-pending" className="rules-section rules-policy" tabIndex={-1}>
-        <p className="eyebrow">06 / PROCEDURES UNDER REVIEW</p><h2>Some administrative details are not final.</h2>
-        <p>The scoring and ranking rules above are established for the 2027 league. These additional policies are still being developed and should not be treated as settled:</p>
-        <ul>
-          <li>Championship registration, capacity, invitations, and admission criteria.</li>
-          <li>Player identity, eligibility, and participation at additional stores.</li>
-          <li>Drops, disqualifications, canceled rounds, and unusual tournament finishes.</li>
-          <li>Results disputes, correction deadlines, appeals, and final approval authority.</li>
-          <li>Player-name publication, privacy, and record retention.</li>
-        </ul>
-        <p>Any adopted changes will be published on this page. Official event results and public player standings remain unavailable while the separate results-publication system is completed.</p>
+        <p className="eyebrow">06 / ADMINISTRATION &amp; PLAYER PRIVACY</p><h2>Store results are authoritative.</h2>
+        <h3>Tournament participation</h3>
+        <p>Eternal Games determines whether a player may enter a regular event or championship, including registration, participation limits, and tournament procedures. Modern League does not impose additional entry conditions. Only tournaments included on the Modern League event calendar count toward league standings; play at other stores does not count.</p>
+        <h3>Official results and reporting errors</h3>
+        <p>Eternal Games determines official match results, standings, and the number of rounds in each tournament. Modern League uses the final records supplied by the store, without separately adjusting canceled rounds. Unplayed individual rounds earn no points unless the store records a win or draw.</p>
+        <p>Players should report disputed results to Eternal Games and notify the league administrator <strong>within seven calendar days after the event</strong>. Only store-verified corrections will change league records. When the store verifies an error after that reporting period, the administrator may still correct the record and recalculate standings.</p>
+        <h3>Player names and records</h3>
+        <p>Modern League records the minimum information needed to identify players, match official results across events, and calculate and preserve league standings. Public leaderboards display a player's tournament name or a requested nickname. The administrator may retain the corresponding official name privately for accurate result matching; changing a displayed name does not reset earned points.</p>
+        <p>League information is not sold or shared for advertising. Historical tournament results and standings may be retained to preserve league records. Unneeded personal information and source screenshots are removed when no longer needed for verification, corrections, or recordkeeping.</p>
+        <p>Players may ask the administrator to change their leaderboard nickname, correct inaccurate personal information, or remove unnecessary personal information. Official results may be retained where necessary to preserve accurate historical standings.</p>
+        <p>Championship scoring and cumulative title eligibility are explained above. <Link to="/seasons">See how champions are recognized</Link>.</p>
       </section>
     </div>
     <div className="rules-back"><Link to="/events">Explore the event calendar</Link></div>

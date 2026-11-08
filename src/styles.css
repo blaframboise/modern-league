@@ -495,3 +495,45 @@ h1{font-size:clamp(38px,4.5vw,61px);letter-spacing:.02em;font-weight:400}
 .rules-jump button{background:transparent;cursor:pointer;font-family:"Nunito Sans",system-ui,sans-serif}
 .rules-jump button:focus-visible{outline:2px solid #dec38b;outline-offset:3px}
 .rules-section:focus{outline:none}
+
+
+/* Public seasons guide and illustrative future champion badges */
+.seasons-page{padding:45px 0 78px}
+.seasons-intro h1{margin:10px 0;font-size:clamp(36px,4.5vw,54px)}
+.seasons-intro .page-description{max-width:74ch}
+.seasons-status{font-size:12px;color:#cbbb88;margin:17px 0}
+.seasons-card-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:18px 0}
+.season-story-card{background:#181f18;border:1px solid #424a3c;border-radius:8px;padding:17px;min-width:0;display:flex;flex-direction:column}
+.season-story-top{display:flex;align-items:center;justify-content:space-between;color:#c5b487;font-size:10px;letter-spacing:.11em;font-weight:800}
+.season-story-top strong{font:400 34px Marcellus,Georgia,serif;color:#8f8b6e}
+.season-story-card h2{font:400 23px Marcellus,Georgia,serif;margin:13px 0 8px}
+.season-story-card>p,.season-story-date{font-size:12px;color:#c5cebc;line-height:1.5}
+.season-story-date{display:flex;align-items:center;gap:7px;margin-top:14px;padding:12px 0;border-top:1px solid #374135}
+.season-story-date svg{flex-shrink:0;color:#d4be87}
+.season-story-winner{margin-top:auto;padding:13px 0 0;border-top:1px solid #374135;display:grid;grid-template-columns:20px 1fr;gap:4px 7px;align-items:center}
+.season-story-winner svg{color:#d4be87}
+.season-story-winner span{font-size:10px;color:#c6cfbb}
+.season-story-winner strong{grid-column:2;font-size:12px;color:#e2e3d4;font-weight:700}
+.season-final-title{display:flex;align-items:center;justify-content:space-between;gap:25px;border:1px solid #86714e;border-radius:8px;background:linear-gradient(105deg,#292a1c,#1c241d);padding:25px;margin:20px 0 32px}
+.season-final-title h2,.seasons-recognition h2{font:400 clamp(25px,3vw,34px) Marcellus,Georgia,serif;margin:7px 0 10px}
+.season-final-title p:not(.eyebrow){font-size:13px;color:#ccd2bd;line-height:1.6;max-width:75ch}
+.season-final-title>svg{flex-shrink:0;color:#dec38b}
+.seasons-recognition{border:1px solid #47523f;border-radius:8px;padding:24px;background:#171d17}
+.seasons-badges{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:15px}
+.seasons-badge-example{display:flex;align-items:flex-start;gap:16px;padding:16px;background:#21281e;border:1px solid #424e3a;border-radius:7px}
+.seasons-badge-example>div{min-width:0}
+.seasons-badge-example strong{color:#f1e5c4;font-size:14px}
+.seasons-badge-example p,.seasons-badge-note{color:#c4cebf;font-size:12px;line-height:1.65;margin-top:7px}
+.seasons-badge-icon{flex-shrink:0;position:relative;width:52px;height:52px;border:1px solid #9d885b;border-radius:10px;background:#2d2e21;display:grid;place-items:center;color:#e3c785}
+.seasons-badge-icon b{position:absolute;bottom:4px;font-size:10px;background:#2d2e21;padding:0 3px;color:#f2e5bb}
+.seasons-reigning-crown{color:#f9d980;border-color:#dbb968;box-shadow:0 0 12px rgba(230,186,91,.35),inset 0 0 9px rgba(230,186,91,.16)}
+.seasons-badge-note{margin-top:16px}
+.seasons-how-it-works{padding:28px 2px}
+.seasons-how-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:16px 0 24px}
+.seasons-how-grid>div{border-top:1px solid #6b6b50;padding:15px 6px 0}
+.seasons-how-grid h3{font:400 20px Marcellus,Georgia,serif;margin-bottom:10px}
+.seasons-how-grid p{font-size:12px;color:#c2ccbc;line-height:1.6}
+.seasons-links{display:flex;flex-wrap:wrap;gap:12px}
+.rules-section h3{font:400 21px Marcellus,Georgia,serif;color:#e3d9ba;margin:19px 0 8px}
+@media(max-width:1050px){.seasons-card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.seasons-how-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){.seasons-page{padding:28px 0 58px}.seasons-card-grid,.seasons-how-grid,.seasons-badges{grid-template-columns:1fr}.season-story-card{min-height:175px}.season-final-title{padding:19px}.season-final-title>svg{width:38px;height:38px}.seasons-recognition{padding:17px}}
