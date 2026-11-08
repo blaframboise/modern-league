@@ -4,7 +4,6 @@ import type { Snapshot } from '../scoring/standings';
 import { supabaseConfiguration } from '../data/client';
 import { buildPublishedStandings } from '../data/publicStandings';
 import type { PublicResultRow } from '../data/publicStandings';
-import { calculateStandings } from '../scoring/standings';
 
 /** Used only by explicitly fictional demonstrations; never by the public page. */
 export function CumulativeLeaderboard({ title, snapshot, ended = false }: { title: string; snapshot: Snapshot; ended?: boolean }) {
