@@ -113,7 +113,7 @@ const assert = require('node:assert/strict');
       assert.equal(await page.getByLabel('Player 1 name').inputValue(),'AI synthetic name');
       assert.equal(corrections.length,0);
       assert.equal(await page.getByLabel('Player 1 name').isDisabled(),true);
-      assert.equal(await page.getByLabel('Event type').count(),0);
+      assert.equal(await page.getByLabel('Event type',{exact:true}).count(),0);
       await page.getByText('Calendar classification',{exact:true}).waitFor();
       await page.getByRole('button',{name:'Make corrections'}).click();
       await page.getByLabel('Event name').fill('Human-checked result');
