@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { proposedCalendar2027, proposedChampionships2027 } from '../calendar/proposed2027';
 import type { ProposedSlot } from '../calendar/proposed2027';
+import { proposedCalendarReviewCsv } from '../calendar/reviewExport';
 
 const monthNames=['January','February','March','April','May','June','July','August','September','October','November','December'];
 const shortMonth=(month:string)=>monthNames[Number(month)-1].slice(0,3);
@@ -74,6 +75,17 @@ function DetailedCalendar({slots,onSelect}:{slots:ProposedSlot[];onSelect:(slot:
   </section>;
 }
 export function CalendarPreviewPage(){
+  function downloadReviewSheet(){
+    const csv=proposedCalendarReviewCsv();
+    const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+    const link=document.createElement('a');
+    link.href=url;
+    link.download='modern-league-2027-calendar-verification.csv';
+    document.body.append(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
   const [selected,setSelected]=useState<ProposedSlot|null>(null);
   const [view,setView]=useState<'overview'|'details'>('overview');
   const slots=useMemo(()=>proposedCalendar2027(),[]);
@@ -90,6 +102,7 @@ export function CalendarPreviewPage(){
       <p className="eyebrow">2027 / ETERNAL GAMES / WORKING PROPOSAL</p>
       <h1>The Modern calendar<span className="gold">.</span></h1>
       <p>Four competitive seasons. Every Monday and Friday at 6:00 p.m., subject to store confirmation. Tap a numbered date for details.</p>
+      <div className="calendar-export-tools"><button type="button" className="button button-secondary" onClick={downloadReviewSheet}>Download date verification CSV</button><span className="muted">105 rows · All dates marked UNVERIFIED · No changes to official calendar</span></div>
       <div className="season-overview-toolbar">
         <div className="season-overview-legend" aria-label="Event color key">
           <span><i className="season-key-modern"/>Regular Modern</span>
