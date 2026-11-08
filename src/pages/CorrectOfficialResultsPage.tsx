@@ -44,7 +44,7 @@ export function CorrectOfficialResultsPage(){
   const canSave=authorized&&!busy&&!!event&&valid&&changeCount>0&&confirmed&&reason.trim().length>0;
 
   async function load(){
-    if(!client)return;
+    if(!client)throw Error('Supabase is unavailable.');
     const all:PublicResultRow[]=[];
     for(let start=0;start<10000;start+=250){
       const response=await client.from('effective_published_results').select('result_id,public_snapshot,published_at')
