@@ -35,10 +35,10 @@ function escapeCell(raw:string):string {
   const safe = /^[=+\-@\t\r]/.test(raw) ? "'" + raw : raw;
   return '"' + safe.replaceAll('"','""') + '"';
 }
-export function proposedCalendarReviewCsv():string {
+export function proposedCalendarReviewCsv(slots: readonly ProposedSlot[] = proposedCalendar2027()):string {
   const rows = [
     [...CALENDAR_REVIEW_COLUMNS],
-    ...proposedCalendar2027().map(proposedSlotReviewRow),
+    ...slots.map(proposedSlotReviewRow),
   ];
   return '\uFEFF' + rows.map(row => row.map(escapeCell).join(',')).join('\r\n') + '\r\n';
 }
