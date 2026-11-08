@@ -24,7 +24,7 @@ test('recompute REG points from WDL and rounds; do not trust supplied snapshot p
   assert.equal(first.regularPoints,7.5);
   assert.equal(first.regularEventCount,1);
   assert.equal(first.eligibleForCumulativeTitle,false);
-  assert.equal(result.standings.annual.standings.find(x=>x.playerId==='b')?.regularPoints,5.833333333333333);
+  assert.ok(Math.abs((result.standings.annual.standings.find(x=>x.playerId==='b')?.regularPoints??0)-35/6)<1e-10);
 });
 test('SC points from official placement and Swiss rounds, preserving tournament-vs-title distinction',()=>{
   const result=buildPublishedStandings([make('2027-03-26','seasonal',1,[
