@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { ProposedSlot } from '../calendar/proposed2027';
 import { calendarFromOverrides, parseCalendarOverrides } from '../calendar/scheduler';
@@ -89,7 +89,7 @@ export function CalendarPreviewPage(){
   }
   const [selected,setSelected]=useState<ProposedSlot|null>(null);
   const [view,setView]=useState<'overview'|'details'>('overview');
-  const [slots,setSlots]=useState<ProposedSlot[]>([]);
+  const [slots,setSlots]=useState<ProposedSlot[]>(()=>calendarFromOverrides({}));
   const [loadStatus,setLoadStatus]=useState('Loading saved planning schedule…');
   useEffect(()=>{
     const client=supabaseConfiguration.client;
