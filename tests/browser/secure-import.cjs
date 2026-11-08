@@ -117,7 +117,7 @@ const assert = require('node:assert/strict');
       await page.getByText('Calendar classification',{exact:true}).waitFor();
       await page.getByRole('button',{name:'Make corrections'}).click();
       await page.getByLabel('Event name').fill('Human-checked result');
-      await page.getByLabel('Date').fill('2027-02-01');
+      await page.getByLabel('Date',{exact:true}).fill('2027-02-01');
       await page.getByText('REG · 2027 Season 1 regular Modern').waitFor();
       await page.getByLabel('Player 1 name').fill('jane doe');
       await page.getByRole('button',{name:'Suggest name capitalization'}).click();
