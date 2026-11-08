@@ -84,8 +84,20 @@ const assert = require('node:assert/strict');
    assert.equal(await page.getByText('Official correction history (1)').count(),1);
    assert.equal(await page.getByText('2–1–0',{exact:true}).count(),1);
    assert.equal(await page.getByText('3–0–0',{exact:true}).count(),1);
+   // Public pages must consume the corrected effective projection, not the original.
+   for(const [path,heading] of [
+     ['/leaderboards','Overall League Standings'],
+     ['/leaderboards/top-16','Annual Leaderboard'],
+     ['/leaderboards/tv','Annual Leaderboard']
+   ]){
+     await page.goto((process.env.SECURE_BASE_URL||'http://127.0.0.1:5174')+path);
+     await page.getByRole('heading',{name:heading}).waitFor();
+     await page.getByText('Taylor Example',{exact:true}).first().waitFor();
+     await page.getByText('Chris Example',{exact:true}).first().waitFor();
+     assert.equal(await page.getByText('10.00',{exact:true}).count()>0,true,'Expected corrected winner points on '+path);
+   }
    assert.deepEqual(errors,[]);
-   console.log('PASS synthetic official publish and correction UI at viewport '+width);
+   console.log('PASS synthetic official publish, correction and three public leaderboards at viewport '+width);
    await page.close();
   }
  }finally{await browser.close();}
