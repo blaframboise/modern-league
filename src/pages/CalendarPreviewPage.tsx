@@ -21,7 +21,7 @@ export function CalendarPreviewPage(){
     </div>
     <section className="calendar-proposal-issues">
       <h2>Championship placement</h2>
-      <p>Proposals reserve the last suitable Friday of each competitive period. September 24 is held for a probable prerelease; September 17 is proposed instead. December 31 falls on New Year’s Eve and is a high-risk annual championship placeholder. Dates require organizer and store approval.</p>
+      <p>Season 4 is proposed for Friday, December 10 and the Annual Championship for Friday, December 17, avoiding Christmas Eve and New Year’s Eve. Regular Modern beginning Monday, December 13 counts toward 2028 Season 1, including nights after the annual championship. September 24 remains held for a probable prerelease, so Season 3 is proposed for September 17. All championship dates require organizer and store confirmation.</p>
       <div className="calendar-proposal-anchors">{proposedChampionships2027.map(c=><div key={c.date}><strong>{format(c.date)}</strong><span>{c.title}</span></div>)}</div>
     </section>
     <section className="calendar-proposal-issues">

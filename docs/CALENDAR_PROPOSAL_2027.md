@@ -31,10 +31,10 @@ All dates 2027. Actual prerelease days may include Saturday/Sunday, and store be
 | Season 1 | **Mar 26** | Last Friday of March |
 | Season 2 | **Jun 25** | Last Friday of June |
 | Season 3 | **Sep 17** | Sep 24 conflicts with Zhalfir likely prerelease |
-| Season 4 | **Dec 17** | Earlier than holiday Fridays |
-| Annual | **Dec 31** | **HIGH RISK** — New Year's Eve; move earlier if store closed or attendance poor |
+| Season 4 | **Dec 10** | Ends Season 4 before holiday Fridays; regular events from Dec 13 belong to 2028 Season 1 |
+| Annual | **Dec 17** | One week after Season 4; avoids Christmas Eve and New Year's Eve |
 
-The last two dates should be negotiated together. Alternative: Season 4 on Dec 10, annual Dec 17. That avoids Christmas Eve and New Year's Eve, but no longer uses the final Friday of the year.
+**Selected planning dates:** Season 4 on Dec 10 and the annual championship on Dec 17. Both remain tentative until confirmed by the store and organizer. Monday Dec 13, Friday Dec 24, Friday Dec 31, and every other regular Modern night after the Dec 10 Season 4 cutoff count toward **2028 Season 1** (if those nights actually run). The Dec 17 annual championship remains a separate 2027 championship and is not a regular event.
 
 The competition engine uses actual championship start instants as *exclusive* prior-season cutoffs: if a Friday hosts a season championship, ordinary Monday/Friday events afterward are assigned to the next season (and those after Season 4 or annual cutoff to next year), subject to the confirmed calendar. **A visually convenient quarter-end date is not itself a scoring cutoff.**
 
