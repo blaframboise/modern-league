@@ -46,17 +46,18 @@ export function calendarFromOverrides(overrides:CalendarOverrides):ProposedSlot[
   validateCalendarConfiguration(overrides);
   const changed=base.map(slot=>({...slot,kind:configuredKind(slot.date,overrides)}));
   const championshipDates=changed.filter(s=>s.kind==='seasonal').map(s=>s.date);
-  return changed.filter(s=>s.kind!=='none').map(slot=>{
+  return changed.flatMap((slot):ProposedSlot[]=>{
+    if(slot.kind==='none')return [];
     // SC is owned by the season it concludes, LC is always 2027's annual finale.
     const n=championshipDates.filter(d=>d<=slot.date).length;
     const season=slot.kind==='seasonal'?championshipDates.indexOf(slot.date)+1:
       slot.kind==='annual'?4:n+1;
-    return {...slot,season, title:
+    return [{...slot,kind:slot.kind as ProposedSlot['kind'],season, title:
       slot.kind==='seasonal'?`Season ${season} Championship (proposed)`:
       slot.kind==='annual'?'League Championship (proposed)':
       slot.kind==='prerelease'?'Prerelease (proposed)':
       slot.kind==='tbd'?'Event TBD — unconfirmed':
-      'Modern — proposed 6:00 p.m.'};
+      'Modern — proposed 6:00 p.m.'}];
   });
 }
 export function fullSchedulerRows(overrides:CalendarOverrides){
