@@ -447,6 +447,9 @@ export function OfficialImportPage() {
             <option value="">Select saved draft</option>{drafts.map(item=><option key={item.id} value={item.id}>{draftLabels[item.id]??`Unlabeled draft · ${item.id.slice(0,8)}`}</option>)}
           </select></label>
           {draft && <p>Saved review revisions: {draft.corrections.length}</p>}
+          <details className="import-advanced-maintenance">
+            <summary>Advanced Maintenance — screenshot storage</summary>
+            <p className="import-hint">Storage retention and orphan-file cleanup only. This does not affect tournament results, player eligibility, or standings. Deletions are permanent and audited.</p>
           <button disabled={busy} onClick={()=>void perform(async()=>{
             const response=await api!('retention-preview',crypto.randomUUID());
             setCandidates(response.candidates??[]);setNotice('Retention candidates refreshed.');
@@ -462,6 +465,7 @@ export function OfficialImportPage() {
             <label>Cleanup reason<textarea value={cleanupReason} onChange={e=>{setCleanupReason(e.target.value);setCleanupConfirmed(false)}}/></label>
             <label><input type="checkbox" checked={cleanupConfirmed} onChange={e=>setCleanupConfirmed(e.target.checked)}/> I reviewed this orphan and authorize permanent deletion.</label>
           </>}
+          </details>
         </div>
       </details>
     </>}
