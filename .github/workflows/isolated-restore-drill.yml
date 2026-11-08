@@ -1,6 +1,10 @@
 name: Isolated Supabase disaster-recovery drill
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/isolated-restore-drill.yml'
   workflow_dispatch:
 
 permissions:
