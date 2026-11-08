@@ -33,9 +33,9 @@ export function proposedCalendar2027():ProposedSlot[] {
     const iso=date.toISOString().slice(0,10);
     const pre=prereleases.get(iso),champ=champs.get(iso);
     const season=proposedChampionships2027.filter(c=>c.kind==='seasonal'&&iso>=c.date).length+1;
-    if(pre)slots.push({date:iso,kind:'prerelease',title:`Likely prerelease — ${pre.name} (no Modern assumed)`,season:Math.min(season,4),releaseDate:pre.date});
+    if(pre)slots.push({date:iso,kind:'prerelease',title:`Likely prerelease — ${pre.name} (no Modern assumed)`,season,releaseDate:pre.date});
     else if(champ)slots.push({date:iso,kind:champ.kind,title:champ.title,season:champ.season});
-    else slots.push({date:iso,kind:'modern',title:'Modern — proposed 6:00 p.m.',season:Math.min(season,4)});
+    else slots.push({date:iso,kind:'modern',title:'Modern — proposed 6:00 p.m.',season});
   }
   return slots;
 }
