@@ -204,9 +204,10 @@ export function PublishResultsPage(){
         </label>
         <button disabled={!canPublish} onClick={()=>void publish()}>{busy?'Publishing…':'Publish Results'}</button>
         {publishedId&&<p className="sandbox-success" role="status">Published official tournament result {publishedId}. The event is now part of the official records.</p>}
-        <p className="import-hint">Publishing is permanent until an audited correction workflow is added. The public leaderboard remains under construction.</p>
+        <p className="import-hint">Published results can be corrected only through the audited official correction workflow. Original publication history remains immutable.</p>
       </>}
     </>}
+    <p><Link to="/correct-official-results">Correct already published official results</Link></p>
     <p><Link to="/admin">Back to administration</Link></p>
   </section>;
 }

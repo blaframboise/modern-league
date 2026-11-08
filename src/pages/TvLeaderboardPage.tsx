@@ -55,7 +55,7 @@ export function TvLeaderboardPage(){
     try{
       const all:PublicResultRow[]=[];
       for(let start=0;start<10000;start+=250){
-        const {data,error:readError}=await client.from('published_results')
+        const {data,error:readError}=await client.from('effective_published_results')
           .select('result_id,public_snapshot,published_at')
           .order('published_at',{ascending:true}).order('result_id',{ascending:true})
           .range(start,start+249);

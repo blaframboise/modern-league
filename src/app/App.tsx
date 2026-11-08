@@ -6,6 +6,7 @@ import { LeaderboardPage } from '../pages/LeaderboardPage';
 import { Top16LeaderboardPage } from '../pages/Top16LeaderboardPage';
 import { TvLeaderboardPage } from '../pages/TvLeaderboardPage';
 import { PublishResultsPage } from '../pages/PublishResultsPage';
+import { CorrectOfficialResultsPage } from '../pages/CorrectOfficialResultsPage';
 import { RulesPage } from '../pages/RulesPage';
 import { HomePage } from '../pages/HomePage';
 import { TypographyPreviewPage } from '../pages/TypographyPreviewPage';
@@ -47,15 +48,15 @@ export function App() {
 
   const { pathname } = useLocation();
   const tvMode=pathname==='/leaderboards/tv';
-  const adminPaths=['/admin','/calendar-scheduler','/official-import','/publish-results','/edit-tournaments','/test-workspace'];
+  const adminPaths=['/admin','/calendar-scheduler','/official-import','/publish-results','/correct-official-results','/edit-tournaments','/test-workspace'];
   const showAdminNav=isAdmin&&adminPaths.includes(pathname);
-  const adminLinks=[{to:'/admin',label:'Dashboard'},{to:'/calendar-scheduler',label:'Schedule'},{to:'/official-import',label:'Upload results'},{to:'/publish-results',label:'Publish results'},{to:'/edit-tournaments',label:'Edit tournaments'},{to:'/test-workspace',label:'Test standings'}];
+  const adminLinks=[{to:'/admin',label:'Dashboard'},{to:'/calendar-scheduler',label:'Schedule'},{to:'/official-import',label:'Upload results'},{to:'/publish-results',label:'Publish results'},{to:'/correct-official-results',label:'Correct official'},{to:'/edit-tournaments',label:'Edit tournaments'},{to:'/test-workspace',label:'Test standings'}];
   const mainRef = useRef<HTMLElement>(null);
   const firstRender = useRef(true);
   useEffect(() => {
     setMenuOpen(false);
     window.scrollTo(0, 0);
-    document.title = `${navigation.find(item => item.path === pathname)?.label ?? (pathname === '/leaderboards/tv' ? 'TV Leaderboard' : pathname === '/leaderboards/top-16' ? 'Top 16 Leaderboard' : pathname === '/official-import' ? 'Private screenshot drafts' : pathname === '/publish-results' ? 'Publish Results' : pathname === '/admin' ? 'League administration' : pathname === '/test-workspace' ? 'Private test workspace' : pathname === '/edit-tournaments' ? 'Edit test tournament results' : 'Page not found')} | Modern League`;
+    document.title = `${navigation.find(item => item.path === pathname)?.label ?? (pathname === '/leaderboards/tv' ? 'TV Leaderboard' : pathname === '/leaderboards/top-16' ? 'Top 16 Leaderboard' : pathname === '/official-import' ? 'Private screenshot drafts' : pathname === '/publish-results' ? 'Publish Results' : pathname === '/correct-official-results' ? 'Correct Official Results' : pathname === '/admin' ? 'League administration' : pathname === '/test-workspace' ? 'Private test workspace' : pathname === '/edit-tournaments' ? 'Edit test tournament results' : 'Page not found')} | Modern League`;
     if (!firstRender.current) mainRef.current?.focus();
     firstRender.current = false;
   }, [pathname]);
@@ -80,6 +81,7 @@ export function App() {
       <Route path="/calendar-scheduler" element={<CalendarSchedulerPage />} />
       <Route path="/official-import" element={<OfficialImportPage />} />
       <Route path="/publish-results" element={<PublishResultsPage />} />
+      <Route path="/correct-official-results" element={<CorrectOfficialResultsPage />} />
       <Route path="/admin" element={<AdminPage />} />
       <Route path="/test-workspace" element={<TestWorkspacePage />} />
       <Route path="/edit-tournaments" element={<EditTournamentResultsPage />} />
