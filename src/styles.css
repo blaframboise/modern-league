@@ -407,3 +407,13 @@ h1{font-size:clamp(38px,4.5vw,61px);letter-spacing:.02em;font-weight:400}
 .season-detail-row.calendar-proposal-seasonal,.season-detail-row.calendar-proposal-annual{background:#313524}
 @media(max-width:1120px){.season-overview-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.season-date-day{font-size:16px}.season-month-tiles{grid-template-columns:repeat(6,minmax(0,1fr))}}
 @media(max-width:680px){.season-overview-page{width:calc(100% - 30px);padding-top:31px}.season-overview-grid{grid-template-columns:1fr}.season-overview-column{padding:15px}.season-month-tiles{grid-template-columns:repeat(7,minmax(0,1fr))}.season-month-group{grid-template-columns:40px 1fr}.season-date-day{font-size:17px}.season-date-weekday{font-size:8px}.season-annual-finale{gap:8px}.season-annual-date{margin-left:0;width:100%}.season-rollover{flex-direction:column;align-items:flex-start;gap:12px}.season-rollover-tiles{max-width:100%}.season-detail-row{grid-template-columns:100px 1fr;gap:10px}.season-overview-heading h2{font-size:26px}}
+
+/* Simplified prerelease tile: no stripe pattern or decorative slash. */
+.season-key-prerelease{background:#514c40!important;border-color:#92866b!important}
+.season-date-prerelease,.season-date-prerelease:hover{background:#514c40;border-color:#92866b;color:#f2e9d4}
+.season-date-slash{display:none}
+.season-key-tbd{background:#28303a;border-color:#778698!important}
+.season-date-tbd{background:#28303a;border-color:#778698;color:#e5edf5}
+.season-date-tbd:hover{background:#374553;border-color:#b8c6d5}
+.season-date-tbd::after{content:"?";position:absolute;right:3px;top:2px;font-size:9px;color:#dae4ed;font-weight:800;line-height:1}
+.season-detail-row.calendar-proposal-tbd{background:#242e37}
