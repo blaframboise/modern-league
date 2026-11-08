@@ -33,11 +33,25 @@ const assert = require('node:assert/strict');
         }
         if (url.pathname === '/rest/v1/sandbox_tournaments') return reply(sandboxTournaments);
         if (url.pathname === '/rest/v1/sandbox_results') return reply(sandboxResults);
+        if (url.pathname === '/rest/v1/rpc/correct_sandbox_tournament_results') {
+          if(!admin)return reply({message:'Administrator required'},403);
+          const body=request.postDataJSON();
+          const event=sandboxTournaments.find(x=>x.id===body.p_tournament);
+          if(!event||event.edit_revision!==body.p_expected_edit_revision)return reply({message:'Stale edit revision'},409);
+          if(body.p_results.length!==sandboxResults.filter(x=>x.tournament_id===event.id).length)return reply({message:'Missing rows'},400);
+          for(const change of body.p_results){
+            const result=sandboxResults.find(x=>x.tournament_id===event.id&&x.row_id===change.row_id);
+            if(!result)return reply({message:'Unknown row'},400);
+            Object.assign(result,{wins:change.wins,losses:change.losses,draws:change.draws});
+          }
+          event.edit_revision++;
+          return reply(event.edit_revision);
+        }
         if (url.pathname === '/rest/v1/rpc/import_sandbox_tournament_with_players') {
           const args=request.postDataJSON();
           const id='00000000-0000-4000-8000-000000000010';
           const existingIndex=sandboxTournaments.findIndex(row=>row.draft_id===args.p_draft);
-          const nextTournament={id,draft_id:args.p_draft,revision:args.p_revision,event_name:args.p_name,season_ordinal:args.p_season,scheduled_rounds:args.p_rounds,created_at:new Date().toISOString()};
+          const nextTournament={id,draft_id:args.p_draft,revision:args.p_revision,event_name:args.p_name,season_ordinal:args.p_season,scheduled_rounds:args.p_rounds,edit_revision:existingIndex>=0?sandboxTournaments[existingIndex].edit_revision:0,created_at:new Date().toISOString()};
           if(existingIndex>=0)sandboxTournaments[existingIndex]=nextTournament;else sandboxTournaments.push(nextTournament);
           for(let i=sandboxResults.length-1;i>=0;i--)if(sandboxResults[i].tournament_id===id)sandboxResults.splice(i,1);
           args.p_links.forEach((row,index)=>{
@@ -151,21 +165,16 @@ const assert = require('node:assert/strict');
       await page.getByRole('link',{name:'Edit a Tournament’s Results'}).click();
       await page.getByRole('heading',{name:'Edit a Tournament’s Results'}).waitFor();
       await page.getByRole('button',{name:/Human-checked result - 102326/}).click();
-      await page.getByRole('heading',{name:'Review extracted results'}).waitFor();
-      assert.equal(await page.getByLabel('Player 1 wins').isEnabled(),true);
-      await page.getByLabel('Player 1 wins').fill('1');
-      await page.getByLabel('Player 1 losses').fill('1');
-      await page.getByRole('checkbox',{name:/I checked the player names/}).check();
-      await page.getByRole('button',{name:'Save corrected results'}).click();
-      await page.getByRole('heading',{name:'Review saved'}).waitFor();
-      await page.getByRole('button',{name:'Continue to player matching'}).click();
-      await page.getByRole('heading',{name:'Edit a Tournament’s Results'}).waitFor();
-      await page.getByLabel('Match Verified player').waitFor();
-      await page.getByRole('checkbox',{name:/I verified player identities/}).check();
-      await page.getByRole('button',{name:'Save tournament and update test standings'}).click();
-      await page.getByText('Tournament corrections saved.',{exact:false}).waitFor({timeout:6000}).catch(async failure=>{throw new Error(`Save correction failed at ${page.url()} records=${JSON.stringify(sandboxResults)} tournaments=${JSON.stringify(sandboxTournaments)} UI=${await page.locator('.sandbox-error,.sandbox-success').allTextContents()} / ${String(failure)}`)});
+      await page.getByRole('heading',{name:'Human-checked result - 102326'}).waitFor();
+      assert.equal(await page.getByRole('checkbox',{name:/screenshot/}).count(),0);
+      assert.equal(await page.getByRole('button',{name:'Continue to player matching'}).count(),0);
+      await page.getByLabel('Verified Player wins').fill('1');
+      await page.getByLabel('Verified Player losses').fill('1');
+      await page.getByRole('button',{name:'Save Changes'}).click();
+      await page.getByText('Changes saved.',{exact:false}).waitFor();
       assert.equal(sandboxTournaments.length,1);
-      assert.equal(sandboxTournaments[0].revision,2);
+      assert.equal(sandboxTournaments[0].revision,1);
+      assert.equal(sandboxTournaments[0].edit_revision,1);
       assert.equal(sandboxResults.length,1);
       assert.equal(sandboxResults[0].wins,1);
       await page.goto(`${process.env.SECURE_BASE_URL || 'http://127.0.0.1:5174'}/admin`);
