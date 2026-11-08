@@ -59,11 +59,9 @@ export function CorrectOfficialResultsPage(){
   }
   async function loadHistory(id:string){
     if(!client||!id){setHistory([]);return [];}
-    const response=await client.from('official_result_corrections')
-      .select('result_id,revision,reason,actor,created_at,previous_snapshot,corrected_snapshot')
-      .eq('result_id',id).order('revision',{ascending:true});
+    const response=await client.rpc('official_correction_history',{p_result:id});
     if(response.error)throw Error(response.error.message);
-    const records=response.data as Audit[];
+    const records=(response.data??[]) as unknown as Audit[];
     setHistory(records);
     return records;
   }

@@ -21,7 +21,8 @@ test('official corrections preserve publication and use an append-only effective
    "create function auth.uid() returns uuid language sql stable as $$select '11111111-1111-4111-8111-111111111111'::uuid$$"
   ].join(';')+';');
   await db.exec(await readFile(new URL('../supabase/migrations/202611060001_foundation.sql',import.meta.url),'utf8'));
-  await db.exec(await readFile(new URL('../supabase/migrations/20261108060000_official_result_corrections.sql',import.meta.url),'utf8'));
+  await db.exec(await readFile(new URL('../supabase/migrations/20261108184615_official_result_corrections.sql',import.meta.url),'utf8'));
+  await db.exec(await readFile(new URL('../supabase/migrations/20261108184830_secure_official_correction_projection.sql',import.meta.url),'utf8'));
   await db.exec([
    "insert into auth.users values ('11111111-1111-4111-8111-111111111111')",
    "insert into private.administrators(user_id,reason) values ('11111111-1111-4111-8111-111111111111','test administrator')",
@@ -85,9 +86,16 @@ test('official corrections preserve publication and use an append-only effective
   const combined=await db.query<{result_id:string;public_snapshot:any;published_at:string}>(
     'select result_id,public_snapshot,published_at from public.effective_published_results');
   assert.equal(buildPublishedStandings(combined.rows).standings.seasons[0].tournamentChampionIds.length,2);
+  const audit=(await db.query<{history:any}>('select public.official_correction_history($1) as history',[result])).rows[0].history;
+  assert.equal(audit.length,2);
+  assert.equal(audit[0].reason,'store reported swapped scores');
+  assert.equal(audit[0].actor,actor);
   await db.exec('set role anon');
   assert.equal((await db.query('select result_id from public.effective_published_results')).rows.length,2);
+  assert.equal((await db.query('select corrected_snapshot from public.official_result_corrections')).rows.length,3);
+  await assert.rejects(db.query('select reason from public.official_result_corrections'),/permission denied/i);
   await assert.rejects(db.query('select * from public.official_result_corrections'),/permission denied/i);
+  await assert.rejects(db.query('select public.official_correction_history($1)',[result]),/permission denied/i);
   await assert.rejects(call(2,revised(2,2),'unauthorized',true),/permission denied/i);
  }finally{await db.close();}
 });
