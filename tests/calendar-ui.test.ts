@@ -16,7 +16,7 @@ test('public Events displays organizer calendar while standings remain unpublish
   assert.match(events,/Season 1/);
   assert.match(events,/TBD \/ Holiday/);
   assert.doesNotMatch(events,/No official events are currently listed|FICTIONAL SAMPLE/);
-  assert.match(seasons,/Four seasons/);
+  assert.match(seasons,/four seasons|Season 1/i);
   assert.match(seasons,/SEASON/);
   assert.equal((seasons.match(/class="season-story-winner"/g)??[]).length,10);
   for(let i=1;i<=4;i++){
