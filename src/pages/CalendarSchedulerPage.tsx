@@ -74,6 +74,7 @@ export function CalendarSchedulerPage(){
         <div className="calendar-scheduler-actions"><Link to="/calendar-preview">Preview calendar</Link><button type="button" disabled={!changed||busy} onClick={()=>setDraft({...saved})}>Discard edits</button><button type="button" disabled={!changed||!!validation||busy} onClick={()=>void save()}>Save calendar changes</button></div>
       </div>
       {validation&&<p className="calendar-scheduler-warning" role="alert">{validation}</p>}
+      {(count.seasonal??0)<4||(count.annual??0)<1?<p className="calendar-scheduler-warning">Planning schedule incomplete: {count.seasonal??0} of 4 seasonal championships and {count.annual??0} of 1 league championship assigned. You can save it while dates are undecided.</p>:null}
       <div className="calendar-scheduler-months">{months.map((month,i)=>{
         const m=String(i+1).padStart(2,'0');
         const entries=rows.filter(r=>r.date.slice(5,7)===m);
@@ -89,7 +90,7 @@ export function CalendarSchedulerPage(){
           </table></div>
         </details>;
       })}</div>
-      <div className="calendar-scheduler-bottom"><button type="button" disabled={!changed||!!validation||busy} onClick={()=>void save()}>Save calendar changes</button><p>Changes remain unsaved until you select Save. Four seasonal championships and one league championship are required.</p></div>
+      <div className="calendar-scheduler-bottom"><button type="button" disabled={!changed||!!validation||busy} onClick={()=>void save()}>Save calendar changes</button><p>Changes remain unsaved until you select Save. You can remove any date, including a championship; the calendar will show an incomplete schedule until a replacement is selected.</p></div>
     </>}
     <Link to="/admin" className="back-link">Back to administration</Link>
   </div>;
