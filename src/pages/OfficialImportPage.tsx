@@ -443,7 +443,7 @@ export function OfficialImportPage() {
       </div>}
       <details className="import-secondary"><summary>Previous imports and maintenance</summary>
         <div className="import-secondary-content">
-          <label>Open an earlier draft by event name and date <select disabled={busy} value="" onChange={e=>{if(e.target.value)void loadDraft(e.target.value)}}>
+          <label>Open earlier draft <select disabled={busy} value="" onChange={e=>{if(e.target.value)void loadDraft(e.target.value)}}>
             <option value="">Select saved draft</option>{drafts.map(item=><option key={item.id} value={item.id}>{draftLabels[item.id]??`Unlabeled draft · ${item.id.slice(0,8)}`}</option>)}
           </select></label>
           {draft && <p>Saved review revisions: {draft.corrections.length}</p>}
