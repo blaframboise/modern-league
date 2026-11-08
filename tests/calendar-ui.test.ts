@@ -5,7 +5,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { createServer } from 'vite';
 
-test('public Events displays organizer calendar while standings remain unpublished', async () => {
+test('public Events displays organizer calendar while leaderboard waits for approved results', async () => {
  const server=await createServer({configFile:false,server:{middlewareMode:true,ws:false},optimizeDeps:{noDiscovery:true},esbuild:{jsx:'automatic'}});
  try{
   const pages=await server.ssrLoadModule('/src/pages/CalendarPages.tsx');
@@ -34,6 +34,7 @@ test('public Events displays organizer calendar while standings remain unpublish
   assert.doesNotMatch(seasons,/CHAMPIONSHIP DATES PENDING/);
   const leaderboard=await server.ssrLoadModule('/src/pages/LeaderboardPage.tsx');
   const html=renderToStaticMarkup(createElement(leaderboard.LeaderboardPage));
-  assert.match(html,/Official standings are not yet published/);
+  assert.match(html,/Loading official tournament results/);
+  assert.doesNotMatch(html,/Sample data — fictional players/);
  }finally{await server.close();}
 });
