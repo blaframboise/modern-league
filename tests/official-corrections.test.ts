@@ -41,7 +41,7 @@ test('official corrections preserve publication and use an append-only effective
       [result,rev,JSON.stringify(players),reason,confirm]);
   await assert.rejects(call(0,revised(2,3),'',true),/reason/i);
   await assert.rejects(call(0,revised(2,3),'verified',false),/confirmation/i);
-  assert.equal((await call(0,revised(2,3),'store reported swapped scores',true)).rows[0].revision,1);
+  assert.equal(((await call(0,revised(2,3),'store reported swapped scores',true)).rows[0] as {revision:number}).revision,1);
   const current=(await db.query<{public_snapshot:any}>('select public_snapshot from public.effective_published_results')).rows[0].public_snapshot;
   assert.equal(current.players[0].wins,2);
   assert.equal(current.players[1].wins,3);
@@ -52,7 +52,7 @@ test('official corrections preserve publication and use an append-only effective
   await assert.rejects(call(1,revised(2,3),'no change',true),/No official result changes/i);
   await assert.rejects(call(1,[revised(2,3)[0]],'missing participant',true),/exactly once/i);
   await assert.rejects(call(1,revised(5,3),'invalid score',true),/Invalid match record/i);
-  assert.equal((await call(1,revised(1,3),'second correction',true)).rows[0].revision,2);
+  assert.equal(((await call(1,revised(1,3),'second correction',true)).rows[0] as {revision:number}).revision,2);
   assert.deepEqual((await db.query<{revision:number}>('select revision from public.official_result_corrections order by revision')).rows.map(r=>r.revision),[1,2]);
   await assert.rejects(db.exec('delete from public.official_result_corrections where revision=1'),/Immutable history/i);
   await db.exec('set role anon');
