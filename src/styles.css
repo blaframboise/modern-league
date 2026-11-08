@@ -468,8 +468,8 @@ h1{font-size:clamp(38px,4.5vw,61px);letter-spacing:.02em;font-weight:400}
 .rules-intro h1{margin:11px 0 12px}
 .rules-intro .page-description{max-width:75ch;color:#b5bfb0}
 .rules-jump{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 26px}
-.rules-jump a{color:#dec38b;border:1px solid #59614b;padding:8px 11px;border-radius:5px;font-size:12px;text-decoration:none;font-weight:700}
-.rules-jump a:hover{background:#272e22}
+.rules-jump button{color:#dec38b;border:1px solid #59614b;padding:8px 11px;border-radius:5px;font-size:12px;text-decoration:none;font-weight:700}
+.rules-jump button:hover{background:#272e22}
 .rules-sections{display:grid;gap:13px}
 .rules-section{background:#181f18;border:1px solid #394634;border-radius:9px;padding:clamp(18px,3vw,29px);scroll-margin-top:85px}
 .rules-section h2{font:400 clamp(23px,2.8vw,31px)/1.25 Marcellus,Georgia,serif;margin:7px 0 15px}
@@ -490,4 +490,8 @@ h1{font-size:clamp(38px,4.5vw,61px);letter-spacing:.02em;font-weight:400}
 .rules-policy{border-color:#756345}
 .rules-back{margin-top:24px}
 .rules-back a{color:#dec38b;text-decoration:underline}
-@media(max-width:540px){.rules-page{padding:29px 0 65px}.rules-metrics{grid-template-columns:1fr}.rules-section{padding:18px}.rules-jump{gap:6px}.rules-jump a{padding:7px 8px;font-size:11px}}
+@media(max-width:540px){.rules-page{padding:29px 0 65px}.rules-metrics{grid-template-columns:1fr}.rules-section{padding:18px}.rules-jump{gap:6px}.rules-jump button{padding:7px 8px;font-size:11px}}
+
+.rules-jump button{background:transparent;cursor:pointer;font-family:"Nunito Sans",system-ui,sans-serif}
+.rules-jump button:focus-visible{outline:2px solid #dec38b;outline-offset:3px}
+.rules-section:focus{outline:none}
