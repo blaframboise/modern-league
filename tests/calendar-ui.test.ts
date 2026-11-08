@@ -15,5 +15,9 @@ test('public calendar pages show only official pending states, never fictional s
     }
     assert.match(events, /No official events are currently listed/);
     assert.match(seasons, /Season and championship dates are not yet confirmed/);
+    const leaderboard = await server.ssrLoadModule('/src/pages/LeaderboardPage.tsx');
+    const leaderboardHtml = renderToStaticMarkup(createElement(leaderboard.LeaderboardPage));
+    assert.match(leaderboardHtml, /Official standings are not yet published/);
+    assert.doesNotMatch(leaderboardHtml, /Alex|Jordan|Casey|fictional sample data/);
   } finally { await server.close(); }
 });
