@@ -16,7 +16,13 @@ test('public Events displays organizer calendar while standings remain unpublish
   assert.match(events,/Season 1/);
   assert.match(events,/TBD \/ Holiday/);
   assert.doesNotMatch(events,/No official events are currently listed|FICTIONAL SAMPLE/);
-  assert.match(seasons,/See the 2027 calendar/);
+  assert.match(seasons,/Four seasons/);
+  assert.match(seasons,/SEASON/);
+  assert.equal((seasons.match(/Overall Season Champion/g)??[]).length,4);
+  assert.match(seasons,/Reigning league champion/);
+  assert.match(seasons,/glowing crown/);
+  assert.match(seasons,/Nobody has been awarded a crown yet/);
+  assert.match(seasons,/2027 event calendar/);
   assert.doesNotMatch(seasons,/CHAMPIONSHIP DATES PENDING/);
   const leaderboard=await server.ssrLoadModule('/src/pages/LeaderboardPage.tsx');
   const html=renderToStaticMarkup(createElement(leaderboard.LeaderboardPage));
