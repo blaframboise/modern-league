@@ -10,14 +10,15 @@ export const releaseDates2027 = [
 ] as const;
 /** Suggested championship Friday dates; deliberately not published as confirmations.
  * September 24 is reserved for a likely Zhalfir prerelease.
- * December 31 is New Year's Eve, a high-risk placeholder needing store approval.
+ * Season 4 is December 10 and annual championship December 17, ahead of the holiday Fridays.
+ * Ordinary Modern on December 13 and later belongs to 2028 Season 1.
  */
 export const proposedChampionships2027 = [
   {date:'2027-03-26',kind:'seasonal' as const,title:'Season 1 Championship (proposed)',season:1},
   {date:'2027-06-25',kind:'seasonal' as const,title:'Season 2 Championship (proposed)',season:2},
   {date:'2027-09-17',kind:'seasonal' as const,title:'Season 3 Championship (proposed)',season:3},
-  {date:'2027-12-17',kind:'seasonal' as const,title:'Season 4 Championship (proposed)',season:4},
-  {date:'2027-12-31',kind:'annual' as const,title:'Annual Championship (high-risk holiday proposal)',season:4},
+  {date:'2027-12-10',kind:'seasonal' as const,title:'Season 4 Championship (proposed)',season:4},
+  {date:'2027-12-17',kind:'annual' as const,title:'Annual Championship (proposed)',season:4},
 ] as const;
 export function proposedCalendar2027():ProposedSlot[] {
   const prereleases=new Map(releaseDates2027.map(set=>{
