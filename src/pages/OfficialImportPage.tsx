@@ -26,6 +26,20 @@ const blankResult = (): ImportedResult => ({
 });
 const numberOrNull = (text: string) => text.trim() === '' ? null : Number.isSafeInteger(Number(text)) && Number(text) >= 0 ? Number(text) : null;
 
+/** A human-readable label only; the UUID remains the option value and database key. */
+function draftEventLabel(raw:unknown):string|null {
+  if(!raw || typeof raw!=='object' || Array.isArray(raw))return null;
+  const record=raw as Record<string,unknown>;
+  const values=('values' in record ? record.values : raw);
+  if(!values || typeof values!=='object' || Array.isArray(values))return null;
+  const tournament=(values as Record<string,unknown>).tournament;
+  if(!tournament || typeof tournament!=='object' || Array.isArray(tournament))return null;
+  const t=tournament as Record<string,unknown>;
+  const name=typeof t.name==='string'?t.name.trim():'';
+  const date=typeof t.date==='string' && /^\d{4}-\d{2}-\d{2}$/.test(t.date)?t.date:'';
+  return name && date?`${name} — ${date}`:name||date||null;
+}
+
 export function OfficialImportPage() {
   const navigate=useNavigate();
   const [searchParams]=useSearchParams();
@@ -42,7 +56,9 @@ export function OfficialImportPage() {
   const [draft, setDraft] = useState<ImportDraft | null>(null);
   const [linkedTestTournament,setLinkedTestTournament] = useState<{id:string;event_name:string}|null>(null);
   const [assets, setAssets] = useState<Asset[]>([]);
-  const [drafts, setDrafts] = useState<{id:string}[]>([]);
+  const [drafts, setDrafts] = useState<{id:string;original?:unknown}[]>([]);
+  const [draftLabels,setDraftLabels] = useState<Record<string,string>>({});
+  const [draftLabelRefresh,setDraftLabelRefresh] = useState(0);
   const [values, setValues] = useState<ImportValues | null>(null);
   const [correcting, setCorrecting] = useState(false);
   const [reviewed, setReviewed] = useState(false);
@@ -134,6 +150,33 @@ export function OfficialImportPage() {
     });
     return () => { active = false; generation.current++; subscription.unsubscribe(); if (previewUrl.current) URL.revokeObjectURL(previewUrl.current); };
   }, [client]);
+
+  useEffect(()=>{
+    if(!client || !authorized || !drafts.length){setDraftLabels({});return;}
+    let active=true;
+    const labels:Record<string,string>={};
+    for(const item of drafts){
+      const initial=draftEventLabel(item.original);
+      if(initial)labels[item.id]=initial;
+    }
+    const ids=drafts.map(item=>item.id);
+    void client.from('import_corrections').select('draft_id,revision,snapshot')
+      .in('draft_id',ids).order('revision',{ascending:false})
+      .then(({data,error})=>{
+        if(!active)return;
+        if(!error && data){
+          const seen=new Set<string>();
+          for(const row of data){
+            if(seen.has(row.draft_id))continue;
+            seen.add(row.draft_id);
+            const revised=draftEventLabel(row.snapshot);
+            if(revised)labels[row.draft_id]=revised;
+          }
+        }
+        setDraftLabels(labels);
+      });
+    return ()=>{active=false;};
+  },[client,authorized,drafts,draftLabelRefresh]);
 
   useEffect(()=>{
     if(!client || !authorized){setCalendarOverrides(null);setCalendarRevision(null);return;}
@@ -287,6 +330,7 @@ export function OfficialImportPage() {
       });
       const loaded = await leagueRepository(client!).loadDraft(draft.importId);
       setDraft(loaded);setValues(effectiveValues(loaded));setStep('saved');setCorrecting(false);
+      setDraftLabelRefresh(previous=>previous+1);
       setNotice(matched.status==='historical'?'Historical review saved privately. This tournament cannot be published to the 2027 league.':'Review saved. Continue to official player matching and publication, or use the private test workspace. Nothing is published automatically.');
     });
   }
@@ -399,8 +443,8 @@ export function OfficialImportPage() {
       </div>}
       <details className="import-secondary"><summary>Previous imports and maintenance</summary>
         <div className="import-secondary-content">
-          <label>Open an earlier draft <select disabled={busy} value="" onChange={e=>{if(e.target.value)void loadDraft(e.target.value)}}>
-            <option value="">Select saved draft</option>{drafts.map(item=><option key={item.id} value={item.id}>{item.id}</option>)}
+          <label>Open an earlier draft by event name and date <select disabled={busy} value="" onChange={e=>{if(e.target.value)void loadDraft(e.target.value)}}>
+            <option value="">Select saved draft</option>{drafts.map(item=><option key={item.id} value={item.id}>{draftLabels[item.id]??`Unlabeled draft · ${item.id.slice(0,8)}`}</option>)}
           </select></label>
           {draft && <p>Saved review revisions: {draft.corrections.length}</p>}
           <button disabled={busy} onClick={()=>void perform(async()=>{
