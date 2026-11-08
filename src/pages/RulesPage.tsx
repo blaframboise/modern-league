@@ -46,7 +46,7 @@ export function RulesPage(){
           <div><strong>{SEASON_MINIMUM_EVENTS}</strong><span>Regular events required for a cumulative seasonal title</span></div>
           <div><strong>{ANNUAL_MINIMUM_EVENTS}</strong><span>Regular events required for the annual cumulative title</span></div>
         </div>
-        <p>The <strong>Regular Season Champion</strong> is the highest-ranked eligible player before that season's championship. The <strong>Overall Season Champion</strong> is the highest-ranked eligible player after championship points are added. The <strong>Annual Overall Champion</strong> is the highest-ranked eligible player across the league year.</p>
+        <p>The <strong>Regular Season Champion</strong> is the highest-ranked eligible player before that season's championship. The <strong>Season Champion</strong> is the highest-ranked eligible player after championship points are added. The <strong>League Champion</strong> is the highest-ranked eligible player across the league year.</p>
         <p>Players below the participation minimum still appear in standings and earn points, but cannot receive the corresponding cumulative title. These minimums do <strong>not</strong> restrict participation in any tournament or championship. Eternal Games determines admission, registration, capacity, and participation. Eligibility to win a cumulative league title is a separate matter.</p>
       </section>
       <section id="rules-championship" className="rules-section" tabIndex={-1}>
@@ -62,7 +62,7 @@ export function RulesPage(){
           <p>Placement component = maximum × 0.25 × (N − P) ÷ (N − 1)</p>
         </div>
         <p><strong>N</strong> is the number of competitors and <strong>P</strong> is a competitor's official final placement. Ties are calculated using the average of the occupied positions. At least two recorded competitors are required for championship points to be calculated.</p>
-        <p>Elimination-match records do not count toward the Swiss component. The winner of the championship tournament receives its distinct <strong>Tournament Champion</strong> title; that is separate from the cumulative points title.</p>
+        <p>Elimination-match records do not count toward the Swiss component. The winner of a season's championship tournament is the <strong>Season Tournament Winner</strong>; the winner of the year-end tournament is the <strong>League Tournament Winner</strong>. These are separate from the cumulative Season Champion and League Champion titles.</p>
         <p>The theoretical maximum is <strong>120 points per season</strong> (80 regular + 40 championship), or <strong>600 points for the year</strong> (four seasons plus the League Championship).</p>
       </section>
       <section id="rules-ties" className="rules-section" tabIndex={-1}>
