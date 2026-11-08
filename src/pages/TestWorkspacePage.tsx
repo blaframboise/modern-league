@@ -205,12 +205,12 @@ export function TestWorkspacePage() {
           <label>Test event name (date added automatically)<input value={eventName} maxLength={200} onChange={e=>{setEventName(e.target.value);setMappingReviewed(false)}}/></label>
           <label>Simulated 2027 season<select value={season} onChange={e=>{setSeason(e.target.value);setMappingReviewed(false)}}>{seasonIds.map((v,i)=><option key={v} value={String(i+1)}>Season {i+1}</option>)}</select></label>
           <label>Scheduled Swiss rounds<input type="number" min={1} max={20} value={rounds} onChange={e=>{setRounds(e.target.value);setMappingReviewed(false)}}/></label>
-          <div className="sandbox-table"><table><thead><tr><th>Companion name</th><th>W</th><th>L</th><th>D</th><th>Place</th><th>Projected points</th><th>Test player / display name</th></tr></thead><tbody>
+          <div className="sandbox-table sandbox-match-table"><table><thead><tr><th>Companion name</th><th>W</th><th>L</th><th>D</th><th>Place</th><th>Projected points</th><th>Test player / display name</th></tr></thead><tbody>
           {entries.map((entry,i)=><tr key={entry.row.rowId}>
-            <td>{entry.row.importedName}</td>
-            <td>{entry.row.wins??'?'}</td><td>{entry.row.losses??'?'}</td><td>{entry.row.draws??'?'}</td><td>{entry.row.finalPosition??'—'}</td>
-            <td>{Number.isSafeInteger(Number(rounds)) && Number(rounds)>0 && entry.row.wins!==null && entry.row.losses!==null && entry.row.draws!==null && entry.row.wins+entry.row.losses+entry.row.draws<=Number(rounds) ? calculateRegularEventPoints({wins:entry.row.wins,draws:entry.row.draws,scheduledRounds:Number(rounds)}).toFixed(2) : '—'}</td>
-            <td><select aria-label={`Match ${entry.row.importedName}`} value={entry.playerId} disabled={busy} onChange={e=>{setEntries(previous=>previous.map((v,index)=>i===index?{...v,playerId:e.target.value}:v));setMappingReviewed(false)}}>
+            <td data-label="Companion name" className="match-player-name">{entry.row.importedName}</td>
+            <td data-label="Wins">{entry.row.wins??'?'}</td><td data-label="Losses">{entry.row.losses??'?'}</td><td data-label="Draws">{entry.row.draws??'?'}</td><td data-label="Place">{entry.row.finalPosition??'—'}</td>
+            <td data-label="Projected points">{Number.isSafeInteger(Number(rounds)) && Number(rounds)>0 && entry.row.wins!==null && entry.row.losses!==null && entry.row.draws!==null && entry.row.wins+entry.row.losses+entry.row.draws<=Number(rounds) ? calculateRegularEventPoints({wins:entry.row.wins,draws:entry.row.draws,scheduledRounds:Number(rounds)}).toFixed(2) : '—'}</td>
+            <td data-label="Leaderboard player" className="match-player-select"><select aria-label={`Match ${entry.row.importedName}`} value={entry.playerId} disabled={busy} onChange={e=>{setEntries(previous=>previous.map((v,index)=>i===index?{...v,playerId:e.target.value}:v));setMappingReviewed(false)}}>
               <option value="">Register new test player</option>{people.map(p=><option value={p.id} key={p.id}>Existing: {p.display_name}</option>)}
             </select>{!entry.playerId && <input aria-label={`Display name for ${entry.row.importedName}`} maxLength={120} value={entry.displayName} disabled={busy} onChange={e=>{setEntries(previous=>previous.map((v,index)=>i===index?{...v,displayName:e.target.value}:v));setMappingReviewed(false)}} />}</td>
           </tr>)}</tbody></table></div>
