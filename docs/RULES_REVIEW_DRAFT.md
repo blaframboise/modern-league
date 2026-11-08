@@ -34,9 +34,9 @@
 
 ## Season and annual recognition
 
-- Four seasonal cumulative **Overall Season Champions** will eventually receive numbered crown badges on the public leaderboard, assigned only after the relevant championship and published results are final.
-- The **Annual Overall Champion** will receive a glowing reigning-champion crown during the following league year. Historical titles remain recorded.
-- Tournament champions and cumulative points champions are distinct titles. Crown assignment is deferred until official results and title-recipient computations are published.
+- Four seasonal cumulative **Season Champions** will eventually receive numbered crown badges on the public leaderboard, assigned only after the relevant championship and published results are final.
+- The **League Champion** will receive a glowing reigning-champion crown during the following league year. Historical titles remain recorded.
+- Championship tournament winners and cumulative champions are distinct titles: Season 1–4 Tournament Winner versus Season 1–4 Champion; League Tournament Winner versus League Champion. Crown assignment is deferred until official results and title-recipient computations are published.
 - A tied eligible cumulative title remains shared under the current tiebreak rules, and any badge assignment should support more than one qualifying recipient.
 
 ## Remaining implementation work

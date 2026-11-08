@@ -537,3 +537,14 @@ h1{font-size:clamp(38px,4.5vw,61px);letter-spacing:.02em;font-weight:400}
 .rules-section h3{font:400 21px Marcellus,Georgia,serif;color:#e3d9ba;margin:19px 0 8px}
 @media(max-width:1050px){.seasons-card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.seasons-how-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:640px){.seasons-page{padding:28px 0 58px}.seasons-card-grid,.seasons-how-grid,.seasons-badges{grid-template-columns:1fr}.season-story-card{min-height:175px}.season-final-title{padding:19px}.season-final-title>svg{width:38px;height:38px}.seasons-recognition{padding:17px}}
+
+
+/* Distinct tournament-winner and cumulative-champion positions. */
+.season-story-honors{margin-top:auto;display:grid;gap:0}
+.season-story-honors .season-story-winner{margin-top:0}
+.season-story-honors .season-story-winner+.season-story-winner{margin-top:10px}
+.season-finale-main{flex:1;min-width:0}
+.season-finale-honors{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:20px}
+.season-finale-honors .season-story-winner{margin:0;padding:12px;border:1px solid #62573b;border-radius:7px;background:#22281f}
+.season-finale-honors .season-story-winner strong{color:#f2e8ce}
+@media(max-width:640px){.season-finale-honors{grid-template-columns:1fr}.season-finale-honors .season-story-winner{padding:12px}}

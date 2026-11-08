@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 const destinations = [
   { number: '01', icon: Trophy, title: 'The standings', text: 'Follow the players making their mark on the league.', label: 'Explore leaderboards', to: '/leaderboards' },
   { number: '02', icon: CalendarDays, title: 'Your next challenge', text: 'Find your next tournament and a seat at the table.', label: 'Explore events', to: '/events' },
-  { number: '03', icon: Layers3, title: 'The bigger picture', text: 'Follow the journey from seasonal play to the annual championship.', label: 'Explore seasons', to: '/seasons' },
+  { number: '03', icon: Layers3, title: 'Championships & Titles', text: 'Discover the four seasons, championship dates, and who earns each title.', label: 'Explore championships', to: '/seasons' },
 ];
 
 export function HomePage() {
