@@ -56,6 +56,7 @@ export function OfficialImportPage() {
   const [calendarRevision,setCalendarRevision] = useState<number|null>(null);
   const [calendarStatus,setCalendarStatus] = useState('Loading saved league calendar…');
   const eventMatch=values && calendarOverrides ? resolveScheduledEvent(values.tournament.date,calendarOverrides):null;
+  const historicalTest=eventMatch?.status==='historical';
   const readyToMatch=eventMatch?.status==='matched';
   const matchError=!calendarOverrides?'League calendar must be loaded to classify the event.':eventMatch?.status==='blocked'?eventMatch.message:'';
   let pointsPreview: {name:string;points:string}[]|null=null;
@@ -169,7 +170,7 @@ export function OfficialImportPage() {
     try {
       const response = await api('extract',draftId,{sourceId:asset.id});
       const proposed = suggestedImportValues(response.report,asset.id);
-      setValues(proposed); setCorrecting(false); setReviewed(false); setStep('review');
+      setValues(proposed); setCorrecting(true); setReviewed(false); setStep('review');
       setNotice('Extraction complete. Compare the results with your screenshot before approving.');
     } catch (failure) {
       setCorrecting(true); setStep('review');
@@ -210,14 +211,14 @@ export function OfficialImportPage() {
       if (response.error) throw new Error('Unable to load saved sources.');
       const saved = (response.data ?? []) as Asset[];
       setDraft(loaded); setAssets(saved); setValues(effectiveValues(loaded));
-      setPending(null); setCorrecting(false); setReviewed(false); setConfirmed(true);
+      setPending(null); setCorrecting(true); setReviewed(false); setConfirmed(true);
       if (saved[0]) {
         const download = await client.storage.from(SOURCE_BUCKET).download(saved[0].object_path);
         if (!download.error && download.data) usePreview(URL.createObjectURL(download.data));
         else usePreview(null);
       } else usePreview(null);
       setStep(loaded.corrections.length && !returnToEditor ? 'saved' : 'review');
-      setCorrecting(returnToEditor && loaded.corrections.length>0);
+      setCorrecting(true);
       setNotice(returnToEditor ? 'Edit the saved tournament results, then save the reviewed correction.' : 'Saved draft loaded.');
     });
   }
