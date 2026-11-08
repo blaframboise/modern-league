@@ -1,0 +1,79 @@
+name: Encrypted Supabase database backup
+
+on:
+  schedule:
+    - cron: '17 9 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: encrypted-supabase-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      BACKUP_AGE_RECIPIENT: ${{ vars.BACKUP_AGE_RECIPIENT }}
+    steps:
+      - name: Refuse unconfigured or unsafe backup
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "$SUPABASE_DB_URL" || -z "$BACKUP_AGE_RECIPIENT" ]]; then
+            echo "::error::Configure secret SUPABASE_DB_URL and variable BACKUP_AGE_RECIPIENT."
+            exit 1
+          fi
+          if [[ ! "$BACKUP_AGE_RECIPIENT" =~ ^age1[023456789acdefghjklmnpqrstuvwxyz]{58}$ ]]; then
+            echo "::error::Invalid public age recipient."
+            exit 1
+          fi
+          if [[ "$SUPABASE_DB_URL" != postgresql://* && "$SUPABASE_DB_URL" != postgres://* ]]; then
+            echo "::error::Use a PostgreSQL session-pooler connection URL."
+            exit 1
+          fi
+          echo "::add-mask::$SUPABASE_DB_URL"
+      - uses: supabase/setup-cli@v3
+        with:
+          version: 2.119.0
+      - name: Install age
+        run: sudo apt-get update -qq && sudo apt-get install -y age
+      - name: Dump into temporary runner directory
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir -m 700 "$RUNNER_TEMP/modern-league-backup"
+          supabase db dump --remote="$SUPABASE_DB_URL" -f "$RUNNER_TEMP/modern-league-backup/roles.sql" --role-only
+          supabase db dump --remote="$SUPABASE_DB_URL" -f "$RUNNER_TEMP/modern-league-backup/schema.sql"
+          supabase db dump --remote="$SUPABASE_DB_URL" -f "$RUNNER_TEMP/modern-league-backup/data.sql" --data-only --use-copy -x "storage.buckets_vectors" -x "storage.vector_indexes"
+          test -s "$RUNNER_TEMP/modern-league-backup/roles.sql"
+          test -s "$RUNNER_TEMP/modern-league-backup/schema.sql"
+          test -s "$RUNNER_TEMP/modern-league-backup/data.sql"
+          date -u +%FT%TZ > "$RUNNER_TEMP/modern-league-backup/timestamp.txt"
+      - name: Encrypt and remove plaintext before upload
+        id: encrypt
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          name="modern-league-$(date -u +%Y%m%dT%H%M%SZ).tar.gz.age"
+          tar -C "$RUNNER_TEMP" -czf - modern-league-backup | age -r "$BACKUP_AGE_RECIPIENT" -o "$RUNNER_TEMP/$name"
+          test -s "$RUNNER_TEMP/$name"
+          rm -rf -- "$RUNNER_TEMP/modern-league-backup"
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+          sha256sum "$RUNNER_TEMP/$name" | sed "s|$RUNNER_TEMP/||"
+      - name: Upload only encrypted backup
+        uses: actions/upload-artifact@v4
+        with:
+          name: encrypted-supabase-${{ github.run_id }}
+          path: ${{ runner.temp }}/${{ steps.encrypt.outputs.name }}
+          retention-days: 30
+          if-no-files-found: error
+          compression-level: 0
+      - name: Restore check remains required
+        run: echo "An encrypted dump is NOT a verified restore. Restore to an isolated database before launch. Storage object bytes are excluded."
