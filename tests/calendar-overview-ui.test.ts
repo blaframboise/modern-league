@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createElement } from 'react';
+import { MemoryRouter } from 'react-router-dom';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { createServer } from 'vite';
 import { proposedCalendar2027 } from '../src/calendar/proposed2027.ts';
@@ -9,7 +10,7 @@ test('four-column proposal renders each regular and prerelease tile once, with c
  const server=await createServer({configFile:false,server:{middlewareMode:true,ws:false},optimizeDeps:{noDiscovery:true},esbuild:{jsx:'automatic'}});
  try{
   const page=await server.ssrLoadModule('/src/pages/CalendarPreviewPage.tsx');
-  const html=renderToStaticMarkup(createElement(page.CalendarPreviewPage));
+  const html=renderToStaticMarkup(createElement(MemoryRouter,null,createElement(page.CalendarPreviewPage)));
   assert.match(html,/season-overview-grid/);
   for(let season=1;season<=4;season++){
    assert.match(html,new RegExp('aria-label="2027 Season '+season+'"'));
