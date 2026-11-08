@@ -34,11 +34,13 @@ export function validateCalendarConfiguration(overrides:CalendarOverrides):void{
   const rows=base.map(slot=>({...slot,kind:configuredKind(slot.date,overrides)})).filter(s=>s.kind!=='none');
   const seasonal=rows.filter(s=>s.kind==='seasonal');
   const annual=rows.filter(s=>s.kind==='annual');
-  if(seasonal.length!==4||annual.length!==1){
-    throw new Error('Require exactly four seasonal championships (SC) and one league championship (LC).');
+  // Incomplete plans are allowed: clearing ANY date (including a championship)
+  // must remove it from the preview. Only over-allocation is invalid.
+  if(seasonal.length>4||annual.length>1){
+    throw new Error('No more than four seasonal championships (SC) and one league championship (LC).');
   }
-  if(annual[0].date<=seasonal[3].date){
-    throw new Error('The league championship must follow the fourth seasonal championship.');
+  if(annual.length && seasonal.length && annual[0].date<=seasonal[seasonal.length-1].date){
+    throw new Error('The league championship must follow all selected seasonal championships.');
   }
   // Classification is chronological: the nth SC closes the nth season.
 }
