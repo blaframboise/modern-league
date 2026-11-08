@@ -22,6 +22,7 @@ declare
   v_calendar_revision integer;
   v_date date;
   v_kind text;
+  v_kind_expected text;
   v_baseline text;
   v_season integer;
   v_year integer;
@@ -124,10 +125,11 @@ begin
     raise exception '2028 rollover requires a configured 2028 publication calendar';
   end if;
   v_year:=2027;
-  if v_t->>'kind' <> case v_kind when 'modern' then 'regular' else v_kind end
-     or (v_t->>'year')::integer<>v_year
+  v_kind_expected:=case when v_kind='modern' then 'regular' else v_kind end;
+  if (v_t->>'kind') is distinct from v_kind_expected
+     or (v_t->>'year')::integer is distinct from v_year
      or (v_kind='annual' and v_t ? 'seasonId')
-     or (v_kind<>'annual' and v_t->>'seasonId'<>'s'||v_season::text) then
+     or (v_kind<>'annual' and (v_t->>'seasonId') is distinct from ('s'||v_season::text)) then
     raise exception 'Saved review classification does not match the current calendar';
   end if;
   v_name_event:=nullif(btrim(v_t->>'name'),'');
