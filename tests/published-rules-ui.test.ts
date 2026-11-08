@@ -13,6 +13,14 @@ test('published Rules page includes verified 2027 calculations and identifies un
   const page=await server.ssrLoadModule('/src/pages/RulesPage.tsx');
   const html=renderToStaticMarkup(createElement(MemoryRouter,null,createElement(page.RulesPage)));
   assert.match(html,/LEAGUE RULES/);
+  // Native buttons scroll to sections without changing the HashRouter route.
+  const jump=html.match(/<nav class="rules-jump"[^>]*>([\s\S]*?)<\/nav>/)?.[1]??'';
+  assert.equal((jump.match(/<button type="button"/g)??[]).length,5);
+  assert.doesNotMatch(jump,/<a\s|href="#rules-/);
+  for(const section of ['rules-regular','rules-season','rules-championship','rules-ties','rules-pending']){
+    assert.match(html,new RegExp('id="'+section+'"'));
+  }
+
   assert.match(html,/10 × \(3W \+ D\) ÷ \(3R\)/);
   assert.match(html,/3–1–0 record earns 7\.50/);
   assert.match(html,/3–0–1 record earns 8\.33/);
