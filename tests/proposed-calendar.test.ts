@@ -31,4 +31,5 @@ test('five provisional championship Fridays stay distinct from prerelease holds'
  assert.equal(entries.find(e=>e.date==='2027-09-24')?.kind,'prerelease');
  assert.equal(entries.find(e=>e.date==='2027-09-17')?.kind,'seasonal');
  assert.equal(entries.find(e=>e.date==='2027-12-31')?.kind,'annual');
+ assert.equal(entries.find(e=>e.date==='2027-12-20')?.season,5);
 });
