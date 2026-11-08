@@ -38,6 +38,7 @@ const assert = require('node:assert/strict');
       await page.locator('.skip-link').evaluate(link => link.click());
       assert.equal(new URL(page.url()).hash, `#/${route}`);
     }
+    await page.goto(`${base}#/admin`);
     await page.locator('nav a[href="#/events"]').first().click();
     await page.waitForURL(`${base}#/events`);
     await page.goBack();
