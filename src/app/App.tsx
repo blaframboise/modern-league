@@ -3,6 +3,7 @@ import { Link, NavLink, Route, Routes, useLocation } from 'react-router-dom';
 import { ArrowUpRight, Menu, X } from 'lucide-react';
 import { Brand } from '../components/Brand';
 import { LeaderboardPage } from '../pages/LeaderboardPage';
+import { Top16LeaderboardPage } from '../pages/Top16LeaderboardPage';
 import { PublishResultsPage } from '../pages/PublishResultsPage';
 import { RulesPage } from '../pages/RulesPage';
 import { HomePage } from '../pages/HomePage';
@@ -49,7 +50,7 @@ export function App() {
   useEffect(() => {
     setMenuOpen(false);
     window.scrollTo(0, 0);
-    document.title = `${navigation.find(item => item.path === pathname)?.label ?? (pathname === '/official-import' ? 'Private screenshot drafts' : pathname === '/publish-results' ? 'Publish Results' : pathname === '/admin' ? 'League administration' : pathname === '/test-workspace' ? 'Private test workspace' : pathname === '/edit-tournaments' ? 'Edit test tournament results' : 'Page not found')} | Modern League`;
+    document.title = `${navigation.find(item => item.path === pathname)?.label ?? (pathname === '/leaderboards/top-16' ? 'Top 16 Leaderboard' : pathname === '/official-import' ? 'Private screenshot drafts' : pathname === '/publish-results' ? 'Publish Results' : pathname === '/admin' ? 'League administration' : pathname === '/test-workspace' ? 'Private test workspace' : pathname === '/edit-tournaments' ? 'Edit test tournament results' : 'Page not found')} | Modern League`;
     if (!firstRender.current) mainRef.current?.focus();
     firstRender.current = false;
   }, [pathname]);
@@ -77,6 +78,7 @@ export function App() {
       <Route path="/results-import" element={<ResultsImportPage />} />
       <Route path="/results-review" element={<ResultsReviewPage />} />
       <Route path="/leaderboards" element={<LeaderboardPage />} />
+      <Route path="/leaderboards/top-16" element={<Top16LeaderboardPage />} />
       <Route path="/rules" element={<RulesPage />} />
       <Route path="/events" element={<EventsPage />} />
       <Route path="/seasons" element={<SeasonsPage />} />
