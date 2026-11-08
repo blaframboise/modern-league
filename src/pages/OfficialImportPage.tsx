@@ -256,18 +256,20 @@ export function OfficialImportPage() {
         throw Error('The league calendar has changed. Review the updated classification and save again.');
       }
       const matched=resolveScheduledEvent(values.tournament.date,latestOverrides);
-      if(matched.status!=='matched')throw Error(matched.message);
+      if(matched.status==='blocked')throw Error(matched.message);
       const {seasonId: extractedSeasonId,...withoutSeason}=values.tournament;
       void extractedSeasonId; // Superseded by the saved scheduler rather than screenshot guesses.
       const parsed=parseImportValues({...values,tournament:{
         ...withoutSeason,kind:matched.kind,year:matched.competitionYear,
-        ...(matched.seasonId?{seasonId:matched.seasonId}:{}),
+        ...(matched.status==='matched'&&matched.seasonId?{seasonId:matched.seasonId}:{}),
       }});
       const ids = assets.map(asset=>asset.id);
       const evidence = validateHumanEvidence(fieldPaths(parsed).map(path=>({
         path,sources:ids,note:['tournament.kind','tournament.year','tournament.seasonId'].includes(path)
           ?'Derived from the administrator-saved league calendar for the source-verified tournament date.'
-          :'Administrator verified this value against the source screenshot.',
+          :matched.status==='historical' && ['tournament.kind','tournament.year'].includes(path)
+             ?'Private historical-test classification from the administrator-verified date.'
+             :'Administrator verified this value against the source screenshot.',
       })),parsed,ids);
       const reviewReason = reason.trim() || 'Administrator reviewed the screenshot and confirmed the extracted results.';
       await api('correct',draft.importId,{
@@ -276,10 +278,10 @@ export function OfficialImportPage() {
       });
       const loaded = await leagueRepository(client!).loadDraft(draft.importId);
       setDraft(loaded);setValues(effectiveValues(loaded));setStep('saved');setCorrecting(false);
-      setNotice('Review saved. Continue to official player matching and publication, or use the private test workspace. Nothing is published automatically.');
+      setNotice(matched.status==='historical'?'Historical review saved privately. This tournament cannot be published to the 2027 league.':'Review saved. Continue to official player matching and publication, or use the private test workspace. Nothing is published automatically.');
     });
   }
-  const canReview = !!values && !!draft && !!assets.length && readyToMatch;
+  const canReview = !!values && !!draft && !!assets.length && (readyToMatch || historicalTest) && !!values.tournament.name.trim();
 
   return <section className="container admin-page guided-import">
     <div className="import-intro">
@@ -338,11 +340,12 @@ export function OfficialImportPage() {
             <label>Date<input type="date" disabled={!correcting || busy || step==='saved'} value={values.tournament.date} onChange={e=>updateTournament({date:e.target.value,year:e.target.value?Number(e.target.value.slice(0,4)):0})}/></label>
             <div className="import-schedule-match" role="status">
               <strong>Calendar classification</strong>
-              <span>{readyToMatch?`${eventMatch.code} · ${eventMatch.description}`:eventMatch?.status==='blocked'?`${eventMatch.code} · Not eligible for import`:'Unavailable'}</span>
+              <span>{readyToMatch?`${eventMatch.code} · ${eventMatch.description}`:historicalTest?'HISTORICAL TEST · Private review only, not official 2027 results':eventMatch?.status==='blocked'?`${eventMatch.code} · Not a scheduled 2027 league event`:'Enter an event date'}</span>
               {readyToMatch&&<small>Scoring: {eventMatch.kind==='regular'?'10-point regular formula':eventMatch.kind==='seasonal'?'40-point seasonal championship formula':'120-point League Championship formula'} · {eventMatch.competitionYear}{eventMatch.seasonId?` / ${eventMatch.seasonId}`:''}</small>}
             </div>
           </div>
           <p className="import-hint" role="status">{calendarStatus}</p>
+           {historicalTest&&<p className="import-hint" role="status">This historical screenshot can be saved privately for testing. It does not count toward the 2027 league.</p>}
           {matchError&&<p className="import-error" role="alert">{matchError}</p>}
           <div className="import-table-scroll"><table className="import-results-table"><thead><tr><th>Player</th><th>W</th><th>L</th><th>D</th><th>Place</th>{correcting && <th/>}</tr></thead>
             <tbody>{values.results.map((row,i)=><tr key={row.rowId}>
@@ -354,27 +357,25 @@ export function OfficialImportPage() {
             <p>Calculated from reviewed rounds and placement data only. These are not published standings.</p>
             <ul>{pointsPreview.map((row,i)=><li key={i}>{row.name||`Player ${i+1}`}: {row.points} points</li>)}</ul>
           </details>}
-          {!values.results.length && <p>No readable player rows were extracted. Use Make corrections to enter results manually.</p>}
+          {!values.results.length && <p>No readable player rows were extracted. Enter the player results manually below.</p>}
           {correcting && step==='review' && <div className="import-actions">
             <button type="button" disabled={busy} onClick={suggestNameCorrections}>Suggest name capitalization</button>
             <button type="button" disabled={busy} onClick={addResult}>Add player</button>
           </div>}
           {step==='review' && <>
-            <div className="import-actions">
-              <button type="button" disabled={busy} onClick={()=>{setCorrecting(true);setReviewed(false)}}>Make corrections</button>
-            </div>
+            <p className="import-hint">Enter or fix event details and player records directly. No editing step is required.</p>
             <label className="import-consent"><input type="checkbox" checked={reviewed} disabled={busy} onChange={e=>setReviewed(e.target.checked)}/>
               I checked the tournament date, player names, match records, and other populated fields against the screenshot. Calendar-based event type and season are shown separately. Unclear source fields are left blank.
             </label>
             {correcting && <label>Review notes (optional)<textarea rows={2} disabled={busy} value={reason} onChange={e=>setReason(e.target.value)}/></label>}
             <button type="button" disabled={busy||!reviewed||!canReview} onClick={()=>void saveReview()}>
-              {correcting?'Save corrected results':'Approve extracted results'}</button>
-            <p className="import-hint">Approval here records your review and calendar-based classification; it does not publish standings. PR, TBD, and unscheduled dates cannot be saved as league events.</p>
+              Save reviewed results</button>
+            <p className="import-hint">Saving records your private review; it does not publish standings. Historical tests cannot be published as 2027 results. PR, TBD, and unscheduled dates remain blocked.</p>
           </>}
           {step==='saved' && <div className="import-actions">
             {draft?.corrections.length ? <>
-              <button type="button" disabled={busy} onClick={()=>navigate(`/publish-results?draft=${encodeURIComponent(draft.importId)}`)}>Continue to official player matching and publication</button>
-              <button type="button" disabled={busy} onClick={()=>navigate(`${returnToEditor?'/edit-tournaments':'/test-workspace'}?draft=${encodeURIComponent(draft.importId)}`)}>Continue to player matching (test only)</button>
+              {!historicalTest&&<button type="button" disabled={busy} onClick={()=>navigate(`/publish-results?draft=${encodeURIComponent(draft.importId)}`)}>Continue to official player matching and publication</button>}
+              {!historicalTest&&<button type="button" disabled={busy} onClick={()=>navigate(`${returnToEditor?'/edit-tournaments':'/test-workspace'}?draft=${encodeURIComponent(draft.importId)}`)}>Continue to player matching (test only)</button>}
             </> : null}
             <button type="button" disabled={busy} onClick={() => {setStep('review');setCorrecting(true);setReviewed(false);setNotice('Editing a saved test draft will append another review revision; the previous version remains in the audit trail.');}}>Edit saved draft</button>
             <button type="button" disabled={busy} onClick={reset}>Upload another result</button>
