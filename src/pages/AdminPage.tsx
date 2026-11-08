@@ -25,14 +25,14 @@ export function AdminPage() {
         setAdministrator(false);
         if (error || !data.user) { setStatus('Sign in with an administrator account.'); return; }
         const admin = await leagueRepository(client!).isAdministrator();
-        if (active && request === generation) {setAdministrator(admin);setStatus(admin ? 'Administrator verified. Official approval and publication are disabled during testing.' : 'Signed in. This account does not have administrator access.');}
+        if (active && request === generation) {setAdministrator(admin);setStatus(admin ? 'Administrator verified. Only reviewed tournaments can be published as official results.' : 'Signed in. This account does not have administrator access.');}
       } catch { if (active && request === generation) setStatus('Unable to verify administrator access.'); }
     }
     void refresh();
     const { data: { subscription } } = client.auth.onAuthStateChange(() => { setTimeout(() => { if (active) void refresh(); }, 0); });
     return () => { active = false; subscription.unsubscribe(); };
   }, [client]);
-  return <section className="container admin-page"><p className="eyebrow">ADMINISTRATOR ACCESS</p><h1>League administration</h1>{administrator && <nav className="admin-tools" aria-label="Administrator tools"><Link to="/calendar-scheduler">Schedule league events</Link><Link to="/official-import">Upload and review screenshots</Link><Link to="/edit-tournaments">Edit a Tournament’s Results</Link><Link to="/test-workspace">Test players, tournament matching and leaderboard</Link></nav>}
+  return <section className="container admin-page"><p className="eyebrow">ADMINISTRATOR ACCESS</p><h1>League administration</h1>{administrator && <nav className="admin-tools" aria-label="Administrator tools"><Link to="/calendar-scheduler">Schedule league events</Link><Link to="/official-import">Upload and review screenshots</Link><Link to="/publish-results">Publish official tournament results</Link><Link to="/edit-tournaments">Edit a Tournament’s Results</Link><Link to="/test-workspace">Test players, tournament matching and leaderboard</Link></nav>}
     {!client ? <p>{error ?? 'Supabase is not configured. Fictional demonstrations remain available; nothing is saved to a database.'}</p> : <>
       <p role="status">{status}</p>
       {signedIn ? <button disabled={busy} onClick={async () => { setBusy(true); try { const result = await client.auth.signOut(); if (result.error) throw result.error; } catch { setStatus('Sign out failed. Please retry.'); } finally { setBusy(false); } }}>Sign out</button> :
