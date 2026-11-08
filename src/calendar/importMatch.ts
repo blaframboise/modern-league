@@ -11,10 +11,16 @@ export type EventMatch =
  * Date matching is exact for the single league event permitted per calendar date in 2027.
  */
 export function resolveScheduledEvent(date:string, overrides:CalendarOverrides):EventMatch {
-  if(!/^2027-\d{2}-\d{2}$/.test(date) || !Number.isFinite(Date.parse(date)) ||
+  if(!date.trim())return {status:'blocked',date,code:'INVALID',message:'Enter the event date to classify the tournament.'};
+  if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(date) || !Number.isFinite(Date.parse(date)) ||
     new Date(date).toISOString().slice(0,10)!==date){
-    return {status:'blocked',date,code:'INVALID',message:'Enter a valid 2027 tournament date before matching.'};
+    return {status:'blocked',date,code:'INVALID',message:'Enter a valid tournament date.'};
   }
+  const inputYear=Number(date.slice(0,4));
+  if(inputYear<2027)return {status:'historical',date,code:'TEST',kind:'regular',competitionYear:inputYear,
+    description:'Historical test screenshot. Private review only.'};
+  if(inputYear!==2027)return {status:'blocked',date,code:'INVALID',
+    message:'The 2028 league calendar is not yet configured.'};
   const slot=calendarFromOverrides(overrides).find(event=>event.date===date);
   if(!slot)return {status:'blocked',date,code:'UNSCHEDULED',message:'No league event is scheduled on this date. Check the event scheduler before continuing.'};
   if(slot.kind==='prerelease')return {status:'blocked',date,code:'PR',message:'This date is reserved for a prerelease; it does not count toward Modern League standings.'};
