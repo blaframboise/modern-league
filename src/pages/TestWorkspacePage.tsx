@@ -152,7 +152,7 @@ export function TestWorkspacePage({editMode=false}:{editMode?:boolean}) {
         p_season:s,p_rounds:n,p_links:links as unknown as Json,
       });
       if(response.error)throw new Error(response.error.message);
-      await refresh();setTab(editMode?'events':'standings');if(editMode){setDraft(null);setDraftId('');navigate('/edit-tournaments',{replace:true});}setMappingReviewed(false);setMessage(editMode?'Tournament corrections saved. Private standings were recalculated; nothing was published.':'Test tournament saved. The updated private standings are displayed below. Official standings remain unchanged.');
+      await refresh();setTab(editMode?'events':'standings');if(editMode){navigate('/edit-tournaments',{replace:true});setDraft(null);}setMappingReviewed(false);setMessage(editMode?'Tournament corrections saved. Private standings were recalculated; nothing was published.':'Test tournament saved. The updated private standings are displayed below. Official standings remain unchanged.');
     });
   }
   const input:StandingsInput={
@@ -202,7 +202,7 @@ export function TestWorkspacePage({editMode=false}:{editMode?:boolean}) {
         {!editMode&&<label>Reviewed screenshot <select value={draftId} disabled={busy} onChange={e=>{const id=e.target.value;if(id)void loadDraft(id);}}>
           <option value="">Select a private review</option>{draftOptions.map(d=><option key={d.id} value={d.id}>{events.find(e=>e.draft_id===d.id)?.event_name??`Reviewed draft ${d.id.slice(0,8)}`}</option>)}
         </select></label>}
-        {editMode&&draft&&<button type="button" onClick={()=>{setDraft(null);setDraftId("");setMessage("");setError("");navigate("/edit-tournaments",{replace:true});}} disabled={busy}>Back to saved tournaments</button>}
+        {editMode&&draft&&<button type="button" onClick={()=>{navigate("/edit-tournaments",{replace:true});setDraft(null);setMessage("");setError("");}} disabled={busy}>Back to saved tournaments</button>}
         {(!editMode||draft)&&draft&&<div className="sandbox-event-editor">
           <label>Test event name (date added automatically)<input value={eventName} maxLength={200} onChange={e=>{setEventName(e.target.value);setMappingReviewed(false)}}/></label>
           <label>Simulated 2027 season<select value={season} onChange={e=>{setSeason(e.target.value);setMappingReviewed(false)}}>{seasonIds.map((v,i)=><option key={v} value={String(i+1)}>Season {i+1}</option>)}</select></label>
