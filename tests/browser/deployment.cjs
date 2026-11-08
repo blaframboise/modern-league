@@ -27,7 +27,7 @@ const assert = require('node:assert/strict');
     page.on('pageerror', error => errors.push(String(error)));
     page.on('response', response => { if (response.status() >= 400) errors.push(response.url()); });
     const base = `http://127.0.0.1:${server.address().port}/modern-league/`;
-    for (const route of ['events', 'seasons', 'leaderboards', 'rules', 'results-review', 'results-import', 'admin']) {
+    for (const route of ['events', 'seasons', 'leaderboards', 'leaderboards/top-16', 'rules', 'results-review', 'results-import', 'admin', 'official-import', 'publish-results', 'correct-official-results', 'edit-tournaments', 'test-workspace']) {
       await page.goto(`${base}#/${route}`);
       await page.locator('main h1').waitFor();
       const title = await page.locator('main h1').innerText();
