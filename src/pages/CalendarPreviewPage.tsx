@@ -11,11 +11,11 @@ const format=(date:string)=>new Intl.DateTimeFormat('en-US',{month:'short',day:'
 const weekday=(date:string)=>new Intl.DateTimeFormat('en-US',{weekday:'long',timeZone:'UTC'}).format(new Date(date+'T12:00:00Z'));
 
 function slotDescription(slot:ProposedSlot){
-  if(slot.kind==='prerelease')return `${slot.title}. Possible prerelease night, not a confirmed store event; regular Modern is not assumed.`;
+  if(slot.kind==='prerelease')return `${slot.title}. Prerelease on the league's working calendar; no regular Modern is planned.`;
   if(slot.kind==='tbd')return `TBD — no event is confirmed for this date. If Modern is held, results count toward ${slot.season===5?'2028 Season 1':`2027 Season ${slot.season}`}.`;
-  if(slot.kind==='seasonal')return `Proposed 2027 Season ${slot.season} Championship, replacing regular Friday Modern. Not confirmed.`;
-  if(slot.kind==='annual')return 'Proposed 2027 League Championship, replacing regular Friday Modern. Not confirmed.';
-  return `Proposed Eternal Games Modern, 6:00 p.m. America/Detroit; counted toward ${slot.season===5?'2028 Season 1':`2027 Season ${slot.season}`}. Store date not independently confirmed.`;
+  if(slot.kind==='seasonal')return `2027 Season ${slot.season} Championship on the league's working schedule, replacing regular Friday Modern.`;
+  if(slot.kind==='annual')return '2027 League Championship on the working schedule, replacing regular Friday Modern.';
+  return `Scheduled league Modern at Eternal Games, 6:00 p.m. America/Detroit; counted toward ${slot.season===5?'2028 Season 1':`2027 Season ${slot.season}`}. Schedule subject to change.`;
 }
 function byMonth(slots:ProposedSlot[]) {
   const groups:{month:string;slots:ProposedSlot[]}[]=[];
@@ -63,15 +63,15 @@ function DetailedCalendar({slots,onSelect}:{slots:ProposedSlot[];onSelect:(slot:
   const [month,setMonth]=useState('all');
   const [category,setCategory]=useState('all');
   const filtered=slots.filter(s=>(month==='all'||s.date.slice(5,7)===month)&&(category==='all'||category===s.kind));
-  return <section className="season-detail-list" aria-label="Detailed proposed calendar">
+  return <section className="season-detail-list" aria-label="Detailed league calendar">
     <div className="calendar-filters">
       <label>Month<select value={month} onChange={e=>setMonth(e.target.value)}><option value="all">All months</option>{monthNames.map((name,i)=><option key={name} value={String(i+1).padStart(2,'0')}>{name}</option>)}</select></label>
       <label>Type<select value={category} onChange={e=>setCategory(e.target.value)}><option value="all">All events</option><option value="modern">Modern</option><option value="prerelease">Prerelease</option><option value="tbd">TBD / Holiday</option><option value="seasonal">Seasonal championship</option><option value="annual">Annual championship</option></select></label>
     </div>
-    <p className="muted">Showing {filtered.length} of {slots.length} proposed slots.</p>
+    <p className="muted">Showing {filtered.length} of {slots.length} calendar entries.</p>
     <div className="calendar-proposal-list">{filtered.map(slot=><button key={slot.date} type="button" onClick={()=>onSelect(slot)} className={`season-detail-row calendar-proposal-${slot.kind}`}>
       <span><strong>{format(slot.date)}</strong><small>{weekday(slot.date)}</small></span>
-      <span><strong>{slot.title}</strong><small>{slot.kind==='modern'?`202${slot.season===5?'8':'7'} Season ${slot.season===5?'1':slot.season}`:'Provisional date'}</small></span>
+      <span><strong>{slot.title}</strong><small>{slot.kind==='modern'?`202${slot.season===5?'8':'7'} Season ${slot.season===5?'1':slot.season}`:'League schedule'}</small></span>
     </button>)}</div>
   </section>;
 }
@@ -81,7 +81,7 @@ export function CalendarPreviewPage(){
     const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
     const link=document.createElement('a');
     link.href=url;
-    link.download='modern-league-2027-calendar-verification.csv';
+    link.download='modern-league-2027-schedule.csv';
     document.body.append(link);
     link.click();
     link.remove();
@@ -93,15 +93,15 @@ export function CalendarPreviewPage(){
   const [loadStatus,setLoadStatus]=useState('Loading saved planning schedule…');
   useEffect(()=>{
     const client=supabaseConfiguration.client;
-    if(!client){setSlots(calendarFromOverrides({}));setLoadStatus('Default planning schedule. Live calendar settings unavailable.');return;}
+    if(!client){setSlots(calendarFromOverrides({}));setLoadStatus('Default schedule displayed; saved calendar settings unavailable.');return;}
     let alive=true;
     async function load(){
       try{
         const {data,error}=await client!.from('proposed_calendar_settings').select('year,revision,overrides').eq('year',2027).single();
         if(error||!data)throw Error('Could not load current saved calendar.');
         const planned=calendarFromOverrides(parseCalendarOverrides(data.overrides));
-        if(alive){setSlots(planned);setLoadStatus('Planning calendar · Revision '+data.revision);}
-      }catch{if(alive){setSlots([]);setLoadStatus('Unable to load calendar. No dates are shown until saved settings can be retrieved.');}}
+        if(alive){setSlots(planned);setLoadStatus('League calendar · Revision '+data.revision);}
+      }catch{if(alive){setSlots([]);setLoadStatus('Unable to load the league calendar. Dates are hidden until the saved schedule is available.');}}
     }
     void load();
     return ()=>{alive=false;};
@@ -116,11 +116,11 @@ export function CalendarPreviewPage(){
   const choose=(slot:ProposedSlot)=>setSelected(current=>current?.date===slot.date?null:slot);
   return <div className="container season-overview-page">
     <div className="season-overview-intro">
-      <p className="eyebrow">2027 / ETERNAL GAMES / WORKING PROPOSAL</p>
+      <p className="eyebrow">2027 / ETERNAL GAMES / LEAGUE SCHEDULE</p>
       <h1>The Modern calendar<span className="gold">.</span></h1>
-      <p>Four competitive seasons. Administrator-managed proposed dates, subject to store confirmation. Tap a numbered date for details.</p>
+      <p>Four competitive seasons. Monday and Friday events at 6:00 p.m. Dates are the league's current working schedule and may change. Select a date for details.</p>
       <p role="status" className="season-calendar-load-status">{loadStatus}</p>
-      <div className="calendar-export-tools"><button type="button" className="button button-secondary" onClick={downloadReviewSheet}>Download date verification CSV</button><span className="muted">Current visible dates · All marked UNVERIFIED · No official changes</span></div>
+      <div className="calendar-export-tools"><button type="button" className="button button-secondary" onClick={downloadReviewSheet}>Download calendar CSV</button><span className="muted">Download editable schedule reference; TBD dates remain unresolved</span></div>
       <div className="season-overview-toolbar">
         <div className="season-overview-legend" aria-label="Event color key">
           <span><i className="season-key-modern"/>Regular Modern</span>
@@ -146,7 +146,7 @@ export function CalendarPreviewPage(){
       {annual&&<button className={`season-annual-finale${selected?.date===annual.date?' is-selected':''}`} type="button"
         onClick={()=>choose(annual)} aria-pressed={selected?.date===annual.date}
         aria-label={`${format(annual.date)}: ${slotDescription(annual)}`}>
-        <span className="season-annual-kicker">2027 GRAND FINALE</span>
+        <span className="season-annual-kicker">2027 LEAGUE FINALE</span>
         <strong>League Championship</strong>
         <span className="season-annual-date">{format(annual.date)} <span>· Friday</span></span>
       </button>}
@@ -157,9 +157,9 @@ export function CalendarPreviewPage(){
       </section>
     </>:<DetailedCalendar slots={slots} onSelect={choose}/>}
     <footer className="season-overview-footer">
-      <p>{regularCount} proposed regular nights · {exclusionCount} provisional prereleases · {tbdCount} holiday dates TBD · {championshipCount} proposed championships. Numbers show dates of the month; M/F indicates Monday or Friday.</p>
-      <p>These are planning assumptions, not confirmed store events. The public official events page remains unchanged. <a href="https://eternalgamesllc.com/events" target="_blank" rel="noreferrer">Eternal Games schedule</a> · <a href="https://magic.wizards.com/en/news/announcements/everything-announced-for-the-magic-multiverse-in-2027" target="_blank" rel="noreferrer">2027 release announcements</a>.</p>
-      <Link className="back-link" to="/">Return to Modern League</Link>
+      <p>{regularCount} regular Modern nights · {exclusionCount} prerelease nights · {tbdCount} dates TBD · {championshipCount} championships. Numbers show dates of the month; M/F indicates Monday or Friday.</p>
+      <p>This is the league's current event schedule, maintained by administrators. Dates can change; TBD slots are not scheduled events. Results are published separately. <a href="https://eternalgamesllc.com/events" target="_blank" rel="noreferrer">Eternal Games schedule</a> · <a href="https://magic.wizards.com/en/news/announcements/everything-announced-for-the-magic-multiverse-in-2027" target="_blank" rel="noreferrer">2027 release announcements</a>.</p>
+      <Link className="back-link" to="/">Modern League home</Link>
     </footer>
   </div>;
 }

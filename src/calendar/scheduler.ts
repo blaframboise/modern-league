@@ -55,11 +55,11 @@ export function calendarFromOverrides(overrides:CalendarOverrides):ProposedSlot[
     const season=slot.kind==='seasonal'?championshipDates.indexOf(slot.date)+1:
       slot.kind==='annual'?4:n+1;
     return [{...slot,kind:slot.kind as ProposedSlot['kind'],season, title:
-      slot.kind==='seasonal'?`Season ${season} Championship (proposed)`:
-      slot.kind==='annual'?'League Championship (proposed)':
-      slot.kind==='prerelease'?'Prerelease (proposed)':
+      slot.kind==='seasonal'?`Season ${season} Championship`:
+      slot.kind==='annual'?'League Championship':
+      slot.kind==='prerelease'?'Prerelease':
       slot.kind==='tbd'?'Event TBD — unconfirmed':
-      'Modern — proposed 6:00 p.m.'}];
+      'Modern — 6:00 p.m.'}];
   });
 }
 export function fullSchedulerRows(overrides:CalendarOverrides){
