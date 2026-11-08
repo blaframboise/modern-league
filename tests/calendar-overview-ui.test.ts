@@ -17,7 +17,7 @@ test('four-column proposal renders each regular and prerelease tile once, with c
   }
   const source=proposedCalendar2027();
   const renderedTiles=html.match(/class="season-date-tile /g)??[];
-  assert.equal(renderedTiles.length,source.filter(s=>s.kind==='modern'||s.kind==='prerelease').length);
+  assert.equal(renderedTiles.length,source.filter(s=>s.kind==='modern'||s.kind==='prerelease'||s.kind==='tbd').length);
   const dateLabel=(iso:string)=>new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'UTC'}).format(new Date(iso+'T12:00:00Z'));
   for(const slot of source.filter(s=>s.kind==='modern'||s.kind==='prerelease')){
     assert.ok(html.includes(dateLabel(slot.date)),slot.date);
@@ -30,6 +30,10 @@ test('four-column proposal renders each regular and prerelease tile once, with c
   assert.match(html,/aria-label="2027 Season 1"/);
   assert.match(html,/season-month-name">Jan/);
   assert.match(html,/season-date-prerelease/);
+  assert.match(html,/season-date-tbd/);
+  assert.match(html,/TBD \/ Holiday/);
+  assert.doesNotMatch(html,/season-date-slash/);
+  assert.doesNotMatch(html,/Prerelease hold/);
   assert.doesNotMatch(html,/2027-12-31.*Annual Championship \(high-risk holiday proposal\)/);
  }finally{await server.close();}
 });

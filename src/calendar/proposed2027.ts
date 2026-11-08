@@ -1,5 +1,5 @@
 /** Tentative planning calendar. Not confirmed store events or published official league schedule. */
-export type ProposedSlot = {date:string;kind:'modern'|'prerelease'|'seasonal'|'annual';title:string;season:number;releaseDate?:string};
+export type ProposedSlot = {date:string;kind:'modern'|'prerelease'|'seasonal'|'annual'|'tbd';title:string;season:number;releaseDate?:string};
 export const releaseDates2027 = [
   {name:'Nauctis: The Sunken Realm',date:'2027-02-05'},
   {name:'Marvel: Darkhold Destiny',date:'2027-04-09'},
@@ -12,6 +12,7 @@ export const releaseDates2027 = [
  * September 24 is reserved for a likely Zhalfir prerelease.
  * Season 4 is December 10 and annual championship December 17, ahead of the holiday Fridays.
  * Ordinary Modern on December 13 and later belongs to 2028 Season 1.
+ * December 24 and 31 are TBD, not assumed to be held.
  */
 export const proposedChampionships2027 = [
   {date:'2027-03-26',kind:'seasonal' as const,title:'Season 1 Championship (proposed)',season:1},
@@ -34,8 +35,9 @@ export function proposedCalendar2027():ProposedSlot[] {
     const iso=date.toISOString().slice(0,10);
     const pre=prereleases.get(iso),champ=champs.get(iso);
     const season=proposedChampionships2027.filter(c=>c.kind==='seasonal'&&iso>=c.date).length+1;
-    if(pre)slots.push({date:iso,kind:'prerelease',title:`Likely prerelease — ${pre.name} (no Modern assumed)`,season,releaseDate:pre.date});
+    if(pre)slots.push({date:iso,kind:'prerelease',title:`Prerelease — ${pre.name} (tentative)`,season,releaseDate:pre.date});
     else if(champ)slots.push({date:iso,kind:champ.kind,title:champ.title,season:champ.season});
+    else if(iso==='2027-12-24'||iso==='2027-12-31')slots.push({date:iso,kind:'tbd',title:'Modern — TBD (holiday hours not confirmed)',season});
     else slots.push({date:iso,kind:'modern',title:'Modern — proposed 6:00 p.m.',season});
   }
   return slots;
