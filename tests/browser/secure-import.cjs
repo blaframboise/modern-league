@@ -115,7 +115,7 @@ const assert = require('node:assert/strict');
       assert.equal(await page.getByLabel('Player 1 name').isDisabled(),false);
       assert.equal(await page.getByLabel('Event type',{exact:true}).count(),0);
       await page.getByText('Calendar classification',{exact:true}).waitFor();
-      await page.getByRole('button',{name:'Make corrections'}).click();
+      assert.equal(await page.getByLabel('Event name').isDisabled(),false);
       await page.getByLabel('Event name').fill('Human-checked result');
       await page.getByLabel('Date',{exact:true}).fill('2027-02-01');
       await page.getByText('REG · 2027 Season 1 regular Modern').waitFor();
