@@ -45,8 +45,10 @@ export function PublishResultsPage(){
     values?.tournament.kind===match.kind &&
     values?.tournament.year===match.competitionYear &&
     (values?.tournament.seasonId??'')===(match.seasonId??'');
-  const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Detroit',year:'numeric',month:'2-digit',day:'2-digit'})
-    .format(new Date());
+  const todayParts=new Intl.DateTimeFormat('en-US',{timeZone:'America/Detroit',year:'numeric',month:'2-digit',day:'2-digit'})
+    .formatToParts(new Date());
+  const datePart=(name:string)=>todayParts.find(x=>x.type===name)?.value??'';
+  const today=`${datePart('year')}-${datePart('month')}-${datePart('day')}`;
   const future=!!values&&values.tournament.date>today;
   const distinctExisting=linked.filter(r=>r.playerId).map(r=>r.playerId);
   const rosterValid=!!linked.length&&linked.length===values?.results.length &&
