@@ -64,9 +64,10 @@ jobs:
           if ! psql -X --single-transaction -v ON_ERROR_STOP=1 \
             -h 127.0.0.1 -p 54322 -U postgres -d postgres \
             -c 'SET session_replication_role = replica' \
-            -f "$RUNNER_TEMP/recovery/restore.sql" \
+            -v VERBOSITY=verbose -f "$RUNNER_TEMP/recovery/restore.sql" \
             > "$RUNNER_TEMP/recovery/private-restore.log" 2>&1; then
-            echo '::error::Restore failed in disposable local database. SQL details withheld from public logs.'
+            sqlstate=$(grep -Eo '(ERROR|FATAL):[[:space:]]+[0-9A-Z]{5}:' "$RUNNER_TEMP/recovery/private-restore.log" | head -1 | grep -Eo '[0-9A-Z]{5}' || true)
+            echo "::error::Restore failed in disposable local database. PostgreSQL SQLSTATE: ${sqlstate:-unavailable}. Private SQL output withheld."
             exit 1
           fi
           echo 'Restore completed without SQL errors.'
