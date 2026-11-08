@@ -15,10 +15,11 @@ test('four-column proposal renders each regular and prerelease tile once, with c
    assert.match(html,new RegExp('aria-label="2027 Season '+season+'"'));
   }
   const source=proposedCalendar2027();
-  for(const slot of source){
-    const count=html.split('title="'+(slot.kind==='seasonal'||slot.kind==='annual'?'__not_tile__':slot.date)).length-1;
-    // The detailed list is not mounted until toggled, so regular/prerelease dates occur as tile titles only.
-    if(slot.kind==='modern'||slot.kind==='prerelease') assert.equal(count,1,slot.date);
+  const renderedTiles=html.match(/class="season-date-tile /g)??[];
+  assert.equal(renderedTiles.length,source.filter(s=>s.kind==='modern'||s.kind==='prerelease').length);
+  const dateLabel=(iso:string)=>new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'UTC'}).format(new Date(iso+'T12:00:00Z'));
+  for(const slot of source.filter(s=>s.kind==='modern'||s.kind==='prerelease')){
+    assert.ok(html.includes(dateLabel(slot.date)),slot.date);
   }
   assert.match(html,/SEASON CHAMPIONSHIP/);
   assert.match(html,/Annual Championship/);
