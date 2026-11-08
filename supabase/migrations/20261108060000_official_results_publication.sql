@@ -214,7 +214,8 @@ begin
     'scheduledRounds',v_rounds,'calendarRevision',v_calendar_revision,
     'players',v_public_rows),v_actor);
   return v_result_id;
-end $function$;
+end;
+$function$;
 
 revoke all on function public.publish_reviewed_tournament(uuid,integer,integer,jsonb,text,boolean) from public,anon,authenticated;
 grant execute on function public.publish_reviewed_tournament(uuid,integer,integer,jsonb,text,boolean) to authenticated;
