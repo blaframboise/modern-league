@@ -586,3 +586,42 @@ h1{font-size:clamp(38px,4.5vw,61px);letter-spacing:.02em;font-weight:400}
 .public-leaderboard-note,.public-leaderboard-empty{font-size:12px;color:#c3cdb9;line-height:1.7;margin:15px 0 0}
 .public-leaderboard-note a{color:#edcf89}
 @media(max-width:640px){.public-leaderboard{padding:26px 0 60px}.public-leaderboard-facts{grid-template-columns:1fr;gap:8px}.public-leaderboard-standing,.public-leaderboard-events{padding:12px}.public-leaderboard-section-head{align-items:start;flex-direction:column}}
+
+
+/* Bookmarkable two-column leaderboard, deliberately plain and readable. */
+.top16-page{padding:32px 0 66px;max-width:1450px}
+.top16-heading{text-align:center;margin-bottom:24px}
+.top16-heading h1{font:400 clamp(30px,4vw,52px) Marcellus,Georgia,serif;margin:7px 0 6px;color:#f2e8d3}
+.top16-asof{font-size:15px;color:#d6c69a;letter-spacing:.02em}
+.top16-preview-warning{font-size:11px;color:#f1d5a0;letter-spacing:.04em;margin:12px 0 0}
+.top16-tools{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:20px;font-size:13px}
+.top16-tools a,.top16-tools button{color:#e5ca91;text-decoration:underline;text-underline-offset:3px}
+.top16-tools button{background:transparent;border:0;font:inherit;cursor:pointer}
+.top16-period{display:flex;gap:10px;align-items:center}
+.top16-period label{color:#cbd1c1}
+.top16-period select{padding:8px 12px;border:1px solid #65724e;border-radius:4px;background:#1b231b;color:#eee6d2;font:inherit}
+.top16-tables{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;border:1px solid #746d4e;border-radius:6px;padding:12px;background:#151d18}
+.top16-table{width:100%;border-collapse:collapse;table-layout:fixed;font-variant-numeric:tabular-nums}
+.top16-table th,.top16-table td{padding:13px 9px;border-bottom:1px solid #344037}
+.top16-table thead th{text-align:left;background:#27352b;color:#e1c78f;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+.top16-table thead th:first-child{width:13%;text-align:center}
+.top16-table thead th:nth-child(2){width:41%}
+.top16-table thead th:nth-child(3){width:23%;text-align:right}
+.top16-table thead th:nth-child(4){width:23%;text-align:right}
+.top16-table tbody tr:nth-child(even){background:#202e26}
+.top16-table tbody tr:nth-child(odd){background:#19241e}
+.top16-table tbody tr:last-child th,.top16-table tbody tr:last-child td{border-bottom:0}
+.top16-table tbody th{font-size:clamp(12px,1.3vw,17px);font-weight:600;text-align:left;color:#eee9d8;overflow-wrap:anywhere}
+.top16-table .top16-rank{font:400 clamp(22px,2.3vw,34px) Marcellus,Georgia,serif;text-align:center;color:#e8c782}
+.top16-table .top16-number{text-align:right;color:#e1e4d9;font-size:clamp(12px,1.2vw,16px);white-space:nowrap}
+.top16-table .top16-total{font-weight:800;color:#e8c782}
+.top16-pagination{display:flex;justify-content:space-between;align-items:center;gap:15px;margin:22px 0 12px}
+.top16-pagination button{display:flex;align-items:center;gap:5px;min-height:42px;border:1px solid #817450;border-radius:5px;padding:9px 14px;color:#f0e0b9;background:#283127;cursor:pointer;font:inherit}
+.top16-pagination button:disabled{opacity:.35;cursor:not-allowed}
+.top16-pagination span{font-size:13px;color:#cbd3c2}
+.top16-note{font-size:12px;color:#bdc8bc;text-align:center;line-height:1.6}
+.top16-empty{padding:40px 25px;text-align:center;border:1px solid #4d5947;border-radius:6px;background:#19241d;color:#d9e0cf}
+.top16-empty h2{font:400 25px Marcellus,Georgia,serif}
+.public-leaderboard-top16-link a{color:#ecd19b;font-size:14px;text-decoration:underline;text-underline-offset:3px}
+@media(max-width:850px){.top16-tables{grid-template-columns:1fr;gap:14px}.top16-table tbody th{font-size:15px}.top16-table .top16-rank{font-size:26px}.top16-table .top16-number{font-size:14px}}
+@media(max-width:480px){.top16-page{padding:22px 0 48px}.top16-tables{padding:5px;gap:7px}.top16-table th,.top16-table td{padding:10px 4px}.top16-table thead th{font-size:9px}.top16-table thead th:nth-child(2){width:37%}.top16-table thead th:nth-child(3),.top16-table thead th:nth-child(4){width:25%}.top16-table tbody th{font-size:12px}.top16-table .top16-number{font-size:12px}.top16-pagination button{font-size:12px;padding:8px}.top16-pagination span{font-size:11px}}
