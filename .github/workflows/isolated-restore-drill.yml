@@ -66,7 +66,7 @@ jobs:
             -c 'SET session_replication_role = replica' \
             -v VERBOSITY=verbose -f "$RUNNER_TEMP/recovery/restore.sql" \
             > "$RUNNER_TEMP/recovery/private-restore.log" 2>&1; then
-            sqlstate=$(grep -Eo '(ERROR|FATAL):[[:space:]]+[0-9A-Z]{5}:' "$RUNNER_TEMP/recovery/private-restore.log" | head -1 | grep -Eo '[0-9A-Z]{5}' || true)
+            sqlstate=$(grep -Eo '(ERROR|FATAL):[[:space:]]+[0-9A-Z]{5}:' "$RUNNER_TEMP/recovery/private-restore.log" | head -1 | grep -Eo '[0-9][0-9A-Z]{4}' || true)
             echo "::error::Restore failed in disposable local database. PostgreSQL SQLSTATE: ${sqlstate:-unavailable}. Private SQL output withheld."
             exit 1
           fi
