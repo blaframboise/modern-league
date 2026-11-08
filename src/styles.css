@@ -625,3 +625,46 @@ h1{font-size:clamp(38px,4.5vw,61px);letter-spacing:.02em;font-weight:400}
 .public-leaderboard-top16-link a{color:#ecd19b;font-size:14px;text-decoration:underline;text-underline-offset:3px}
 @media(max-width:850px){.top16-tables{grid-template-columns:1fr;gap:14px}.top16-table tbody th{font-size:15px}.top16-table .top16-rank{font-size:26px}.top16-table .top16-number{font-size:14px}}
 @media(max-width:480px){.top16-page{padding:22px 0 48px}.top16-tables{padding:5px;gap:7px}.top16-table th,.top16-table td{padding:10px 4px}.top16-table thead th{font-size:9px}.top16-table thead th:nth-child(2){width:37%}.top16-table thead th:nth-child(3),.top16-table thead th:nth-child(4){width:25%}.top16-table tbody th{font-size:12px}.top16-table .top16-number{font-size:12px}.top16-pagination button{font-size:12px;padding:8px}.top16-pagination span{font-size:11px}}
+
+
+/* Modern League TV display — Broadcast prototype A. */
+.app-shell-tv{display:block;min-height:100vh;background:#0e1b15}
+.app-shell-tv>main{min-height:100vh}
+.tv-broadcast-stage{min-height:100vh;background:linear-gradient(165deg,#13251b,#0e1b15);color:#f4ecdb;display:flex;flex-direction:column;font-family:'Nunito Sans',Arial,sans-serif}
+.tv-broadcast-content{width:100%;max-width:1800px;margin:auto;min-height:100vh;display:flex;flex-direction:column;padding:clamp(16px,2.5vw,40px);box-sizing:border-box}
+.tv-broadcast-topline{display:flex;align-items:center;justify-content:space-between;gap:16px;border-bottom:2px solid #b69a5e;padding-bottom:13px}
+.tv-broadcast-topline .brand{font-size:clamp(23px,2.2vw,39px);color:#eee1c3}
+.tv-broadcast-topline .brand svg{width:42px;height:42px}
+.tv-broadcast-topline>span{font-size:clamp(10px,1vw,17px);letter-spacing:.04em;color:#b7c6b8}
+.tv-broadcast-title{text-align:center;padding:clamp(10px,1.4vh,24px) 0}
+.tv-broadcast-title h1{font:400 clamp(30px,3.2vw,58px) Marcellus,Georgia,serif;color:#f6ebd8;margin:0}
+.tv-broadcast-title p{color:#dcc08a;font-size:clamp(13px,1.15vw,20px);margin:7px 0 0}
+.tv-broadcast-preview{font-size:11px;color:#e8c782;text-align:center;font-weight:800;letter-spacing:.08em;padding:4px 0}
+.tv-broadcast-boards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(9px,1.4vw,24px);flex:1;min-height:0;border-top:1px solid #53634d}
+.tv-broadcast-board{min-width:0;background:#18281e;display:flex;flex-direction:column}
+.tv-broadcast-head,.tv-broadcast-row{display:grid;grid-template-columns:9% minmax(0,1fr) 20% 21%;gap:4px;align-items:center;padding:0 clamp(5px,.8vw,13px)}
+.tv-broadcast-head{flex-shrink:0;background:#2c3d30;border-bottom:2px solid #c7ab72;padding-top:11px;padding-bottom:11px;color:#e7d3a6;text-transform:uppercase;font-size:clamp(9px,1vw,16px);font-weight:800;letter-spacing:.035em}
+.tv-broadcast-head>span:first-child,.tv-broadcast-place{text-align:center}
+.tv-broadcast-head>span:nth-child(3),.tv-broadcast-head>span:nth-child(4){text-align:right}
+.tv-broadcast-row{flex:1;min-height:45px;border-bottom:1px solid #3d5040;font-size:clamp(12px,1.45vw,23px)}
+.tv-broadcast-row:nth-child(even){background:rgba(255,255,255,.075)}
+.tv-broadcast-row:nth-child(odd){background:rgba(224,239,205,.035)}
+.tv-broadcast-place{font:400 clamp(23px,2.6vw,44px) Marcellus,Georgia,serif;color:#e9cd91}
+.tv-broadcast-player{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700}
+.tv-broadcast-score{text-align:right;white-space:nowrap;font-weight:700;font-variant-numeric:tabular-nums}
+.tv-broadcast-total{color:#e9cd91}
+.tv-broadcast-foot{border-top:1px solid #5b6b53;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:clamp(10px,1.4vw,22px) 0;font-size:clamp(10px,.9vw,15px);color:#b7c6b8}
+.tv-broadcast-controls{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:9px;padding:11px 0 3px;border-top:1px solid #394e3c}
+.tv-broadcast-controls button,.tv-broadcast-controls select,.tv-broadcast-controls a{font:inherit;font-size:12px;padding:8px 10px;background:#1d2a22;color:#f4ecdb;border:1px solid #58654e;border-radius:5px;text-decoration:none;display:inline-flex;align-items:center;gap:5px;min-height:38px;cursor:pointer}
+.tv-broadcast-controls label{display:inline-flex;align-items:center;gap:8px;color:#cad0bf;font-size:12px}
+.tv-broadcast-controls button:disabled{opacity:.4;cursor:not-allowed}
+.tv-broadcast-controls button:focus-visible,.tv-broadcast-controls select:focus-visible,.tv-broadcast-controls a:focus-visible{outline:3px solid #f1d38a;outline-offset:2px}
+.tv-broadcast-controls button[aria-label="Play slideshow"]{color:#e9cd91;border-color:#b69a5e}
+.tv-broadcast-status{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;text-align:center;color:#d6d9c9}
+.tv-broadcast-status h2{font:400 32px Marcellus,Georgia,serif}
+.tv-broadcast-stage:fullscreen{width:100vw;height:100vh;min-height:100vh;overflow:auto}
+.tv-broadcast-is-fullscreen .tv-broadcast-content{height:100vh;min-height:100vh;max-width:none;padding:2vh 2.7vw}
+.tv-broadcast-is-fullscreen .tv-broadcast-controls{opacity:.16;transition:opacity .2s}
+.tv-broadcast-is-fullscreen .tv-broadcast-controls:hover,.tv-broadcast-is-fullscreen .tv-broadcast-controls:focus-within{opacity:1}
+@media(max-width:850px){.tv-broadcast-boards{grid-template-columns:1fr}.tv-broadcast-row{font-size:14px;min-height:39px}.tv-broadcast-place{font-size:24px}.tv-broadcast-head{font-size:10px}.tv-broadcast-topline>span{display:none}.tv-broadcast-foot{flex-wrap:wrap}}
+@media(max-width:600px){.tv-broadcast-content{padding:12px}.tv-broadcast-row,.tv-broadcast-head{grid-template-columns:11% minmax(0,1fr) 23% 23%}.tv-broadcast-row{font-size:12px}.tv-broadcast-score{font-size:11px}}

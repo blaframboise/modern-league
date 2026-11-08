@@ -74,14 +74,14 @@ export function LeaderboardPage() {
         <span className="pill">OFFICIAL RESULTS PENDING</span>
         <h2>Official standings are not yet published.</h2>
         <p>The 2027 competition has no published results yet. Preseason test tournaments remain private and never count toward league standings.</p>
-        <p><Link to="/leaderboards/top-16?preview=1">Preview the simple two-column leaderboard layout</Link></p>
+        <p><Link to="/leaderboards/top-16?preview=1">Preview the simple two-column leaderboard layout</Link> · <Link to="/leaderboards/tv?preview=1">Preview the TV slideshow</Link></p>
       </section>:<>
       <div className="public-leaderboard-facts">
         <div><span>Published events</span><strong>{scoring.events.length}</strong></div>
         <div><span>Players recorded</span><strong>{scoring.standings.annual.standings.filter(row=>row.regularEventCount>0||row.championshipPoints>0).length}</strong></div>
         <div><span>Most recent event</span><strong>{latest?.date}</strong></div>
       </div>
-      <p className="public-leaderboard-top16-link"><Link to="/leaderboards/top-16">View the two-column Top 16 leaderboard</Link></p>
+      <p className="public-leaderboard-top16-link"><Link to="/leaderboards/top-16">View the two-column Top 16 leaderboard</Link> · <Link to="/leaderboards/tv">Open TV slideshow</Link></p>
       <nav className="public-leaderboard-periods" aria-label="Standings period">
         <button type="button" aria-pressed={period==='annual'} onClick={()=>setPeriod('annual')}>2027 Annual</button>
         {[1,2,3,4].map(n=><button type="button" key={n} aria-pressed={period===String(n)} onClick={()=>setPeriod(String(n))}>Season {n}</button>)}

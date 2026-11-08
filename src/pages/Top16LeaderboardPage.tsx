@@ -109,6 +109,7 @@ export function Top16LeaderboardPage(){
         </select>
       </div>
       <Link to="/leaderboards">Full leaderboard</Link>
+      <Link to={"/leaderboards/tv"+(preview?"?preview=1":"")+(period!=="annual"?(preview?"&":"?")+"period="+period:"")}>Play TV slideshow</Link>
       {!preview&&rows.length===0&&<Link to="?preview=1">Preview sample layout</Link>}
       {preview&&<button type="button" onClick={()=>choose({preview:null,page:null})}>Return to official data</button>}
     </div>
