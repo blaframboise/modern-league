@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { proposedCalendar2027, proposedChampionships2027, releaseDates2027 } from '../calendar/proposed2027';
+import { proposedCalendar2027, proposedChampionships2027 } from '../calendar/proposed2027';
 import type { ProposedSlot } from '../calendar/proposed2027';
 
 const monthNames=['January','February','March','April','May','June','July','August','September','October','November','December'];
