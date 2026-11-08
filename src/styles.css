@@ -218,3 +218,16 @@ h1, h2, h3, p { margin: 0; }h1 { font-size: clamp(42px, 4.6vw, 64px); font-weigh
 .sandbox-event-list button strong{font-size:1rem}
 .sandbox-event-list button span{font-size:.82rem;color:#c6caba}
 .sandbox-event-list button:hover,.sandbox-event-list button:focus-visible{border-color:#dec38b;background:#30382e}
+
+/* Dedicated saved-result corrections stay legible on narrow screens. */
+.sandbox-correction-table table{min-width:0;width:100%}
+.sandbox-correction-table td input{width:5rem;min-width:0;max-width:100%;box-sizing:border-box;font:inherit;text-align:center}
+@media(max-width:700px){
+  .sandbox-correction-table table,.sandbox-correction-table tbody{display:block;min-width:0;width:100%}
+  .sandbox-correction-table thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+  .sandbox-correction-table tr{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.6rem;padding:1rem .5rem;border-bottom:1px solid #515b50}
+  .sandbox-correction-table td{display:block;padding:.2rem;border:0;min-width:0}
+  .sandbox-correction-table td.correction-player{grid-column:1/-1;font-weight:700;overflow-wrap:anywhere}
+  .sandbox-correction-table td:not(.correction-player)::before{display:block;content:attr(data-label);font-size:.8rem;color:#c7cbbf;margin-bottom:.4rem}
+  .sandbox-correction-table td input{width:100%;font-size:16px}
+}
