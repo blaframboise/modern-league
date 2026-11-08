@@ -163,7 +163,7 @@ const assert = require('node:assert/strict');
       await page.getByLabel('Match Verified player').waitFor();
       await page.getByRole('checkbox',{name:/I verified player identities/}).check();
       await page.getByRole('button',{name:'Save tournament and update test standings'}).click();
-      await page.getByText('Tournament corrections saved.',{exact:false}).waitFor({timeout:6000}).catch(async failure=>{throw new Error(`Save correction failed: ${await page.locator('.sandbox-error,.sandbox-success').allTextContents()} / ${String(failure)}`)});
+      await page.getByText('Tournament corrections saved.',{exact:false}).waitFor({timeout:6000}).catch(async failure=>{throw new Error(`Save correction failed at ${page.url()} records=${JSON.stringify(sandboxResults)} tournaments=${JSON.stringify(sandboxTournaments)} UI=${await page.locator('.sandbox-error,.sandbox-success').allTextContents()} / ${String(failure)}`)});
       assert.equal(sandboxTournaments.length,1);
       assert.equal(sandboxTournaments[0].revision,2);
       assert.equal(sandboxResults.length,1);
