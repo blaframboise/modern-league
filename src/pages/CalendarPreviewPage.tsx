@@ -36,7 +36,7 @@ export function CalendarPreviewPage(){
     <p className="muted">Showing {matches.length} of {all.length} weekly slots. Regular Modern nights are tentative; public confirmed calendar remains unchanged.</p>
     <div className="calendar-proposal-list">{matches.map(slot=><article key={slot.date} className={`calendar-proposal-row calendar-proposal-${slot.kind}`}>
       <div><time dateTime={slot.date}>{slot.date}</time><small>{new Intl.DateTimeFormat('en-US',{weekday:'long',timeZone:'UTC'}).format(new Date(slot.date+'T12:00:00Z'))}</small></div>
-      <div><strong>{slot.title}</strong><small>{slot.kind==='modern'?'Season '+slot.season+' · Tentative':slot.kind==='prerelease'?'Likely schedule conflict · Unconfirmed by store':'Proposed, not scheduled'} </small></div>
+      <div><strong>{slot.title}</strong><small>{slot.kind==='modern'?slot.season===5?'2028 Season 1 · Tentative':'Season '+slot.season+' · Tentative':slot.kind==='prerelease'?'Likely schedule conflict · Unconfirmed by store':'Proposed, not scheduled'} </small></div>
       <span className="pill">{slot.kind==='modern'?'PROPOSED':slot.kind==='prerelease'?'EXCLUDED':'CHAMPIONSHIP'}</span>
     </article>)}</div>
     <p className="calendar-proposal-sources">Sources: <a href="https://eternalgamesllc.com/events" target="_blank" rel="noreferrer">Eternal Games weekly events</a> · <a href="https://magic.wizards.com/en/news/announcements/everything-announced-for-the-magic-multiverse-in-2027" target="_blank" rel="noreferrer">Wizards 2027 announcement</a> · <a href="https://investor.hasbro.com/static-files/a7941780-84de-4269-82dc-1c58d78a5d87" target="_blank" rel="noreferrer">Hasbro 2027 release cadence</a>.</p>
