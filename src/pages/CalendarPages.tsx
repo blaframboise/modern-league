@@ -1,20 +1,21 @@
-/** Public calendar pages must not present fictional fixture dates as league events.
- * Confirmed event publishing is not implemented yet; do not expose private sandbox data. */
-function Intro({title}:{title:string}){
-  return <><p className="eyebrow">2027 / COMPETITIVE CALENDAR</p>
-    <h1>{title}<span className="gold">.</span></h1></>;
-}
-export function EventsPage(){
-  return <div className="container placeholder-page"><Intro title="Events"/>
-    <p className="page-description">League event dates, times, and venues will be listed once they have been officially confirmed.</p>
-    <section className="empty-state" aria-label="Official event calendar status"><span className="pill">SCHEDULE PENDING</span>
-      <h2>No official events are currently listed.</h2><p>Dates shown during development were fictional examples and have been removed from this public page. This does not affect the private tournament test workspace.</p>
-    </section></div>;
-}
+import { Link } from 'react-router-dom';
+import { CalendarPreviewPage } from './CalendarPreviewPage';
+
+/** Dates are accepted as the league's working schedule and remain editable in Admin.
+ * This is not evidence that any third-party venue independently confirmed each date.
+ * Tournament result publication remains a separate disabled workflow.
+ */
+export function EventsPage(){return <CalendarPreviewPage />;}
+
 export function SeasonsPage(){
-  return <div className="container placeholder-page"><Intro title="Seasons"/>
-    <p className="page-description">The 2027 series will have four competitive seasons and an annual championship.</p>
-    <section className="empty-state" aria-label="Championship scheduling status"><span className="pill">CHAMPIONSHIP DATES PENDING</span>
-      <h2>Season and championship dates are not yet confirmed.</h2><p>Season boundaries depend on actual scheduled championship events. Their official dates and qualification details must be confirmed before they are published here.</p>
-    </section></div>;
+  return <div className="container placeholder-page">
+    <p className="eyebrow">2027 / COMPETITIVE SEASONS</p>
+    <h1>Seasons<span className="gold">.</span></h1>
+    <p className="page-description">Four seasons and a League Championship. The organizer's working championship dates are included in the league calendar and can be revised through the scheduler.</p>
+    <section className="empty-state" aria-label="Season details status">
+      <h2>Follow the season calendar.</h2>
+      <p>Championship dates and regular tournament nights are now listed. Official player standings and championship results remain unpublished until the results workflow is enabled.</p>
+      <Link to="/events" className="button button-primary">See the 2027 calendar</Link>
+    </section>
+  </div>;
 }
