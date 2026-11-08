@@ -11,6 +11,11 @@ import { suggestDisplayName } from '../importInfrastructure/displayNames';
 import { parseImportValues } from '../data/reconstruction';
 import { effectiveValues } from '../results';
 import type { ImportDraft, ImportValues, ImportedResult, Tournament } from '../results';
+import { resolveScheduledEvent } from '../calendar/importMatch';
+import { parseCalendarOverrides } from '../calendar/scheduler';
+import type { CalendarOverrides } from '../calendar/scheduler';
+import { calculateRegularEventPoints } from '../scoring/regular';
+import { calculateChampionshipPoints } from '../scoring/championship';
 
 type Asset = { id: string; object_path: string; sha256: string; byte_size: number };
 type Step = 'select' | 'confirm' | 'processing' | 'review' | 'saved';
@@ -47,6 +52,32 @@ export function OfficialImportPage() {
   const [candidates, setCandidates] = useState<Candidate[] | null>(null);
   const [cleanupReason, setCleanupReason] = useState('');
   const [cleanupConfirmed, setCleanupConfirmed] = useState(false);
+  const [calendarOverrides,setCalendarOverrides] = useState<CalendarOverrides|null>(null);
+  const [calendarRevision,setCalendarRevision] = useState<number|null>(null);
+  const [calendarStatus,setCalendarStatus] = useState('Loading saved league calendar…');
+  const eventMatch=values && calendarOverrides ? resolveScheduledEvent(values.tournament.date,calendarOverrides):null;
+  const readyToMatch=eventMatch?.status==='matched';
+  const matchError=!calendarOverrides?'League calendar must be loaded to classify the event.':eventMatch?.status==='blocked'?eventMatch.message:'';
+  let pointsPreview: {name:string;points:string}[]|null=null;
+  if(values && eventMatch?.status==='matched' && values.tournament.scheduledRounds && values.results.length){
+    try{
+      if(eventMatch.kind==='regular')pointsPreview=values.results.map(row=>({
+        name:row.importedName,
+        points:row.wins===null||row.draws===null?'Incomplete':calculateRegularEventPoints({
+          wins:row.wins,draws:row.draws,scheduledRounds:values.tournament.scheduledRounds!,
+        }).toFixed(2),
+      }));
+      else if(values.results.every(row=>row.wins!==null&&row.losses!==null&&row.draws!==null&&row.finalPosition!==null)){
+        const participants=values.results.map(row=>({playerId:row.rowId,swiss:{
+          wins:row.wins!,losses:row.losses!,draws:row.draws!,
+        },finalPosition:row.finalPosition!}));
+        const scored=calculateChampionshipPoints({
+          year:2027,kind:eventMatch.kind,scheduledSwissRounds:values.tournament.scheduledRounds,participants,
+        });
+        pointsPreview=values.results.map((row,i)=>({name:row.importedName,points:scored[i].totalPoints.toFixed(2)}));
+      }
+    }catch{pointsPreview=null;}
+  }
   const generation = useRef(0);
   const currentUser = useRef<string | null>(null);
   const nextDraft = useRef(crypto.randomUUID());
@@ -93,6 +124,20 @@ export function OfficialImportPage() {
     });
     return () => { active = false; generation.current++; subscription.unsubscribe(); if (previewUrl.current) URL.revokeObjectURL(previewUrl.current); };
   }, [client]);
+
+  useEffect(()=>{
+    if(!client || !authorized){setCalendarOverrides(null);setCalendarRevision(null);return;}
+    let active=true;
+    void (async()=>{
+      try{
+        const {data,error}=await client.from('proposed_calendar_settings').select('revision,overrides').eq('year',2027).single();
+        if(error||!data)throw Error('Saved calendar unavailable.');
+        const overrides=parseCalendarOverrides(data.overrides);
+        if(active){setCalendarOverrides(overrides);setCalendarRevision(data.revision);setCalendarStatus(`League calendar loaded · revision ${data.revision}`);}
+      }catch{if(active){setCalendarOverrides(null);setCalendarRevision(null);setCalendarStatus('Cannot load the saved league calendar. Event classification and saving are blocked.');}}
+    })();
+    return ()=>{active=false;};
+  },[authorized,client]);
 
   useEffect(()=>{
     if (!authorized || !requestedDraft || !drafts.some(item=>item.id===requestedDraft) || autoLoadedDraft.current===requestedDraft) return;
@@ -199,10 +244,29 @@ export function OfficialImportPage() {
   async function saveReview() {
     if (!api || !draft || !values || !reviewed || !assets.length) return;
     await perform(async()=>{
-      const parsed = parseImportValues({...values,tournament:{...values.tournament,year:/^\d{4}-\d{2}-\d{2}$/.test(values.tournament.date)?Number(values.tournament.date.slice(0,4)):values.tournament.year}});
+      // Always re-read the scheduler before persisting the reviewed draft.
+      if(!client || !calendarOverrides || calendarRevision===null)throw Error('Load the saved league calendar before saving.');
+      const {data:latest,error:calendarError}=await client.from('proposed_calendar_settings')
+        .select('revision,overrides').eq('year',2027).single();
+      if(calendarError||!latest)throw Error('Unable to verify the current scheduler; no results were saved.');
+      const latestOverrides=parseCalendarOverrides(latest.overrides);
+      if(latest.revision!==calendarRevision){
+        setCalendarOverrides(latestOverrides);setCalendarRevision(latest.revision);
+        throw Error('The league calendar has changed. Review the updated classification and save again.');
+      }
+      const matched=resolveScheduledEvent(values.tournament.date,latestOverrides);
+      if(matched.status!=='matched')throw Error(matched.message);
+      const {seasonId: extractedSeasonId,...withoutSeason}=values.tournament;
+      void extractedSeasonId; // Superseded by the saved scheduler rather than screenshot guesses.
+      const parsed=parseImportValues({...values,tournament:{
+        ...withoutSeason,kind:matched.kind,year:matched.competitionYear,
+        ...(matched.seasonId?{seasonId:matched.seasonId}:{}),
+      }});
       const ids = assets.map(asset=>asset.id);
       const evidence = validateHumanEvidence(fieldPaths(parsed).map(path=>({
-        path,sources:ids,note:'Administrator verified this value against the source screenshot.',
+        path,sources:ids,note:['tournament.kind','tournament.year','tournament.seasonId'].includes(path)
+          ?'Derived from the administrator-saved league calendar for the source-verified tournament date.'
+          :'Administrator verified this value against the source screenshot.',
       })),parsed,ids);
       const reviewReason = reason.trim() || 'Administrator reviewed the screenshot and confirmed the extracted results.';
       await api('correct',draft.importId,{
@@ -214,7 +278,7 @@ export function OfficialImportPage() {
       setNotice('Review saved. Continue to player matching to register participants and calculate test standings. Nothing is published officially.');
     });
   }
-  const canReview = !!values && !!draft && !!assets.length;
+  const canReview = !!values && !!draft && !!assets.length && readyToMatch;
 
   return <section className="container admin-page guided-import">
     <div className="import-intro">
@@ -271,14 +335,24 @@ export function OfficialImportPage() {
           <div className="import-event-fields">
             <label>Event name<input disabled={!correcting || busy || step==='saved'} value={values.tournament.name} onChange={e=>updateTournament({name:e.target.value})}/></label>
             <label>Date<input type="date" disabled={!correcting || busy || step==='saved'} value={values.tournament.date} onChange={e=>updateTournament({date:e.target.value,year:e.target.value?Number(e.target.value.slice(0,4)):0})}/></label>
-            <label>Event type<select disabled={!correcting || busy || step==='saved'} value={values.tournament.kind} onChange={e=>updateTournament({kind:e.target.value as Tournament['kind']})}><option value="">Unknown</option><option value="regular">Regular</option><option value="seasonal">Season championship</option><option value="annual">Annual championship</option></select></label>
+            <div className="import-schedule-match" role="status">
+              <strong>Calendar classification</strong>
+              <span>{readyToMatch?`${eventMatch.code} · ${eventMatch.description}`:eventMatch?.status==='blocked'?`${eventMatch.code} · Not eligible for import`:'Unavailable'}</span>
+              {readyToMatch&&<small>Scoring: {eventMatch.kind==='regular'?'10-point regular formula':eventMatch.kind==='seasonal'?'40-point seasonal championship formula':'120-point League Championship formula'} · {eventMatch.competitionYear}{eventMatch.seasonId?` / ${eventMatch.seasonId}`:''}</small>}
+            </div>
           </div>
+          <p className="import-hint" role="status">{calendarStatus}</p>
+          {matchError&&<p className="import-error" role="alert">{matchError}</p>}
           <div className="import-table-scroll"><table className="import-results-table"><thead><tr><th>Player</th><th>W</th><th>L</th><th>D</th><th>Place</th>{correcting && <th/>}</tr></thead>
             <tbody>{values.results.map((row,i)=><tr key={row.rowId}>
               <td><input aria-label={`Player ${i+1} name`} disabled={!correcting||busy||step==='saved'} value={row.importedName} onChange={e=>updateResult(i,{importedName:e.target.value})}/></td>
               {(['wins','losses','draws','finalPosition'] as const).map(key=><td key={key}><input aria-label={`Player ${i+1} ${key}`} type="number" min="0" disabled={!correcting||busy||step==='saved'} value={row[key]??''} onChange={e=>updateResult(i,{[key]:numberOrNull(e.target.value)})}/></td>)}
               {correcting && <td><button aria-label={`Remove player ${i+1}`} disabled={busy||step==='saved'} onClick={()=>setValues(v=>v?{...v,results:v.results.filter((_,n)=>n!==i)}:v)}>Remove</button></td>}
             </tr>)}</tbody></table></div>
+          {pointsPreview&&<details className="import-points-preview"><summary>Preview league points ({eventMatch?.status==='matched'?eventMatch.code:''})</summary>
+            <p>Calculated from reviewed rounds and placement data only. These are not published standings.</p>
+            <ul>{pointsPreview.map((row,i)=><li key={i}>{row.name||`Player ${i+1}`}: {row.points} points</li>)}</ul>
+          </details>}
           {!values.results.length && <p>No readable player rows were extracted. Use Make corrections to enter results manually.</p>}
           {correcting && step==='review' && <div className="import-actions">
             <button type="button" disabled={busy} onClick={suggestNameCorrections}>Suggest name capitalization</button>
@@ -289,12 +363,12 @@ export function OfficialImportPage() {
               <button type="button" disabled={busy} onClick={()=>{setCorrecting(true);setReviewed(false)}}>Make corrections</button>
             </div>
             <label className="import-consent"><input type="checkbox" checked={reviewed} disabled={busy} onChange={e=>setReviewed(e.target.checked)}/>
-              I checked the player names, match records, and other populated fields against the screenshot. Unclear fields are left blank.
+              I checked the tournament date, player names, match records, and other populated fields against the screenshot. Calendar-based event type and season are shown separately. Unclear source fields are left blank.
             </label>
             {correcting && <label>Review notes (optional)<textarea rows={2} disabled={busy} value={reason} onChange={e=>setReason(e.target.value)}/></label>}
             <button type="button" disabled={busy||!reviewed||!canReview} onClick={()=>void saveReview()}>
               {correcting?'Save corrected results':'Approve extracted results'}</button>
-            <p className="import-hint">Approval here records your review; it does not publish standings.</p>
+            <p className="import-hint">Approval here records your review and calendar-based classification; it does not publish standings. PR, TBD, and unscheduled dates cannot be saved as league events.</p>
           </>}
           {step==='saved' && <div className="import-actions">
             {draft?.corrections.length ? <button type="button" disabled={busy} onClick={()=>navigate(`${returnToEditor?'/edit-tournaments':'/test-workspace'}?draft=${encodeURIComponent(draft.importId)}`)}>Continue to player matching</button> : null}
