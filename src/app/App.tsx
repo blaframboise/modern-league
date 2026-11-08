@@ -3,6 +3,7 @@ import { Link, NavLink, Route, Routes, useLocation } from 'react-router-dom';
 import { ArrowUpRight, Menu, X } from 'lucide-react';
 import { Brand } from '../components/Brand';
 import { LeaderboardPage } from '../pages/LeaderboardPage';
+import { PublishResultsPage } from '../pages/PublishResultsPage';
 import { RulesPage } from '../pages/RulesPage';
 import { HomePage } from '../pages/HomePage';
 import { TypographyPreviewPage } from '../pages/TypographyPreviewPage';
@@ -48,7 +49,7 @@ export function App() {
   useEffect(() => {
     setMenuOpen(false);
     window.scrollTo(0, 0);
-    document.title = `${navigation.find(item => item.path === pathname)?.label ?? (pathname === '/official-import' ? 'Private screenshot drafts' : pathname === '/admin' ? 'League administration' : pathname === '/test-workspace' ? 'Private test workspace' : pathname === '/edit-tournaments' ? 'Edit test tournament results' : 'Page not found')} | Modern League`;
+    document.title = `${navigation.find(item => item.path === pathname)?.label ?? (pathname === '/official-import' ? 'Private screenshot drafts' : pathname === '/publish-results' ? 'Publish Results' : pathname === '/admin' ? 'League administration' : pathname === '/test-workspace' ? 'Private test workspace' : pathname === '/edit-tournaments' ? 'Edit test tournament results' : 'Page not found')} | Modern League`;
     if (!firstRender.current) mainRef.current?.focus();
     firstRender.current = false;
   }, [pathname]);
@@ -69,6 +70,7 @@ export function App() {
       <Route path="/calendar-preview" element={<CalendarPreviewPage />} />
       <Route path="/calendar-scheduler" element={<CalendarSchedulerPage />} />
       <Route path="/official-import" element={<OfficialImportPage />} />
+      <Route path="/publish-results" element={<PublishResultsPage />} />
       <Route path="/admin" element={<AdminPage />} />
       <Route path="/test-workspace" element={<TestWorkspacePage />} />
       <Route path="/edit-tournaments" element={<EditTournamentResultsPage />} />
