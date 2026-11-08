@@ -34,7 +34,7 @@ All dates 2027. Actual prerelease days may include Saturday/Sunday, and store be
 | Season 4 | **Dec 10** | Ends Season 4 before holiday Fridays; regular events from Dec 13 belong to 2028 Season 1 |
 | Annual | **Dec 17** | One week after Season 4; avoids Christmas Eve and New Year's Eve |
 
-**Selected planning dates:** Season 4 on Dec 10 and the annual championship on Dec 17. Both remain tentative until confirmed by the store and organizer. Monday Dec 13, Friday Dec 24, Friday Dec 31, and every other regular Modern night after the Dec 10 Season 4 cutoff count toward **2028 Season 1** (if those nights actually run). The Dec 17 annual championship remains a separate 2027 championship and is not a regular event.
+**Selected planning dates:** Season 4 on Dec 10 and the annual championship on Dec 17. Both remain tentative until confirmed by the store and organizer. Monday Dec 13 and every regular Modern night after the Dec 10 Season 4 cutoff count toward **2028 Season 1**. **December 24 and December 31 are marked TBD** because Christmas Eve and New Year's Eve Modern events have not been confirmed; only if they occur will their results count toward 2028 Season 1. The Dec 17 annual championship remains a separate 2027 championship and is not a regular event.
 
 The competition engine uses actual championship start instants as *exclusive* prior-season cutoffs: if a Friday hosts a season championship, ordinary Monday/Friday events afterward are assigned to the next season (and those after Season 4 or annual cutoff to next year), subject to the confirmed calendar. **A visually convenient quarter-end date is not itself a scoring cutoff.**
 
@@ -43,7 +43,7 @@ The competition engine uses actual championship start instants as *exclusive* pr
 - 52 Mondays + 53 Fridays = **105** weekly slots in 2027.
 - Six provisional prerelease conflict holds.
 - Four proposed seasonal championships plus one annual championship take five Friday slots.
-- **94 remaining proposed regular Modern nights**, before changes for holidays, closures or other store events.
+- **92 proposed regular Modern nights**, plus **two holiday Fridays marked TBD** (December 24 and December 31), before other closures or store changes.
 - These counts come from deterministic slot generation, not actual published 2027 event confirmations.
 
 Preview: `https://blaframboise.github.io/modern-league/#/calendar-preview`.
