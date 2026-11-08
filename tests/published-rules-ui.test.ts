@@ -33,6 +33,10 @@ test('published Rules page includes verified 2027 calculations and adopted admin
   assert.match(html,/December 10/);
   assert.match(html,/December 13/);
   assert.match(html,/December 17/);
+  assert.match(html,/Season Tournament Winner/);
+  assert.match(html,/League Tournament Winner/);
+  assert.match(html,/Season Champion/);
+  assert.match(html,/League Champion/);
   assert.match(html,/ADMINISTRATION &amp; PLAYER PRIVACY/);
   assert.match(html,/within seven calendar days after the event/);
   assert.match(html,/verifies an error after that reporting period/);
