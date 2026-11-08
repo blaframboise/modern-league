@@ -18,7 +18,7 @@ test('public Events displays organizer calendar while standings remain unpublish
   assert.doesNotMatch(events,/No official events are currently listed|FICTIONAL SAMPLE/);
   assert.match(seasons,/Four seasons/);
   assert.match(seasons,/SEASON/);
-  assert.equal((seasons.match(/Overall Season Champion/g)??[]).length,4);
+  assert.equal((seasons.match(/class="season-story-winner"/g)??[]).length,4);
   assert.match(seasons,/Reigning league champion/);
   assert.match(seasons,/glowing crown/);
   assert.match(seasons,/Nobody has been awarded a crown yet/);
