@@ -11,6 +11,7 @@ import { ResultsImportPage } from '../pages/ResultsImportPage';
 import { OfficialImportPage } from '../pages/OfficialImportPage';
 import { AdminPage } from '../pages/AdminPage';
 import { TestWorkspacePage } from '../pages/TestWorkspacePage';
+import { EditTournamentResultsPage } from '../pages/EditTournamentResultsPage';
 import { supabaseConfiguration } from '../data/client';
 import { leagueRepository } from '../data/repository';
 import { navigation } from './navigation';
@@ -63,7 +64,7 @@ export function App() {
       <Route path="/official-import" element={<OfficialImportPage />} />
       <Route path="/admin" element={<AdminPage />} />
       <Route path="/test-workspace" element={<TestWorkspacePage />} />
-      <Route path="/edit-tournaments" element={<TestWorkspacePage editMode />} />
+      <Route path="/edit-tournaments" element={<EditTournamentResultsPage />} />
       <Route path="/results-import" element={<ResultsImportPage />} />
       <Route path="/results-review" element={<ResultsReviewPage />} />
       <Route path="/leaderboards" element={<LeaderboardPage />} />
