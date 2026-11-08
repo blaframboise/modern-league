@@ -7,7 +7,7 @@ import {createServer} from 'vite';
 import {ANNUAL_MINIMUM_EVENTS,SEASON_MINIMUM_EVENTS,SEASON_COUNTED_RESULTS,calculateRegularEventPoints} from '../src/scoring/regular.ts';
 import {CHAMPIONSHIP_RULES} from '../src/scoring/championship.ts';
 
-test('published Rules page includes verified 2027 calculations and identifies unresolved procedures',async()=>{
+test('published Rules page includes verified 2027 calculations and adopted administration policies',async()=>{
  const server=await createServer({configFile:false,server:{middlewareMode:true,ws:false},optimizeDeps:{noDiscovery:true},esbuild:{jsx:'automatic'}});
  try{
   const page=await server.ssrLoadModule('/src/pages/RulesPage.tsx');
@@ -33,9 +33,15 @@ test('published Rules page includes verified 2027 calculations and identifies un
   assert.match(html,/December 10/);
   assert.match(html,/December 13/);
   assert.match(html,/December 17/);
-  assert.match(html,/PROCEDURES UNDER REVIEW/);
-  assert.match(html,/Championship registration/);
-  assert.match(html,/Official event results and public player standings remain unavailable/);
+  assert.match(html,/ADMINISTRATION &amp; PLAYER PRIVACY/);
+  assert.match(html,/within seven calendar days after the event/);
+  assert.match(html,/verified an error after that reporting period/);
+  assert.match(html,/requested nickname/);
+  assert.match(html,/not sold or shared for advertising/);
+  assert.match(html,/store cancels a round for the entire event/);
+  assert.match(html,/Eternal Games determines whether a player may enter/);
+  assert.match(html,/play at other stores does not count/);
+  assert.doesNotMatch(html,/PROCEDURES UNDER REVIEW|admission rules are still under review/);
   assert.doesNotMatch(html,/playbook is in progress|COMING SOON|DRAFT FOR LEAGUE OWNER APPROVAL/);
  }finally{await server.close();}
 });
