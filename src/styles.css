@@ -231,3 +231,67 @@ h1, h2, h3, p { margin: 0; }h1 { font-size: clamp(42px, 4.6vw, 64px); font-weigh
   .sandbox-correction-table td:not(.correction-player)::before{display:block;content:attr(data-label);font-size:.8rem;color:#c7cbbf;margin-bottom:.4rem}
   .sandbox-correction-table td input{width:100%;font-size:16px}
 }
+
+
+/* Phase 11 font study. Scoped to /type-compare; production UI is unchanged. */
+@import url('https://fonts.googleapis.com/css2?family=Marcellus&family=Nunito+Sans:ital,wght@0,400;0,700;0,800;1,400&display=swap');
+.type-preview{padding-block:48px 70px;max-width:1320px}
+.type-preview-intro{margin-bottom:28px}
+.type-preview-intro h1{margin:10px 0 12px;font-size:clamp(28px,4vw,42px);letter-spacing:-1px}
+.type-preview-intro>p:not(.eyebrow){color:#aeb4a6;line-height:1.55;max-width:68ch}
+.type-preview-intro .back-link{display:inline-flex;margin-top:15px}
+.type-compare{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;align-items:stretch}
+.type-compare>section{min-width:0}
+.type-panel-heading{display:flex;justify-content:space-between;gap:12px;padding:10px 3px;font-size:12px;color:#dec38b;letter-spacing:.05em}
+.type-panel-heading small{color:#a2aa9d;font-size:11px}
+.type-sample{background:#101210;color:#eeeede;border:1px solid #4b503e;border-radius:12px;overflow:hidden;min-height:100%;font-size:14px}
+.type-sample-header{padding:16px 20px;border-bottom:1px solid #30352a;display:flex;align-items:center;gap:10px;background:#121410}
+.type-sample-mark{border:1px solid #dec38b;border-radius:7px;color:#dec38b;padding:4px 8px;font-size:18px}
+.type-sample-logo{font-size:15px;letter-spacing:.08em}
+.type-sample-logo small{display:block;font-size:10px;letter-spacing:.23em}
+.type-sample-nav{margin-left:auto;font-size:11px;color:#a1aa98;text-align:right}
+.type-sample-main{padding:clamp(18px,3vw,30px)}
+.type-eyebrow{font-size:10.5px;letter-spacing:.12em;color:#c6be9d;text-transform:uppercase;font-weight:700;line-height:1.5}
+.type-hero{font-size:clamp(31px,3.1vw,49px);line-height:1.16;margin:12px 0;font-weight:600;letter-spacing:-.045em;overflow-wrap:anywhere}
+.type-dot{color:#dec38b}
+.type-lead{font-size:20px;line-height:1.35;margin-bottom:14px}
+.type-paragraph{font-size:14px;color:#b3bbab;line-height:1.55;max-width:53ch}
+.type-actions{display:flex;flex-wrap:wrap;gap:9px;margin:25px 0 34px}
+.type-action-primary,.type-action-secondary{font-size:13px;font-weight:700;padding:11px 13px;border:1px solid #dec38b;border-radius:4px}
+.type-action-primary{color:#1b2119;background:#dec38b}
+.type-action-secondary{color:#dec38b}
+.type-data{border:1px solid #3b4234;border-radius:7px;background:#171c16;padding:18px}
+.type-data-head{display:flex;justify-content:space-between;align-items:flex-end;gap:10px}
+.type-data-head h3{font-size:22px;margin-top:5px;font-weight:600}
+.type-data-note{font-size:11px;color:#969f8f}
+.type-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:18px 0;padding:15px 0;border-block:1px solid #31392d}
+.type-stats>div{min-width:0}
+.type-stats strong{font-size:clamp(21px,2.6vw,37px);display:block;white-space:nowrap;font-weight:600;line-height:1.15;font-variant-numeric:tabular-nums}
+.type-stats span{font-size:11px;color:#a5ae9e}
+.type-player{display:flex;gap:10px;align-items:center;padding:11px 0;border-bottom:1px solid #30382c}
+.type-player:last-of-type{border:0}
+.type-rank{color:#dec38b;font-size:12px;min-width:22px}
+.type-player>div{flex:1;min-width:0}
+.type-player h4{font-size:15px;margin:0;font-weight:600;line-height:1.4}
+.type-player p{font-size:11px;color:#9ea798;line-height:1.5}
+.type-player>strong{font-variant-numeric:tabular-nums;font-weight:700;font-size:17px;white-space:nowrap}
+.type-footnote{font-size:11px;color:#8e9988;line-height:1.5;margin-top:18px}
+.type-preview-caption{color:#aab1a4;line-height:1.55;font-size:13px;margin-top:22px}
+/* Current view matches the existing Inter/system sans-serif hierarchy. */
+.type-current{font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.type-current .type-hero{font-weight:600}
+/* Proposed roles: titles/names/numbers versus read/click/labels. */
+.type-modern{font-family:"Nunito Sans",system-ui,sans-serif;line-height:1.45}
+.type-modern .type-hero,.type-modern .type-lead,.type-modern .type-data-head h3,.type-modern .type-player h4,.type-modern .type-stats strong,.type-modern .type-player>strong{font-family:Marcellus,Georgia,serif;font-weight:400;text-transform:none}
+.type-modern .type-hero{letter-spacing:.02em;font-size:clamp(34px,3.5vw,51px)}
+.type-modern .type-lead{font-size:21px}
+.type-modern .type-data-head h3{font-size:25px}
+.type-modern .type-stats strong{font-size:clamp(23px,2.7vw,38px)}
+.type-modern .type-player h4{font-size:17px}
+.type-modern .type-player>strong{font-size:20px}
+.type-modern .type-eyebrow{letter-spacing:.14em;font-weight:800}
+.type-modern .type-action-primary,.type-modern .type-action-secondary{font-weight:800}
+.type-modern .type-sample-logo{font-family:Marcellus,Georgia,serif;font-weight:400;letter-spacing:.02em}
+.type-modern .type-sample-logo small{font-family:"Nunito Sans",system-ui,sans-serif;letter-spacing:.15em}
+@media(max-width:800px){.type-compare{grid-template-columns:1fr}.type-sample-main{padding:22px}.type-hero{font-size:40px}.type-modern .type-hero{font-size:43px}.type-stats strong,.type-modern .type-stats strong{font-size:32px}}
+@media(max-width:400px){.type-sample-header{padding:12px}.type-sample-main{padding:16px}.type-data{padding:12px}.type-stats strong,.type-modern .type-stats strong{font-size:25px}}
