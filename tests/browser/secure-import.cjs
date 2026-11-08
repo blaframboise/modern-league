@@ -71,7 +71,7 @@ const assert = require('node:assert/strict');
           if (action === 'upload') { assets.push({ id: assetId, draft_id: id, object_path: `${actor}/${id}/synthetic`, mime_type:'image/png',byte_size:68,sha256:'a'.repeat(64) }); return reply(assets[0]); }
           if (action === 'correct') {
             const body = request.postDataJSON();
-            corrections.push({ id: 'revision-1', draft_id:id, revision:body.revision, snapshot:{ values:body.values, reason:body.reason, extractionConfirmations:[] }, reason:body.reason }); return reply({ revision:1 });
+            corrections.push({ id: `revision-${body.revision}`, draft_id:id, revision:body.revision, snapshot:{ values:body.values, reason:body.reason, extractionConfirmations:[] }, reason:body.reason }); return reply({ revision:body.revision });
           }
         }
         throw new Error(`Unexpected synthetic request ${url.pathname}`);
