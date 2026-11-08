@@ -40,7 +40,8 @@ export function parsePublishedEvent(row:PublicResultRow):PublishedEvent{
   const rounds=integer(v.scheduledRounds,'rounds',1);
   if(!Array.isArray(v.players)||!v.players.length||v.players.length>256)throw Error('Official event needs players.');
   const identities=new Set<string>();
-  const players=v.players.map((player:unknown)=>{
+  const sourcePlayers=v.players as unknown[];
+  const players=sourcePlayers.map((player:unknown)=>{
     const p=object(player),playerId=str(p.playerId,'player ID');
     if(identities.has(playerId))throw Error('Duplicate official player entry.');
     identities.add(playerId);
@@ -48,7 +49,7 @@ export function parsePublishedEvent(row:PublicResultRow):PublishedEvent{
     if(wins+losses+draws>rounds)throw Error('Player record exceeds official event rounds.');
     const finalPosition=p.finalPosition===null?null:integer(p.finalPosition,'placement',1);
     if(kind!=='regular'&&finalPosition===null)throw Error('Championship placement is missing.');
-    if(finalPosition!==null&&finalPosition>v.players.length)throw Error('Invalid official placement.');
+    if(finalPosition!==null&&finalPosition>sourcePlayers.length)throw Error('Invalid official placement.');
     return {playerId,name:str(p.name,'display name'),wins,losses,draws,finalPosition};
   });
   return {resultId:str(row.result_id,'result ID'),date,name:str(v.name,'event name'),kind,
