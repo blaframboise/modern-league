@@ -25,6 +25,7 @@ export function OfficialImportPage() {
   const navigate=useNavigate();
   const [searchParams]=useSearchParams();
   const requestedDraft=searchParams.get('draft');
+  const returnToEditor=searchParams.get('return')==='edit-tournaments';
   const autoLoadedDraft=useRef<string|null>(null);
   const { client, error: configurationError } = supabaseConfiguration;
   const [authorized, setAuthorized] = useState(false);
@@ -295,7 +296,7 @@ export function OfficialImportPage() {
             <p className="import-hint">Approval here records your review; it does not publish standings.</p>
           </>}
           {step==='saved' && <div className="import-actions">
-            {draft?.corrections.length ? <button type="button" disabled={busy} onClick={()=>navigate(`/test-workspace?draft=${encodeURIComponent(draft.importId)}`)}>Continue to player matching</button> : null}
+            {draft?.corrections.length ? <button type="button" disabled={busy} onClick={()=>navigate(`${returnToEditor?'/edit-tournaments':'/test-workspace'}?draft=${encodeURIComponent(draft.importId)}`)}>Continue to player matching</button> : null}
             <button type="button" disabled={busy} onClick={() => {setStep('review');setCorrecting(true);setReviewed(false);setNotice('Editing a saved test draft will append another review revision; the previous version remains in the audit trail.');}}>Edit saved draft</button>
             <button type="button" disabled={busy} onClick={reset}>Upload another result</button>
           </div>}
