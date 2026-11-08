@@ -23,3 +23,4 @@ jobs:
         run: |
           npm run dev -- --host 127.0.0.1 --port 5174 > /tmp/modern-league-vite.log 2>&1 &
           BROWSER_EXECUTABLE_PATH="$(command -v google-chrome || command -v chromium)" npm run test:browser:secure
+          BROWSER_EXECUTABLE_PATH="$(command -v google-chrome || command -v chromium)" node tests/browser/official-publication.cjs
