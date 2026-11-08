@@ -296,3 +296,18 @@ h1, h2, h3, p { margin: 0; }h1 { font-size: clamp(42px, 4.6vw, 64px); font-weigh
 .type-modern .type-sample-logo small{font-family:"Nunito Sans",system-ui,sans-serif;letter-spacing:.15em}
 @media(max-width:800px){.type-compare{grid-template-columns:1fr}.type-sample-main{padding:22px}.type-hero{font-size:40px}.type-modern .type-hero{font-size:43px}.type-stats strong,.type-modern .type-stats strong{font-size:32px}}
 @media(max-width:400px){.type-sample-header{padding:12px}.type-sample-main{padding:16px}.type-data{padding:12px}.type-stats strong,.type-modern .type-stats strong{font-size:25px}}
+
+
+/* Modern Table — approved production typography. The font comparison stays isolated. */
+:root{font-family:"Nunito Sans",system-ui,sans-serif;font-weight:400;line-height:1.48}
+body,button,input,select,textarea{font-family:"Nunito Sans",system-ui,sans-serif}
+h1,h2,h3,.destination-card h3,.calendar-card h2,.calendar-card h3,.standings-panel h2,.sandbox-event-list strong,.type-player h4{font-family:Marcellus,Georgia,serif;font-weight:400;text-transform:none}
+h1{font-size:clamp(38px,4.5vw,61px);letter-spacing:.02em;font-weight:400}
+.section-heading h2,.standings-panel h2{font-size:clamp(24px,2.2vw,29px);letter-spacing:0;font-weight:400}
+.destination-card h3,.calendar-card h3,.sandbox-event-list strong{font-size:clamp(17px,1.3vw,20px);font-weight:400}
+.hero-subtitle{font-family:Marcellus,Georgia,serif;font-weight:400;letter-spacing:0}
+.eyebrow,.pill,.strip-item>span{font-family:"Nunito Sans",system-ui,sans-serif;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+.button,.admin-tools a,button{font-weight:800}
+.page-description,.hero-description,.destination-card p,.calendar-card p{line-height:1.5}
+.standings-panel td:nth-child(3),.sandbox-table td[data-label="Projected points"]{font-variant-numeric:tabular-nums}
+@media(max-width:700px){h1{font-size:clamp(37px,9vw,49px);letter-spacing:.02em}}
