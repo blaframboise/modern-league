@@ -4,6 +4,7 @@ import { ArrowUpRight, Menu, X } from 'lucide-react';
 import { Brand } from '../components/Brand';
 import { LeaderboardPage } from '../pages/LeaderboardPage';
 import { HomePage } from '../pages/HomePage';
+import { TypographyPreviewPage } from '../pages/TypographyPreviewPage';
 import { PlaceholderPage, sectionContent } from '../pages/PlaceholderPage';
 import { EventsPage, SeasonsPage } from '../pages/CalendarPages';
 import { ResultsReviewPage } from '../pages/ResultsReviewPage';
@@ -61,6 +62,7 @@ export function App() {
     </div></header>
     <main id="main" tabIndex={-1} ref={mainRef}><Routes>
       <Route path="/" element={<HomePage />} />
+      <Route path="/type-compare" element={<TypographyPreviewPage />} />
       <Route path="/official-import" element={<OfficialImportPage />} />
       <Route path="/admin" element={<AdminPage />} />
       <Route path="/test-workspace" element={<TestWorkspacePage />} />
