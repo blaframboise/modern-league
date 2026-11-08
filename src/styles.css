@@ -296,3 +296,45 @@ h1, h2, h3, p { margin: 0; }h1 { font-size: clamp(42px, 4.6vw, 64px); font-weigh
 .type-modern .type-sample-logo small{font-family:"Nunito Sans",system-ui,sans-serif;letter-spacing:.15em}
 @media(max-width:800px){.type-compare{grid-template-columns:1fr}.type-sample-main{padding:22px}.type-hero{font-size:40px}.type-modern .type-hero{font-size:43px}.type-stats strong,.type-modern .type-stats strong{font-size:32px}}
 @media(max-width:400px){.type-sample-header{padding:12px}.type-sample-main{padding:16px}.type-data{padding:12px}.type-stats strong,.type-modern .type-stats strong{font-size:25px}}
+
+
+/* Modern Table — approved production typography. The font comparison stays isolated. */
+:root{font-family:"Nunito Sans",system-ui,sans-serif;font-weight:400;line-height:1.48}
+body,button,input,select,textarea{font-family:"Nunito Sans",system-ui,sans-serif}
+h1,h2,h3,.destination-card h3,.calendar-card h2,.calendar-card h3,.standings-panel h2,.sandbox-event-list strong,.type-player h4{font-family:Marcellus,Georgia,serif;font-weight:400;text-transform:none}
+h1{font-size:clamp(38px,4.5vw,61px);letter-spacing:.02em;font-weight:400}
+.section-heading h2,.standings-panel h2{font-size:clamp(24px,2.2vw,29px);letter-spacing:0;font-weight:400}
+.destination-card h3,.calendar-card h3,.sandbox-event-list strong{font-size:clamp(17px,1.3vw,20px);font-weight:400}
+.hero-subtitle{font-family:Marcellus,Georgia,serif;font-weight:400;letter-spacing:0}
+.eyebrow,.pill,.strip-item>span{font-family:"Nunito Sans",system-ui,sans-serif;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+.button,.admin-tools a,button{font-weight:800}
+.page-description,.hero-description,.destination-card p,.calendar-card p{line-height:1.5}
+.standings-panel td:nth-child(3),.sandbox-table td[data-label="Projected points"]{font-variant-numeric:tabular-nums}
+@media(max-width:700px){h1{font-size:clamp(37px,9vw,49px);letter-spacing:.02em}}
+
+
+/* Unlisted proposed calendar. Statuses must be legible independently of color. */
+.calendar-proposal-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:32px 0}
+.calendar-proposal-summary>div{border:1px solid #3c4434;border-radius:8px;padding:18px;background:#1a2018}
+.calendar-proposal-summary strong{font:400 clamp(29px,3.8vw,44px)/1.2 Marcellus,Georgia,serif;color:#dec38b;display:block;font-variant-numeric:tabular-nums}
+.calendar-proposal-summary span{display:block;color:#aeb6a9;font-size:12px;line-height:1.4;margin-top:8px}
+.calendar-proposal-issues{border:1px solid #3c4434;border-radius:8px;padding:22px;margin:20px 0;background:#191e18}
+.calendar-proposal-issues h2{font-size:25px;margin-bottom:9px}
+.calendar-proposal-issues p{color:#bec7b8;font-size:14px;line-height:1.6}
+.calendar-proposal-anchors{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:8px;margin-top:17px}
+.calendar-proposal-anchors>div{border:1px solid #424937;border-radius:5px;padding:12px;display:flex;align-items:flex-start;gap:12px}
+.calendar-proposal-anchors strong{font:400 19px Marcellus,Georgia,serif;color:#dec38b;white-space:nowrap}
+.calendar-proposal-anchors span{font-size:12px;color:#e4e7dd}
+.calendar-proposal-anchors small{display:block;font-size:11px;color:#abb3a4;margin-top:4px}
+.calendar-proposal-list{border:1px solid #3c4434;border-radius:8px;overflow:hidden;margin:15px 0 25px}
+.calendar-proposal-row{display:grid;grid-template-columns:155px 1fr auto;gap:16px;align-items:center;padding:15px 18px;border-bottom:1px solid #353d32}
+.calendar-proposal-row:last-child{border-bottom:0}
+.calendar-proposal-row>div{min-width:0}
+.calendar-proposal-row time{font:400 17px Marcellus,Georgia,serif}
+.calendar-proposal-row strong{font-weight:700;font-size:14px}
+.calendar-proposal-row small{display:block;color:#aeb5a8;font-size:11px;margin-top:4px}
+.calendar-proposal-prerelease{background:#30291d}
+.calendar-proposal-seasonal,.calendar-proposal-annual{background:#273020}
+.calendar-proposal-sources{font-size:12px;line-height:1.6;color:#aeb5a8;margin:12px 0}
+.calendar-proposal-sources a{text-decoration:underline;text-underline-offset:3px}
+@media(max-width:700px){.calendar-proposal-summary{grid-template-columns:1fr 1fr}.calendar-proposal-summary>div:last-child{grid-column:1/-1}.calendar-proposal-row{grid-template-columns:110px 1fr;gap:10px;padding:13px}.calendar-proposal-row .pill{grid-column:2;justify-self:start}}
