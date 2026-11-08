@@ -20,6 +20,13 @@ test('classifies all four season championships and the league championship',()=>
 test('blocks prerelease, holiday TBD, unchecked date, weekday not in schedule and invalid date',()=>{
   const cases=[['2027-01-29','PR'],['2027-12-24','TBD'],['2027-02-02','UNSCHEDULED'],['2027-02-30','INVALID'],['2028-01-03','INVALID']] as const;
   for(const [date,code] of cases){const match=resolveScheduledEvent(date,{});assert.equal(match.status,'blocked');if(match.status==='blocked')assert.equal(match.code,code);}
+  const historical=resolveScheduledEvent('2026-11-09',{});
+  assert.equal(historical.status,'historical');
+  if(historical.status==='historical'){
+    assert.equal(historical.code,'TEST');
+    assert.equal(historical.competitionYear,2026);
+    assert.equal(historical.kind,'regular');
+  }
   const removed=updateCalendarChoice({},'2027-02-01','none');
   assert.equal(resolveScheduledEvent('2027-02-01',removed).status,'blocked');
 });
