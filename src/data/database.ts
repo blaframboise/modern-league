@@ -4,6 +4,7 @@ type Table<Row, Insert, Update = Partial<Insert>> = { Row: Row; Insert: Insert; 
 export interface Database {
   public: {
     Tables: {
+      proposed_calendar_settings: Table<{year:number;revision:number;overrides:Json;updated_at:string},never,{revision:number;overrides:Json}>;
       sandbox_players: Table<{id:string;display_name:string;created_at:string},{id?:string;display_name:string}>;
       sandbox_player_aliases: Table<{player_id:string;alias:string},{player_id:string;alias:string}>;
       sandbox_tournaments: Table<{id:string;draft_id:string;revision:number;edit_revision:number;event_name:string;season_ordinal:number;scheduled_rounds:number;created_at:string},{id?:string;draft_id:string;revision:number;event_name:string;season_ordinal:number;scheduled_rounds:number}>;
