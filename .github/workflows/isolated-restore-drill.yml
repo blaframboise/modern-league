@@ -42,7 +42,7 @@ jobs:
           mkdir -m 700 "$RUNNER_TEMP/recovery"
           age-keygen -o "$RUNNER_TEMP/recovery/identity.txt" 2>/dev/null
           recipient=$(grep '^# public key:' "$RUNNER_TEMP/recovery/identity.txt" | awk '{print $4}')
-          supabase db dump --db-url="$SUPABASE_DB_URL" --data-only --use-copy \
+          supabase db dump --db-url="$SUPABASE_DB_URL" --schema public,private --data-only --use-copy \
             -x 'storage.buckets' -x 'storage.buckets_vectors' -x 'storage.vector_indexes' \
             -f "$RUNNER_TEMP/recovery/data.sql" > /dev/null
           test -s "$RUNNER_TEMP/recovery/data.sql"
