@@ -197,7 +197,7 @@ export function OfficialImportPage() {
   async function saveReview() {
     if (!api || !draft || !values || !reviewed || !assets.length) return;
     await perform(async()=>{
-      const parsed = parseImportValues(values);
+      const parsed = parseImportValues({...values,tournament:{...values.tournament,year:/^\d{4}-\d{2}-\d{2}$/.test(values.tournament.date)?Number(values.tournament.date.slice(0,4)):values.tournament.year}});
       const ids = assets.map(asset=>asset.id);
       const evidence = validateHumanEvidence(fieldPaths(parsed).map(path=>({
         path,sources:ids,note:'Administrator verified this value against the source screenshot.',
@@ -268,8 +268,7 @@ export function OfficialImportPage() {
         {values && <>
           <div className="import-event-fields">
             <label>Event name<input disabled={!correcting || busy || step==='saved'} value={values.tournament.name} onChange={e=>updateTournament({name:e.target.value})}/></label>
-            <label>Date<input type="date" disabled={!correcting || busy || step==='saved'} value={values.tournament.date} onChange={e=>updateTournament({date:e.target.value})}/></label>
-            <label>Year<input inputMode="numeric" disabled={!correcting || busy || step==='saved'} value={values.tournament.year||''} onChange={e=>updateTournament({year:Number(e.target.value)||0})}/></label>
+            <label>Date<input type="date" disabled={!correcting || busy || step==='saved'} value={values.tournament.date} onChange={e=>updateTournament({date:e.target.value,year:e.target.value?Number(e.target.value.slice(0,4)):0})}/></label>
             <label>Event type<select disabled={!correcting || busy || step==='saved'} value={values.tournament.kind} onChange={e=>updateTournament({kind:e.target.value as Tournament['kind']})}><option value="">Unknown</option><option value="regular">Regular</option><option value="seasonal">Season championship</option><option value="annual">Annual championship</option></select></label>
           </div>
           <div className="import-table-scroll"><table className="import-results-table"><thead><tr><th>Player</th><th>W</th><th>L</th><th>D</th><th>Place</th>{correcting && <th/>}</tr></thead>

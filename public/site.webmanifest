@@ -1,0 +1,18 @@
+{
+  "name": "Modern League",
+  "short_name": "Modern League",
+  "description": "Modern Championship Series tournament results and standings",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#171a16",
+  "theme_color": "#171a16",
+  "icons": [
+    {
+      "src": "./favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

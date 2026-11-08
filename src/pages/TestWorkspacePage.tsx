@@ -17,6 +17,13 @@ type Result = {tournament_id:string;row_id:string;player_id:string;wins:number;l
 type Entry = {row:ImportedResult;playerId:string;displayName:string};
 const seasonIds=['s1','s2','s3','s4'];
 const reviewName=(value:string) => suggestDisplayName(value);
+function datedEventName(name:string,date:string):string {
+  const match=/^(\\d{4})-(\\d{2})-(\\d{2})$/.exec(date);
+  if(!match)return name.trim();
+  const suffix=match[2]+match[3]+match[1].slice(-2);
+  const base=name.trim().replace(/\\s+-\\s+\\d{6}$/,'');
+  return base.endsWith(suffix)?base:`${base} - ${suffix}`;
+}
 export function TestWorkspacePage() {
   const [searchParams]=useSearchParams();
   const incomingDraft=searchParams.get('draft');
@@ -140,7 +147,7 @@ export function TestWorkspacePage() {
       if(entries.some(e=>e.row.wins!+e.row.losses!+e.row.draws!>n))throw new Error('Match totals exceed scheduled rounds.');
       const links=entries.map(e=>({row_id:e.row.rowId,player_id:e.playerId||null,display_name:e.playerId?null:e.displayName.trim(),wins:e.row.wins!,losses:e.row.losses!,draws:e.row.draws!}));
       const response=await client.rpc('import_sandbox_tournament_with_players',{
-        p_draft:draft.importId,p_revision:draft.corrections.length,p_name:eventName.trim(),
+        p_draft:draft.importId,p_revision:draft.corrections.length,p_name:datedEventName(eventName,effectiveValues(draft).tournament.date),
         p_season:s,p_rounds:n,p_links:links as unknown as Json,
       });
       if(response.error)throw new Error(response.error.message);
@@ -195,25 +202,26 @@ export function TestWorkspacePage() {
           <option value="">Select a private review</option>{draftOptions.map(d=><option key={d.id} value={d.id}>{events.find(e=>e.draft_id===d.id)?.event_name??`Reviewed draft ${d.id.slice(0,8)}`}</option>)}
         </select></label>
         {draft&&<div className="sandbox-event-editor">
-          <label>Test event name<input value={eventName} maxLength={200} onChange={e=>{setEventName(e.target.value);setMappingReviewed(false)}}/></label>
+          <label>Test event name (date added automatically)<input value={eventName} maxLength={200} onChange={e=>{setEventName(e.target.value);setMappingReviewed(false)}}/></label>
           <label>Simulated 2027 season<select value={season} onChange={e=>{setSeason(e.target.value);setMappingReviewed(false)}}>{seasonIds.map((v,i)=><option key={v} value={String(i+1)}>Season {i+1}</option>)}</select></label>
           <label>Scheduled Swiss rounds<input type="number" min={1} max={20} value={rounds} onChange={e=>{setRounds(e.target.value);setMappingReviewed(false)}}/></label>
-          <div className="sandbox-table"><table><thead><tr><th>Companion name</th><th>W</th><th>L</th><th>D</th><th>Place</th><th>Projected points</th><th>Test player / display name</th></tr></thead><tbody>
+          <div className="sandbox-table sandbox-match-table"><table><thead><tr><th>Companion name</th><th>W</th><th>L</th><th>D</th><th>Place</th><th>Projected points</th><th>Test player / display name</th></tr></thead><tbody>
           {entries.map((entry,i)=><tr key={entry.row.rowId}>
-            <td>{entry.row.importedName}</td>
-            <td>{entry.row.wins??'?'}</td><td>{entry.row.losses??'?'}</td><td>{entry.row.draws??'?'}</td><td>{entry.row.finalPosition??'—'}</td>
-            <td>{Number.isSafeInteger(Number(rounds)) && Number(rounds)>0 && entry.row.wins!==null && entry.row.losses!==null && entry.row.draws!==null && entry.row.wins+entry.row.losses+entry.row.draws<=Number(rounds) ? calculateRegularEventPoints({wins:entry.row.wins,draws:entry.row.draws,scheduledRounds:Number(rounds)}).toFixed(2) : '—'}</td>
-            <td><select aria-label={`Match ${entry.row.importedName}`} value={entry.playerId} disabled={busy} onChange={e=>{setEntries(previous=>previous.map((v,index)=>i===index?{...v,playerId:e.target.value}:v));setMappingReviewed(false)}}>
+            <td data-label="Companion name" className="match-player-name">{entry.row.importedName}</td>
+            <td data-label="Wins">{entry.row.wins??'?'}</td><td data-label="Losses">{entry.row.losses??'?'}</td><td data-label="Draws">{entry.row.draws??'?'}</td><td data-label="Place">{entry.row.finalPosition??'—'}</td>
+            <td data-label="Projected points">{Number.isSafeInteger(Number(rounds)) && Number(rounds)>0 && entry.row.wins!==null && entry.row.losses!==null && entry.row.draws!==null && entry.row.wins+entry.row.losses+entry.row.draws<=Number(rounds) ? calculateRegularEventPoints({wins:entry.row.wins,draws:entry.row.draws,scheduledRounds:Number(rounds)}).toFixed(2) : '—'}</td>
+            <td data-label="Leaderboard player" className="match-player-select"><select aria-label={`Match ${entry.row.importedName}`} value={entry.playerId} disabled={busy} onChange={e=>{setEntries(previous=>previous.map((v,index)=>i===index?{...v,playerId:e.target.value}:v));setMappingReviewed(false)}}>
               <option value="">Register new test player</option>{people.map(p=><option value={p.id} key={p.id}>Existing: {p.display_name}</option>)}
             </select>{!entry.playerId && <input aria-label={`Display name for ${entry.row.importedName}`} maxLength={120} value={entry.displayName} disabled={busy} onChange={e=>{setEntries(previous=>previous.map((v,index)=>i===index?{...v,displayName:e.target.value}:v));setMappingReviewed(false)}} />}</td>
           </tr>)}</tbody></table></div>
+          <p className="sandbox-note">Saved event name: {datedEventName(eventName,effectiveValues(draft).tournament.date)}</p>
           <p className="sandbox-note">Projected points use regular-event scoring only; placement does not affect regular-event points. To correct the screenshot values, return to <Link to={`/official-import?draft=${encodeURIComponent(draft.importId)}`}>the saved screenshot review</Link> and edit its saved review. New players are created on save. Select an existing player only after confirming identity.</p>
           <label className="sandbox-confirm"><input type="checkbox" checked={mappingReviewed} onChange={e=>setMappingReviewed(e.target.checked)}/> I verified player identities, display names, match records and test-event details.</label>
           <button disabled={busy||!entries.length||!mappingReviewed} onClick={()=>void saveEvent()}>Save tournament and update test standings</button>
           <p className="sandbox-note">No official approvals or published results are created.</p>
         </div>}
-        {events.length>0&&<div className="sandbox-table"><h3>Matched test tournaments</h3><table><thead><tr><th>Test event</th><th>Season</th><th>Rounds</th><th>Players</th></tr></thead><tbody>
-          {events.map(ev=><tr key={ev.id}><td>{ev.event_name}</td><td>{ev.season_ordinal}</td><td>{ev.scheduled_rounds}</td><td>{savedResults.filter(r=>r.tournament_id===ev.id).length}</td></tr>)}
+        {events.length>0&&<div className="sandbox-table"><h3>Matched test tournaments</h3><table><thead><tr><th>Test event</th><th>Season</th><th>Rounds</th><th>Players</th><th>Actions</th></tr></thead><tbody>
+          {events.map(ev=><tr key={ev.id}><td>{ev.event_name}</td><td>{ev.season_ordinal}</td><td>{ev.scheduled_rounds}</td><td>{savedResults.filter(r=>r.tournament_id===ev.id).length}</td><td><button type="button" disabled={busy} onClick={()=>void loadDraft(ev.draft_id)}>Edit test tournament</button></td></tr>)}
         </tbody></table></div>}
       </div>}
       {tab==='standings'&&<div className="sandbox-section">
