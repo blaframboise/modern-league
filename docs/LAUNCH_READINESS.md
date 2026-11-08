@@ -1,6 +1,6 @@
 # Modern League — Launch readiness register
 
-Status: **calendar publicly available; official tournament results not ready for launch**. Private screenshot imports and test standings remain separate. Event dates are the organizer's working league schedule, not independent confirmation of every venue booking.
+Status: **calendar and scoring rules publicly available; official tournament results not ready for launch**. Private screenshot imports and test standings remain separate. Event dates are the organizer's working league schedule, not independent confirmation of every venue booking.
 
 ## Implemented and verified
 - Private administrator login, screenshot-review workflow, saved tournament matching, one-step correction and audit trail.
@@ -11,7 +11,7 @@ Status: **calendar publicly available; official tournament results not ready for
 - The 2027 four-season calendar is available on public Events and administrator-managed through the month-by-month scheduler. REG, SC, LC and PR dates are the working schedule; TBD holiday dates are excluded from confirmed event assumptions. The CSV reflects these classifications.
 
 ## Blocking work — in operational order
-1. **League rules sign-off.** Review and approve authoritative written rules for registration, event eligibility, event frequency and season boundaries, league scoring, championship qualification, ties, corrections, disputes and authority. Existing algorithms cover scoring but do not by themselves authorize policy. Do not publish placeholders as final rules.
+1. **Administrative rules still pending.** The 2027 scoring, ranking, participation thresholds, and championship points formulas are published on the public Rules page. Championship registration, eligibility edge cases, disputes, corrections and player privacy remain explicitly under review; resolve those before enabling official results.
 2. **Official event-to-results linkage and player registry.** Calendar dates are accepted as the league's working schedule; next create event identities linked to results, handle changes/cancellations and resolve official player identities. Private preseason players must not silently become official players.
 3. **Official import review and publication.** Separate authoritative import validation, administrator approval and public publication from the existing private simulation. Use server-side authorization, immutable audit records, atomic transactions, duplicate prevention and explicit draft/version checks. Test restricted roles, concurrent edits and replay attempts.
 4. **Real public leaderboard and results linkage.** Public Events now uses the administrator-saved schedule. Connect only approved results to event identities; compute seasonal/annual standings from published records and test against independently calculated fixtures.
@@ -25,5 +25,5 @@ Never populate or claim official league standings from fictional fixtures or pri
 - Home: preseason status.
 - Leaderboards: official results pending, no sample standings.
 - Events/Seasons: organizer working schedule visible; dates remain editable and TBD dates are not considered confirmed.
-- Rules: not yet published.
+- Rules: scoring, standings and championship calculation rules published; unsettled administrative policies disclosed as under review.
 - Admin: private preseason tools only.
