@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { supabaseConfiguration } from '../data/client';
 import { leagueRepository } from '../data/repository';
-import { effectiveValues, normalizeName, potentialPlayers } from '../results';
+import { effectiveValues, potentialPlayers } from '../results';
 import type { ImportDraft } from '../results';
 import { suggestDisplayName } from '../importInfrastructure/displayNames';
 import { resolveScheduledEvent } from '../calendar/importMatch';
@@ -79,7 +79,7 @@ export function PublishResultsPage(){
         if(pr.error||al.error||cal.error||!cal.data)throw Error('Unable to load official players or the saved schedule.');
         const parsed=parseCalendarOverrides(cal.data.overrides);
         if(active){
-          setAuthorized(true);setDrafts(ds);setPlayers(pr.data??[]);setAliases(al.data??[]);
+          setAuthorized(true);setDrafts(ds??[]);setPlayers(pr.data??[]);setAliases(al.data??[]);
           setCalendar({revision:cal.data.revision,overrides:parsed});
           setStatus('Private administrator review · Nothing is published automatically.');
         }
