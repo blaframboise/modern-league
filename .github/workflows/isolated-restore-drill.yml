@@ -1,0 +1,76 @@
+name: Isolated Supabase disaster-recovery drill
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  restore-drill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      PGPASSWORD: postgres
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v3
+        with:
+          version: 2.119.0
+      - name: Require a configured remote source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$SUPABASE_DB_URL" || { echo '::error::Missing SUPABASE_DB_URL'; exit 1; }
+          echo "::add-mask::$SUPABASE_DB_URL"
+      - name: Install age and PostgreSQL client
+        run: sudo apt-get update -qq && sudo apt-get install -y age postgresql-client
+      - name: Start isolated local Supabase
+        run: |
+          supabase start -x realtime,imgproxy,mailpit,studio,logflare,vector,supavisor
+          supabase db reset --local
+      - name: Export and encrypt production data for disposable drill
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir -m 700 "$RUNNER_TEMP/recovery"
+          age-keygen -o "$RUNNER_TEMP/recovery/identity.txt" 2>/dev/null
+          recipient=$(grep '^# public key:' "$RUNNER_TEMP/recovery/identity.txt" | awk '{print $4}')
+          supabase db dump --db-url="$SUPABASE_DB_URL" --data-only --use-copy \
+            -x 'storage.buckets_vectors' -x 'storage.vector_indexes' \
+            -f "$RUNNER_TEMP/recovery/data.sql" > /dev/null
+          test -s "$RUNNER_TEMP/recovery/data.sql"
+          age -r "$recipient" -o "$RUNNER_TEMP/recovery/encrypted.age" "$RUNNER_TEMP/recovery/data.sql"
+          test -s "$RUNNER_TEMP/recovery/encrypted.age"
+          rm "$RUNNER_TEMP/recovery/data.sql"
+          age -d -i "$RUNNER_TEMP/recovery/identity.txt" \
+            -o "$RUNNER_TEMP/recovery/restore.sql" "$RUNNER_TEMP/recovery/encrypted.age"
+          test -s "$RUNNER_TEMP/recovery/restore.sql"
+          echo 'Fresh data export encrypted and decrypted with ephemeral key.'
+      - name: Restore into disposable database
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! psql -X --single-transaction -v ON_ERROR_STOP=1 \
+            -h 127.0.0.1 -p 54322 -U postgres -d postgres \
+            -c 'SET session_replication_role = replica' \
+            -f "$RUNNER_TEMP/recovery/restore.sql" \
+            > "$RUNNER_TEMP/recovery/private-restore.log" 2>&1; then
+            echo '::error::Restore failed in disposable local database. SQL details withheld from public logs.'
+            exit 1
+          fi
+          echo 'Restore completed without SQL errors.'
+      - name: Validate restored Modern League data
+        shell: bash
+        run: |
+          set -euo pipefail
+          q="select (select count(*) from public.sandbox_tournaments)::text || ':' || (select count(*) from public.sandbox_results)::text || ':' || (select count(*) from public.published_results)::text || ':' || (select count(*) from public.proposed_calendar_settings where year=2027)::text"
+          actual=$(psql -XAt -h 127.0.0.1 -p 54322 -U postgres -d postgres -c "$q")
+          test "$actual" = '2:25:0:1' || { echo "::error::Unexpected restored test inventory: $actual"; exit 1; }
+          echo "PASS isolated restored data inventory: $actual"
+      - name: Remove decrypted data and ephemeral identity
+        if: always()
+        shell: bash
+        run: rm -rf -- "$RUNNER_TEMP/recovery"
