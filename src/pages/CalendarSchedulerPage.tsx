@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabaseConfiguration } from '../data/client';
 import { leagueRepository } from '../data/repository';
-import { fullSchedulerRows, configuredKind, parseCalendarOverrides, updateCalendarChoice, validateCalendarConfiguration } from '../calendar/scheduler';
+import { fullSchedulerRows, parseCalendarOverrides, updateCalendarChoice, validateCalendarConfiguration } from '../calendar/scheduler';
 import type { CalendarOverrides, SchedulerType } from '../calendar/scheduler';
 import type { Json } from '../data/database';
 
@@ -77,7 +77,7 @@ export function CalendarSchedulerPage(){
       <div className="calendar-scheduler-months">{months.map((month,i)=>{
         const m=String(i+1).padStart(2,'0');
         const entries=rows.filter(r=>r.date.slice(5,7)===m);
-        return <details key={m} className="calendar-scheduler-month" open={i===0?undefined:undefined}>
+        return <details key={m} className="calendar-scheduler-month">
           <summary><span>{month}</span><span>{entries.filter(r=>r.kind!=='none').length} shown / {entries.length} dates</span></summary>
           <div className="calendar-scheduler-scroll"><table>
             <thead><tr><th scope="col">Date</th>{cols.map(([_,label])=><th scope="col" key={label}>{label}</th>)}</tr></thead>
