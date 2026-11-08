@@ -22,7 +22,7 @@ test('official corrections preserve publication and use an append-only effective
   ].join(';')+';');
   await db.exec(await readFile(new URL('../supabase/migrations/202611060001_foundation.sql',import.meta.url),'utf8'));
   await db.exec(await readFile(new URL('../supabase/migrations/20261108184615_official_result_corrections.sql',import.meta.url),'utf8'));
-  await db.exec(await readFile(new URL('../supabase/migrations/20261108184830_secure_official_correction_projection.sql',import.meta.url),'utf8'));
+  await db.exec(await readFile(new URL('../supabase/migrations/20261108185004_secure_official_correction_projection.sql',import.meta.url),'utf8'));
   await db.exec([
    "insert into auth.users values ('11111111-1111-4111-8111-111111111111')",
    "insert into private.administrators(user_id,reason) values ('11111111-1111-4111-8111-111111111111','test administrator')",
