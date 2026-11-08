@@ -457,3 +457,7 @@ h1{font-size:clamp(38px,4.5vw,61px);letter-spacing:.02em;font-weight:400}
 .calendar-scheduler-bottom p{color:#aab6a7;font-size:12px}
 .season-calendar-load-status{font-size:11px!important;color:#d0c18c!important;margin-top:5px}
 @media(max-width:650px){.calendar-scheduler-page{padding-top:28px}.calendar-scheduler-scroll{padding:9px}.calendar-scheduler-scroll th,.calendar-scheduler-scroll td{padding:7px}.calendar-scheduler-full-date{display:none}.calendar-scheduler-totals{gap:8px}.calendar-scheduler-month>summary{padding:12px}}
+
+.calendar-scheduler-month>summary::before{content:"▸";color:#dec38b;margin-right:10px;font-size:16px;transition:transform .15s}
+.calendar-scheduler-month[open]>summary::before{transform:rotate(90deg)}
+.calendar-scheduler-month>summary span:first-child{margin-right:auto}
