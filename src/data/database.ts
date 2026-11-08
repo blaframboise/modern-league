@@ -16,9 +16,10 @@ export interface Database {
       import_drafts: Table<{ id: string; created_by: string; created_at: string; original: Json }, { id?: string; original: Json }>;
       import_corrections: Table<{ id: string; draft_id: string; revision: number; snapshot: Json; reason: string; actor: string; created_at: string }, { draft_id: string; revision: number; snapshot: Json; reason: string }>;
       published_results: Table<{ result_id: string; public_snapshot: Json; published_at: string }, never>;
+      official_result_corrections: Table<{result_id:string;revision:number;previous_snapshot:Json;corrected_snapshot:Json;actor:string;reason:string;created_at:string},never>;
     };
-    Views: { [_ in never]: never };
-    Functions: { publish_reviewed_tournament: { Args: {p_draft:string;p_revision:number;p_calendar_revision:number;p_links:Json;p_reason:string;p_confirm:boolean};Returns:string }; correct_sandbox_tournament_results: { Args: {p_tournament:string;p_expected_edit_revision:number;p_results:Json}; Returns:number }; is_administrator: { Args: Record<PropertyKey, never>; Returns: boolean }; import_sandbox_tournament_with_players: { Args: {p_draft:string;p_revision:number;p_name:string;p_season:number;p_rounds:number;p_links:Json};Returns:string }; save_sandbox_tournament: { Args: {p_draft:string;p_revision:number;p_name:string;p_season:number;p_rounds:number;p_links:Json};Returns:string } };
+    Views: { effective_published_results: { Row: {result_id:string;public_snapshot:Json;published_at:string}; Relationships: [] } };
+    Functions: { official_correction_history: {Args:{p_result:string}; Returns:Json}; correct_official_tournament: { Args: {p_result:string;p_expected_revision:number;p_players:Json;p_reason:string;p_confirm:boolean}; Returns:number }; publish_reviewed_tournament: { Args: {p_draft:string;p_revision:number;p_calendar_revision:number;p_links:Json;p_reason:string;p_confirm:boolean};Returns:string }; correct_sandbox_tournament_results: { Args: {p_tournament:string;p_expected_edit_revision:number;p_results:Json}; Returns:number }; is_administrator: { Args: Record<PropertyKey, never>; Returns: boolean }; import_sandbox_tournament_with_players: { Args: {p_draft:string;p_revision:number;p_name:string;p_season:number;p_rounds:number;p_links:Json};Returns:string }; save_sandbox_tournament: { Args: {p_draft:string;p_revision:number;p_name:string;p_season:number;p_rounds:number;p_links:Json};Returns:string } };
     Enums: { [_ in never]: never };
     CompositeTypes: { [_ in never]: never };
   };

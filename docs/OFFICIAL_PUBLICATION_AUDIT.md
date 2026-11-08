@@ -34,3 +34,16 @@ The official result and published snapshot tables are immutable. No versioned of
 ## Status
 
 Private tournament result correction and test standings recalculation: manually confirmed by the organizer. Official publication correction: **not implemented / not validated**. No production mutation performed.
+
+## Implementation update — 2026-11-08
+
+The launch blocker identified in the original audit has been addressed in the source code and database migrations:
+
+- `20261108184615_official_result_corrections.sql`: immutable, append-only revision history; administrator-only correction RPC; guarded full-record validation and competition-rank checks.
+- `20261108185004_secure_official_correction_projection.sql`: security-invoker public standings view with column-restricted correction data and administrator-checked audit history RPC.
+- The public leaderboard, Top 16, and TV screens now consume effective corrected result snapshots, preserving tournament identity and recalculating standings from the latest accepted revision.
+- The `/correct-official-results` administrator page presents current vs corrected records, requires a reason and explicit acknowledgement, and shows the audit trail.
+- The connected Modern League Supabase project has both migrations applied. A read-only verification found zero official publications and zero official corrections at rollout. No fictitious official results were inserted.
+- Automated PGlite coverage verifies revisions, denial of anonymous correction and audit access, original snapshot immutability, regular event re-ranking and championship tie scoring. Existing test suites and secure screenshot browser smoke tests passed on the implementation branch. Local Supabase integration verifies migration application.
+
+Remaining checks: verify the actual deployed web UI on a phone, run a browser end-to-end test against isolated *published* results (without inserting them into the real official ledger), and confirm year-end cleanup and schedule readiness. Original approval and player_records are historical, immutable evidence; the effective public snapshot is the current published projection. Changes to player identities or event metadata are intentionally not supported in the score-correction interface.

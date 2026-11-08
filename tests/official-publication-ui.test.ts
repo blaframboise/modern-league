@@ -14,6 +14,10 @@ test('official publish screen requires administrator authorization and explicit 
     assert.match(markup,/Checking access/);
     assert.doesNotMatch(markup,/Publish these records as official/);
     assert.doesNotMatch(markup,/Sample data — fictional/);
+    const correction=await server.ssrLoadModule('/src/pages/CorrectOfficialResultsPage.tsx');
+    const correctionHtml=renderToStaticMarkup(createElement(MemoryRouter,null,createElement(correction.CorrectOfficialResultsPage)));
+    assert.match(correctionHtml,/Correct Published Results/);
+    assert.doesNotMatch(correctionHtml,/Save audited official correction/);
     const admin=await server.ssrLoadModule('/src/pages/AdminPage.tsx');
     const adminHtml=renderToStaticMarkup(createElement(MemoryRouter,null,createElement(admin.AdminPage)));
     assert.doesNotMatch(adminHtml,/Publish official tournament results/); // admin-only nav
