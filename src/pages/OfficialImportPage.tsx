@@ -171,8 +171,9 @@ export function OfficialImportPage() {
         if (!download.error && download.data) usePreview(URL.createObjectURL(download.data));
         else usePreview(null);
       } else usePreview(null);
-      setStep(loaded.corrections.length ? 'saved' : 'review');
-      setNotice('Saved draft loaded.');
+      setStep(loaded.corrections.length && !returnToEditor ? 'saved' : 'review');
+      setCorrecting(returnToEditor && loaded.corrections.length>0);
+      setNotice(returnToEditor ? 'Edit the saved tournament results, then save the reviewed correction.' : 'Saved draft loaded.');
     });
   }
 
