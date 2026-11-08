@@ -668,3 +668,13 @@ h1{font-size:clamp(38px,4.5vw,61px);letter-spacing:.02em;font-weight:400}
 .tv-broadcast-is-fullscreen .tv-broadcast-controls:hover,.tv-broadcast-is-fullscreen .tv-broadcast-controls:focus-within{opacity:1}
 @media(max-width:850px){.tv-broadcast-boards{grid-template-columns:1fr}.tv-broadcast-row{font-size:14px;min-height:39px}.tv-broadcast-place{font-size:24px}.tv-broadcast-head{font-size:10px}.tv-broadcast-topline>span{display:none}.tv-broadcast-foot{flex-wrap:wrap}}
 @media(max-width:600px){.tv-broadcast-content{padding:12px}.tv-broadcast-row,.tv-broadcast-head{grid-template-columns:11% minmax(0,1fr) 23% 23%}.tv-broadcast-row{font-size:12px}.tv-broadcast-score{font-size:11px}}
+
+/* Shared administrator shortcuts */
+.admin-shortcuts{display:flex;flex-wrap:wrap;gap:8px;padding-top:14px;padding-bottom:4px}
+.admin-shortcuts a{display:inline-flex;align-items:center;min-height:40px;padding:8px 13px;border:1px solid rgba(210,178,79,.35);border-radius:8px;text-decoration:none;color:inherit;font-size:.88rem}
+.admin-shortcuts a:hover,.admin-shortcuts a:focus-visible{border-color:#d8ad45;background:rgba(210,178,79,.12)}
+.admin-shortcuts a.active{background:rgba(210,178,79,.18);border-color:#d8ad45;font-weight:700}
+.import-linked-warning{border:1px solid #d8ad45;border-radius:10px;padding:14px 16px;margin-bottom:20px;background:rgba(210,178,79,.09)}
+.import-linked-warning p{margin:8px 0}
+.import-linked-warning a{font-weight:700;text-decoration:underline;text-underline-offset:3px}
+@media(max-width:600px){.admin-shortcuts{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin;padding-bottom:12px}.admin-shortcuts a{flex:0 0 auto;white-space:nowrap}}

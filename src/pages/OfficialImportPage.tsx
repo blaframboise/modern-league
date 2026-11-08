@@ -40,6 +40,7 @@ export function OfficialImportPage() {
   const [preview, setPreview] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState(false);
   const [draft, setDraft] = useState<ImportDraft | null>(null);
+  const [linkedTestTournament,setLinkedTestTournament] = useState<{id:string;event_name:string}|null>(null);
   const [assets, setAssets] = useState<Asset[]>([]);
   const [drafts, setDrafts] = useState<{id:string}[]>([]);
   const [values, setValues] = useState<ImportValues | null>(null);
@@ -56,6 +57,14 @@ export function OfficialImportPage() {
   const [calendarRevision,setCalendarRevision] = useState<number|null>(null);
   const [calendarStatus,setCalendarStatus] = useState('Loading saved league calendar…');
   const eventMatch=values && calendarOverrides ? resolveScheduledEvent(values.tournament.date,calendarOverrides):null;
+  useEffect(()=>{
+    if(!authorized||!client||!draft?.importId){setLinkedTestTournament(null);return;}
+    let active=true;
+    setLinkedTestTournament(null);
+    void client.from('sandbox_tournaments').select('id,event_name').eq('draft_id',draft.importId).maybeSingle()
+      .then(({data,error})=>{if(active&&!error)setLinkedTestTournament(data??null);});
+    return ()=>{active=false;};
+  },[authorized,client,draft?.importId]);
   const historicalTest=eventMatch?.status==='historical';
   const readyToMatch=eventMatch?.status==='matched';
   const matchError=!calendarOverrides?'League calendar must be loaded to classify the event.':eventMatch?.status==='blocked'?eventMatch.message:'';
@@ -327,6 +336,11 @@ export function OfficialImportPage() {
         {preview && <img className="import-preview import-processing-preview" src={preview} alt="Screenshot being analyzed"/>}
       </div>}
       {(step==='review'||step==='saved') && <div className="import-panel">
+        {linkedTestTournament&&<div className="import-linked-warning" role="status">
+          <strong>Already saved as a test tournament: {linkedTestTournament.event_name}</strong>
+          <p>Changes to this screenshot review do not update TEST STANDINGS. The matched tournament is a separate record. Edit the saved tournament to change its results and recalculate standings.</p>
+          <Link to={`/test-workspace?draft=${encodeURIComponent(draft!.importId)}`}>Open saved tournament in test workspace</Link>
+        </div>}
         <div className="import-review-head">
           <div><h2>{step==='saved'?'Review saved':'Review extracted results'}</h2>
             <p>{step==='saved'?'The reviewed draft is stored privately.':'Compare these values with your screenshot. Empty fields mean the image did not establish an answer.'}</p></div>
@@ -370,7 +384,7 @@ export function OfficialImportPage() {
             {correcting && <label>Review notes (optional)<textarea rows={2} disabled={busy} value={reason} onChange={e=>setReason(e.target.value)}/></label>}
             <button type="button" disabled={busy||!reviewed||!canReview} onClick={()=>void saveReview()}>
               Save reviewed results</button>
-            <p className="import-hint">Saving records your private review; it does not publish standings. Historical tests cannot be published as 2027 results. PR, TBD, and unscheduled dates remain blocked.</p>
+            <p className="import-hint">Saving records your private review; it does not update a saved tournament or standings. For corrections, open the matched tournament in the test workspace. Historical tests cannot be published as 2027 results. PR, TBD, and unscheduled dates remain blocked.</p>
           </>}
           {step==='saved' && <div className="import-actions">
             {draft?.corrections.length ? <>
