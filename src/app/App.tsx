@@ -43,7 +43,7 @@ export function App() {
   useEffect(() => {
     setMenuOpen(false);
     window.scrollTo(0, 0);
-    document.title = `${navigation.find(item => item.path === pathname)?.label ?? (pathname === '/official-import' ? 'Private screenshot drafts' : pathname === '/admin' ? 'League administration' : pathname === '/test-workspace' ? 'Private test workspace' : 'Page not found')} | Modern League`;
+    document.title = `${navigation.find(item => item.path === pathname)?.label ?? (pathname === '/official-import' ? 'Private screenshot drafts' : pathname === '/admin' ? 'League administration' : pathname === '/test-workspace' ? 'Private test workspace' : pathname === '/edit-tournaments' ? 'Edit test tournament results' : 'Page not found')} | Modern League`;
     if (!firstRender.current) mainRef.current?.focus();
     firstRender.current = false;
   }, [pathname]);
@@ -63,6 +63,7 @@ export function App() {
       <Route path="/official-import" element={<OfficialImportPage />} />
       <Route path="/admin" element={<AdminPage />} />
       <Route path="/test-workspace" element={<TestWorkspacePage />} />
+      <Route path="/edit-tournaments" element={<TestWorkspacePage editMode />} />
       <Route path="/results-import" element={<ResultsImportPage />} />
       <Route path="/results-review" element={<ResultsReviewPage />} />
       <Route path="/leaderboards" element={<LeaderboardPage />} />

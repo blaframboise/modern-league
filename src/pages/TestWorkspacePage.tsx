@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { supabaseConfiguration } from '../data/client';
 import { leagueRepository } from '../data/repository';
 import { effectiveValues, potentialPlayers } from '../results';
@@ -18,13 +18,14 @@ type Entry = {row:ImportedResult;playerId:string;displayName:string};
 const seasonIds=['s1','s2','s3','s4'];
 const reviewName=(value:string) => suggestDisplayName(value);
 function datedEventName(name:string,date:string):string {
-  const match=/^(\\d{4})-(\\d{2})-(\\d{2})$/.exec(date);
+  const match=/^(\d{4})-(\d{2})-(\d{2})$/.exec(date);
   if(!match)return name.trim();
   const suffix=match[2]+match[3]+match[1].slice(-2);
-  const base=name.trim().replace(/\\s+-\\s+\\d{6}$/,'');
+  const base=name.trim().replace(/\s+-\s+\d{6}$/,'');
   return base.endsWith(suffix)?base:`${base} - ${suffix}`;
 }
-export function TestWorkspacePage() {
+export function TestWorkspacePage({editMode=false}:{editMode?:boolean}) {
+  const navigate=useNavigate();
   const [searchParams]=useSearchParams();
   const incomingDraft=searchParams.get('draft');
   const {client}=supabaseConfiguration;
@@ -47,7 +48,7 @@ export function TestWorkspacePage() {
   const [busy,setBusy]=useState(false);
   const [error,setError]=useState('');
   const [message,setMessage]=useState('');
-  const [tab,setTab]=useState<'players'|'events'|'standings'>(incomingDraft?'events':'players');
+  const [tab,setTab]=useState<'players'|'events'|'standings'>(editMode||incomingDraft?'events':'players');
   const [mappingReviewed,setMappingReviewed]=useState(false);
 
   async function refresh() {
@@ -151,7 +152,7 @@ export function TestWorkspacePage() {
         p_season:s,p_rounds:n,p_links:links as unknown as Json,
       });
       if(response.error)throw new Error(response.error.message);
-      await refresh();setTab('standings');setMappingReviewed(false);setMessage('Test tournament saved. The updated private standings are displayed below. Official standings remain unchanged.');
+      await refresh();setTab(editMode?'events':'standings');if(editMode){navigate('/edit-tournaments',{replace:true});setDraft(null);}setMappingReviewed(false);setMessage(editMode?'Tournament corrections saved. Private standings were recalculated; nothing was published.':'Test tournament saved. The updated private standings are displayed below. Official standings remain unchanged.');
     });
   }
   const input:StandingsInput={
@@ -170,14 +171,14 @@ export function TestWorkspacePage() {
 
   return <section className="container admin-page sandbox-workspace">
     <p className="eyebrow">ADMIN ONLY / PRESEASON TEST</p>
-    <h1>Test workspace</h1>
+    <h1>{editMode ? "Edit a Tournament’s Results" : "Test workspace"}</h1>
     <p>No content on this page is official. All tournament points are simulated under the 2027 scoring rules; none are published to the public leaderboard.</p>
     {!allowed?<p role="status">{access} <Link to="/admin">Administrator sign in</Link></p>:<>
-      <nav className="sandbox-tabs" aria-label="Test workspace sections">
+      {!editMode&&<nav className="sandbox-tabs" aria-label="Test workspace sections">
         <button aria-pressed={tab==='players'} onClick={()=>setTab('players')}>Players</button>
         <button aria-pressed={tab==='events'} onClick={()=>setTab('events')}>Tournament matching</button>
         <button aria-pressed={tab==='standings'} onClick={()=>setTab('standings')}>Test leaderboard</button>
-      </nav>
+      </nav>}
       {(error||message)&&<p role="status" className={error?'sandbox-error':'sandbox-success'}>{error||message}</p>}
       {tab==='players'&&<div className="sandbox-section">
         <h2>Registered test players ({people.length})</h2>
@@ -196,12 +197,13 @@ export function TestWorkspacePage() {
         </form></>}
       </div>}
       {tab==='events'&&<div className="sandbox-section">
-        <h2>Confirm players and test results</h2>
-        <p>Select a saved screenshot review. Unrecognized players are registered automatically on save. Verify suggested existing matches.</p>
-        <label>Reviewed screenshot <select value={draftId} disabled={busy} onChange={e=>{const id=e.target.value;if(id)void loadDraft(id);}}>
+        <h2>{editMode ? (draft ? "Review and save corrections" : "Saved tournaments") : "Confirm players and test results"}</h2>
+        {!editMode&&<p>Select a saved screenshot review. Unrecognized players are registered automatically on save. Verify suggested existing matches.</p>}
+        {!editMode&&<label>Reviewed screenshot <select value={draftId} disabled={busy} onChange={e=>{const id=e.target.value;if(id)void loadDraft(id);}}>
           <option value="">Select a private review</option>{draftOptions.map(d=><option key={d.id} value={d.id}>{events.find(e=>e.draft_id===d.id)?.event_name??`Reviewed draft ${d.id.slice(0,8)}`}</option>)}
-        </select></label>
-        {draft&&<div className="sandbox-event-editor">
+        </select></label>}
+        {editMode&&draft&&<button type="button" onClick={()=>{navigate("/edit-tournaments",{replace:true});setDraft(null);setMessage("");setError("");}} disabled={busy}>Back to saved tournaments</button>}
+        {(!editMode||draft)&&draft&&<div className="sandbox-event-editor">
           <label>Test event name (date added automatically)<input value={eventName} maxLength={200} onChange={e=>{setEventName(e.target.value);setMappingReviewed(false)}}/></label>
           <label>Simulated 2027 season<select value={season} onChange={e=>{setSeason(e.target.value);setMappingReviewed(false)}}>{seasonIds.map((v,i)=><option key={v} value={String(i+1)}>Season {i+1}</option>)}</select></label>
           <label>Scheduled Swiss rounds<input type="number" min={1} max={20} value={rounds} onChange={e=>{setRounds(e.target.value);setMappingReviewed(false)}}/></label>
@@ -215,13 +217,18 @@ export function TestWorkspacePage() {
             </select>{!entry.playerId && <input aria-label={`Display name for ${entry.row.importedName}`} maxLength={120} value={entry.displayName} disabled={busy} onChange={e=>{setEntries(previous=>previous.map((v,index)=>i===index?{...v,displayName:e.target.value}:v));setMappingReviewed(false)}} />}</td>
           </tr>)}</tbody></table></div>
           <p className="sandbox-note">Saved event name: {datedEventName(eventName,effectiveValues(draft).tournament.date)}</p>
-          <p className="sandbox-note">Projected points use regular-event scoring only; placement does not affect regular-event points. To correct the screenshot values, return to <Link to={`/official-import?draft=${encodeURIComponent(draft.importId)}`}>the saved screenshot review</Link> and edit its saved review. New players are created on save. Select an existing player only after confirming identity.</p>
+          <p className="sandbox-note">Projected points use regular-event scoring only; placement does not affect regular-event points. To correct the screenshot values, return to <Link to={`/official-import?draft=${encodeURIComponent(draft.importId)}${editMode?'&return=edit-tournaments':''}`}>edit the screenshot results</Link> and edit its saved review. New players are created on save. Select an existing player only after confirming identity.</p>
           <label className="sandbox-confirm"><input type="checkbox" checked={mappingReviewed} onChange={e=>setMappingReviewed(e.target.checked)}/> I verified player identities, display names, match records and test-event details.</label>
           <button disabled={busy||!entries.length||!mappingReviewed} onClick={()=>void saveEvent()}>Save tournament and update test standings</button>
           <p className="sandbox-note">No official approvals or published results are created.</p>
         </div>}
-        {events.length>0&&<div className="sandbox-table"><h3>Matched test tournaments</h3><table><thead><tr><th>Test event</th><th>Season</th><th>Rounds</th><th>Players</th><th>Actions</th></tr></thead><tbody>
-          {events.map(ev=><tr key={ev.id}><td>{ev.event_name}</td><td>{ev.season_ordinal}</td><td>{ev.scheduled_rounds}</td><td>{savedResults.filter(r=>r.tournament_id===ev.id).length}</td><td><button type="button" disabled={busy} onClick={()=>void loadDraft(ev.draft_id)}>Edit test tournament</button></td></tr>)}
+        {editMode&&!draft&&<div className="sandbox-event-list" aria-label="Saved tournaments">
+          {events.length===0?<p>No saved test tournaments yet.</p>:events.map(ev=><button key={ev.id} type="button" disabled={busy} onClick={()=>navigate(`/official-import?draft=${encodeURIComponent(ev.draft_id)}&return=edit-tournaments`)}>
+            <strong>{ev.event_name}</strong><span>{savedResults.filter(r=>r.tournament_id===ev.id).length} participants · Saved {new Date(ev.created_at).toLocaleString()}</span>
+          </button>)}
+        </div>}
+        {!editMode&&events.length>0&&<div className="sandbox-table"><h3>Matched test tournaments</h3><table><thead><tr><th>Test event</th><th>Season</th><th>Rounds</th><th>Players</th><th>Actions</th></tr></thead><tbody>
+          {events.map(ev=><tr key={ev.id}><td>{editMode?<button type="button" className="sandbox-event-link" disabled={busy} onClick={()=>void loadDraft(ev.draft_id)}>{ev.event_name}</button>:ev.event_name}</td><td>{ev.season_ordinal}</td><td>{ev.scheduled_rounds}</td><td>{savedResults.filter(r=>r.tournament_id===ev.id).length}</td><td><button type="button" disabled={busy} onClick={()=>void loadDraft(ev.draft_id)}>Edit test tournament</button></td></tr>)}
         </tbody></table></div>}
       </div>}
       {tab==='standings'&&<div className="sandbox-section">

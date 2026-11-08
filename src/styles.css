@@ -211,3 +211,10 @@ h1, h2, h3, p { margin: 0; }h1 { font-size: clamp(42px, 4.6vw, 64px); font-weigh
   .sandbox-match-table td.match-player-select select, .sandbox-match-table td.match-player-select input { box-sizing: border-box; display: block; width: 100%; min-width: 0; max-width: 100%; margin-top: .4rem; }
   .sandbox-match-table td.match-player-select select { font-size: 16px; }
 }
+
+/* Direct admin editing: one tap per saved tournament, including on narrow phones. */
+.sandbox-event-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:.85rem}
+.sandbox-event-list button{display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:.45rem;min-width:0;overflow-wrap:anywhere;padding:1rem 1.1rem;background:#252c25;color:#f4f1e9;border:1px solid #8f987e;border-radius:.65rem}
+.sandbox-event-list button strong{font-size:1rem}
+.sandbox-event-list button span{font-size:.82rem;color:#c6caba}
+.sandbox-event-list button:hover,.sandbox-event-list button:focus-visible{border-color:#dec38b;background:#30382e}
