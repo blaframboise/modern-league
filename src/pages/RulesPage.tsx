@@ -3,6 +3,12 @@ import { ANNUAL_MINIMUM_EVENTS, SEASON_COUNTED_RESULTS, SEASON_MINIMUM_EVENTS } 
 import { CHAMPIONSHIP_RULES } from '../scoring/championship';
 
 const championship=CHAMPIONSHIP_RULES[2027];
+function jumpToRulesSection(sectionId:string){
+  const section=document.getElementById(sectionId);
+  if(!section)return;
+  section.scrollIntoView({behavior:'smooth',block:'start'});
+  section.focus({preventScroll:true});
+}
 export function RulesPage(){
   return <div className="container rules-page">
     <header className="rules-intro">
@@ -10,29 +16,29 @@ export function RulesPage(){
       <h1>The rules<span className="gold">.</span></h1>
       <p className="page-description">How league points, standings, championships, and seasonal titles work. These scoring rules govern the 2027 series. Administrative procedures not yet settled are identified separately below.</p>
       <nav className="rules-jump" aria-label="On this page">
-        <a href="#rules-regular">Regular events</a>
-        <a href="#rules-season">Seasons &amp; eligibility</a>
-        <a href="#rules-championship">Championships</a>
-        <a href="#rules-ties">Tiebreakers</a>
-        <a href="#rules-pending">Policies under review</a>
+        <button type="button" onClick={()=>jumpToRulesSection('rules-regular')}>Regular events</button>
+        <button type="button" onClick={()=>jumpToRulesSection('rules-season')}>Seasons &amp; eligibility</button>
+        <button type="button" onClick={()=>jumpToRulesSection('rules-championship')}>Championships</button>
+        <button type="button" onClick={()=>jumpToRulesSection('rules-ties')}>Tiebreakers</button>
+        <button type="button" onClick={()=>jumpToRulesSection('rules-pending')}>Policies under review</button>
       </nav>
     </header>
     <div className="rules-sections">
-      <section id="rules-overview" className="rules-section">
+      <section id="rules-overview" className="rules-section" tabIndex={-1}>
         <p className="eyebrow">01 / THE STRUCTURE</p><h2>Four seasons. One league year.</h2>
         <p>The 2027 Modern League is divided into four competitive seasons. Each season ends with its own seasonal championship. A separate League Championship concludes the competitive year.</p>
         <p>The official league schedule determines the boundaries—not the last calendar day of March, June, September, or December. Regular events held on or after a season's championship date count toward the following season.</p>
         <p>Under the current 2027 schedule, Season 4 ends with its championship on December 10. Regular Modern beginning Monday, December 13 counts toward <strong>2028 Season 1</strong>. The December 17 League Championship remains part of the 2027 championship year.</p>
         <p><Link to="/events">View the current event calendar</Link>. Dates can change as the organizer updates the schedule.</p>
       </section>
-      <section id="rules-regular" className="rules-section">
+      <section id="rules-regular" className="rules-section" tabIndex={-1}>
         <p className="eyebrow">02 / REGULAR EVENTS</p><h2>Earn up to 10 points per event.</h2>
         <div className="rules-formula"><span>REGULAR EVENT POINTS</span><strong>10 × (3W + D) ÷ (3R)</strong></div>
         <p><strong>W</strong> is wins, <strong>D</strong> is draws, and <strong>R</strong> is the event's scheduled number of Swiss rounds. Losses earn no match points. The denominator stays the scheduled number of rounds, even if a player drops early.</p>
         <p>For example, in a four-round tournament, a 3–1–0 record earns 7.50 league points; a 3–0–1 record earns 8.33 league points.</p>
         <p>Byes and intentional draws count as recorded in the official match result. Points are calculated without intermediate rounding and displayed to two decimal places.</p>
       </section>
-      <section id="rules-season" className="rules-section">
+      <section id="rules-season" className="rules-section" tabIndex={-1}>
         <p className="eyebrow">03 / SEASONAL STANDINGS</p><h2>Your best {SEASON_COUNTED_RESULTS} regular events count.</h2>
         <p>Only each player's highest {SEASON_COUNTED_RESULTS} regular-event point totals count toward their seasonal regular-event score. The maximum is <strong>80 regular-event points per season</strong>.</p>
         <p>Every regular event played still counts toward participation requirements and the match-percentage tiebreaker—even if that event falls outside the best eight.</p>
@@ -43,7 +49,7 @@ export function RulesPage(){
         <p>The <strong>Regular Season Champion</strong> is the highest-ranked eligible player before that season's championship. The <strong>Overall Season Champion</strong> is the highest-ranked eligible player after championship points are added. The <strong>Annual Overall Champion</strong> is the highest-ranked eligible player across the league year.</p>
         <p>Players below the participation minimum still appear in standings and earn points, but cannot receive the corresponding cumulative title. These minimums do <strong>not</strong> establish who may enter a championship tournament; admission rules are still under review.</p>
       </section>
-      <section id="rules-championship" className="rules-section">
+      <section id="rules-championship" className="rules-section" tabIndex={-1}>
         <p className="eyebrow">04 / CHAMPIONSHIPS</p><h2>Swiss performance and final placement.</h2>
         <div className="rules-metrics">
           <div><strong>{championship.maximumPoints.seasonal}</strong><span>Maximum seasonal championship points</span></div>
@@ -59,7 +65,7 @@ export function RulesPage(){
         <p>Elimination-match records do not count toward the Swiss component. The winner of the championship tournament receives its distinct <strong>Tournament Champion</strong> title; that is separate from the cumulative points title.</p>
         <p>The theoretical maximum is <strong>120 points per season</strong> (80 regular + 40 championship), or <strong>600 points for the year</strong> (four seasons plus the League Championship).</p>
       </section>
-      <section id="rules-ties" className="rules-section">
+      <section id="rules-ties" className="rules-section" tabIndex={-1}>
         <p className="eyebrow">05 / RANKING RULES</p><h2>How ties are broken.</h2>
         <p>Standings use exact, unrounded point totals. When totals are tied, apply these comparisons in order:</p>
         <ol>
@@ -69,7 +75,7 @@ export function RulesPage(){
           <li>If still tied, players share the same cumulative rank; eligible players tied for the highest eligible place share the cumulative title unless a different title-resolution procedure is adopted.</li>
         </ol>
       </section>
-      <section id="rules-pending" className="rules-section rules-policy">
+      <section id="rules-pending" className="rules-section rules-policy" tabIndex={-1}>
         <p className="eyebrow">06 / PROCEDURES UNDER REVIEW</p><h2>Some administrative details are not final.</h2>
         <p>The scoring and ranking rules above are established for the 2027 league. These additional policies are still being developed and should not be treated as settled:</p>
         <ul>
