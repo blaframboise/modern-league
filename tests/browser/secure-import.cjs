@@ -114,7 +114,7 @@ const assert = require('node:assert/strict');
       await page.getByLabel('Player 1 draws').fill('0');
       await page.getByRole('checkbox',{name:/I checked the player names/}).check();
       await page.getByRole('button',{name:'Save corrected results'}).click();
-      await page.getByRole('heading',{name:'Review saved'}).waitFor();
+      await page.getByRole('heading',{name:'Review saved'}).waitFor({timeout:6000}).catch(async failure=>{throw new Error(`Second correction failed: ${await page.locator('.import-feedback').allTextContents()} ${String(failure)}`)});
       assert.equal(corrections.length,1);
       assert.equal(corrections[0].snapshot.values.tournament.name,'Human-checked result');
       assert.equal(corrections[0].snapshot.values.tournament.year,2026);
