@@ -22,10 +22,10 @@ function Sample({kind}:{kind:Theme}) {
       <section className="type-data">
         <div className="type-data-head"><div><p className="type-eyebrow">Season one</p><h3>Standings snapshot</h3></div><span className="type-data-note">Illustrative only</span></div>
         <div className="type-stats">
-          <div><strong>18</strong><span>Players</span></div><div><strong>02</strong><span>Tournaments</span></div><div><strong>15.00</strong><span>Leading points</span></div>
+          <div><strong>12</strong><span>Players</span></div><div><strong>03</strong><span>Tournaments</span></div><div><strong>21.50</strong><span>Leading points</span></div>
         </div>
-        <div className="type-player"><span className="type-rank">01</span><div><h4>Benjamin Socia</h4><p>2 events · Season standings</p></div><strong>15.00</strong></div>
-        <div className="type-player"><span className="type-rank">02</span><div><h4>Benjamin LaFramboise</h4><p>2 events · Season standings</p></div><strong>15.00</strong></div>
+        <div className="type-player"><span className="type-rank">01</span><div><h4>Alex Rowan</h4><p>2 events · Season standings</p></div><strong>15.00</strong></div>
+        <div className="type-player"><span className="type-rank">02</span><div><h4>Jordan Vale</h4><p>2 events · Season standings</p></div><strong>15.00</strong></div>
       </section>
       <div className="type-footnote">Prototype only. Figures are illustrative, not a live leaderboard.</div>
     </div>
