@@ -7,7 +7,8 @@ Status: **not ready for official public competition launch**. The website can op
 - Private sandbox standings and deterministic scoring calculations.
 - Automated validation and local Supabase integration.
 - Public pages no longer claim fictional schedule/results as official.
-- Typography A/B comparison is available on the unlisted `#/type-compare` page; the live type hierarchy has not been changed.
+- Approved Marcellus/Nunito Sans Modern Table typography is now applied to production pages; the comparison remains on the unlisted `#/type-compare` page.
+- The unlisted four-season 2027 calendar preview uses provisional recurring dates with prerelease and holiday/TBD exceptions. Its verification CSV lists every assumption as UNVERIFIED.
 
 ## Blocking work — in operational order
 1. **League rules sign-off.** Review and approve authoritative written rules for registration, event eligibility, event frequency and season boundaries, league scoring, championship qualification, ties, corrections, disputes and authority. Existing algorithms cover scoring but do not by themselves authorize policy. Do not publish placeholders as final rules.
@@ -15,7 +16,7 @@ Status: **not ready for official public competition launch**. The website can op
 3. **Official import review and publication.** Separate authoritative import validation, administrator approval and public publication from the existing private simulation. Use server-side authorization, immutable audit records, atomic transactions, duplicate prevention and explicit draft/version checks. Test restricted roles, concurrent edits and replay attempts.
 4. **Real public calendar and leaderboard.** Read only approved schedules and published results from the public data projection. Compute seasonal/annual rankings from official records, handle eligibility/championships, and test against independently calculated fixtures.
 5. **Launch operations.** Verify a clean public GitHub Pages build and exact routing on mobile/desktop; authenticate from a new session; perform WCAG/readability checks; configure backups, access recovery, monitoring and a rollback plan; verify no fake fixtures or private sandbox data leak.
-6. **Typography decision.** Compare current and Modern Table at `#/type-compare`. If approved, implement a scoped production typography change with accessible size/contrast/mobile checks before launch.
+6. **Typography and accessibility quality gate.** Modern Table is applied. Verify responsive type sizes, contrast, click targets, keyboard navigation and accessible status labeling on real phones and desktops.
 
 ## Release gate
 Never populate or claim official league standings from fictional fixtures or private sandbox results. Do not enable a publication endpoint until an authorized operator has approved the rules, publication workflow and tested official fixtures. Launch readiness requires a recorded pass on all six blocking items above.
