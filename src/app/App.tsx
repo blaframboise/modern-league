@@ -47,6 +47,9 @@ export function App() {
 
   const { pathname } = useLocation();
   const tvMode=pathname==='/leaderboards/tv';
+  const adminPaths=['/admin','/calendar-scheduler','/official-import','/publish-results','/edit-tournaments','/test-workspace'];
+  const showAdminNav=isAdmin&&adminPaths.includes(pathname);
+  const adminLinks=[{to:'/admin',label:'Dashboard'},{to:'/calendar-scheduler',label:'Schedule'},{to:'/official-import',label:'Upload results'},{to:'/publish-results',label:'Publish results'},{to:'/edit-tournaments',label:'Edit tournaments'},{to:'/test-workspace',label:'Test standings'}];
   const mainRef = useRef<HTMLElement>(null);
   const firstRender = useRef(true);
   useEffect(() => {
@@ -67,6 +70,9 @@ export function App() {
       </nav>
       <span className="header-season"><span className="status-dot" />2027 SEASON</span>
     </div></header>}
+    {showAdminNav&&<nav className="admin-shortcuts container" aria-label="Administrator tools">
+      {adminLinks.map(item=><NavLink key={item.to} to={item.to} end>{item.label}</NavLink>)}
+    </nav>}
     <main id="main" tabIndex={-1} ref={mainRef}><Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/type-compare" element={<TypographyPreviewPage />} />
