@@ -46,7 +46,6 @@ export function calendarFromOverrides(overrides:CalendarOverrides):ProposedSlot[
   validateCalendarConfiguration(overrides);
   const changed=base.map(slot=>({...slot,kind:configuredKind(slot.date,overrides)}));
   const championshipDates=changed.filter(s=>s.kind==='seasonal').map(s=>s.date);
-  const annualDate=changed.find(s=>s.kind==='annual')!.date;
   return changed.filter(s=>s.kind!=='none').map(slot=>{
     // SC is owned by the season it concludes, LC is always 2027's annual finale.
     const n=championshipDates.filter(d=>d<=slot.date).length;
