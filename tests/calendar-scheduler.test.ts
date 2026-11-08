@@ -28,9 +28,17 @@ test('moving a championship reassigns later regular dates into the next competit
  assert.equal(cal.find(s=>s.date==='2027-12-10')?.season,5);
  assert.equal(cal.find(s=>s.date==='2027-12-17')?.kind,'annual');
 });
-test('cannot persist an incomplete or out-of-order championship schedule',()=>{
- assert.throws(()=>validateCalendarConfiguration({'2027-03-26':'none'}),/exactly four/);
- assert.throws(()=>validateCalendarConfiguration({'2027-12-17':'none'}),/one league/);
+test('a championship can be fully unchecked and disappears until rescheduled',()=>{
+ const withoutSeasonal={'2027-03-26':'none'} as const;
+ assert.doesNotThrow(()=>validateCalendarConfiguration({...withoutSeasonal}));
+ assert.equal(calendarFromOverrides({...withoutSeasonal}).some(s=>s.date==='2027-03-26'),false);
+ const withoutLeague={'2027-12-17':'none'} as const;
+ assert.doesNotThrow(()=>validateCalendarConfiguration({...withoutLeague}));
+ assert.equal(calendarFromOverrides({...withoutLeague}).some(s=>s.kind==='annual'),false);
+});
+test('rejects over-allocated and out-of-order championships',()=>{
+ assert.throws(()=>validateCalendarConfiguration({'2027-01-01':'seasonal'}),/No more than four/);
+ assert.throws(()=>validateCalendarConfiguration({'2027-01-01':'annual'}),/No more than four/);
  assert.throws(()=>validateCalendarConfiguration({'2027-12-17':'modern','2027-12-03':'annual'}),/follow/);
 });
 test('reject invalid override dates, types, and object values',()=>{
