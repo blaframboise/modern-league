@@ -4,6 +4,7 @@ import type { Tournament } from '../results/index.ts';
 
 export type EventMatch =
   | { status:'matched'; date:string; code:'REG'|'SC'|'LC'; kind:Tournament['kind']; competitionYear:number; seasonId?:string; season:number; description:string }
+  | { status:'historical'; date:string; code:'TEST'; kind:'regular'; competitionYear:number; description:string }
   | { status:'blocked'; date:string; code:'PR'|'TBD'|'OFF'|'UNSCHEDULED'|'INVALID'; message:string };
 
 /** The saved administrator calendar determines classification; not the screenshot's guessed kind.
