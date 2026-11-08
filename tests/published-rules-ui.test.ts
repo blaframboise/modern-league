@@ -35,7 +35,7 @@ test('published Rules page includes verified 2027 calculations and adopted admin
   assert.match(html,/December 17/);
   assert.match(html,/ADMINISTRATION &amp; PLAYER PRIVACY/);
   assert.match(html,/within seven calendar days after the event/);
-  assert.match(html,/verified an error after that reporting period/);
+  assert.match(html,/verifies an error after that reporting period/);
   assert.match(html,/requested nickname/);
   assert.match(html,/not sold or shared for advertising/);
   assert.match(html,/store cancels a round for the entire event/);
