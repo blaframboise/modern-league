@@ -101,7 +101,8 @@ export function TestWorkspacePage({editMode=false}:{editMode?:boolean}) {
       const existing=events.find(e=>e.draft_id===id);
       setDraft(loaded);setDraftId(id);setTab('events');setMappingReviewed(false);
       setEventName(existing?.event_name??values.tournament.name??'');
-      setSeason(String(existing?.season_ordinal??1));
+      const calendarSeason=values.tournament.seasonId?.match(/^s([1-4])$/)?.[1];
+      setSeason(String(existing?.season_ordinal??calendarSeason??1));
       setRounds(String(existing?.scheduled_rounds??values.tournament.scheduledRounds??4));
       setEntries(values.results.map(row=>({
         row,
@@ -138,6 +139,15 @@ export function TestWorkspacePage({editMode=false}:{editMode?:boolean}) {
   async function saveEvent(){
     if(!client||!draft)return;
     await action(async()=>{
+      // This sandbox projection is REG-only. Never score championship results with
+      // its regular-event formula or silently choose a different season.
+      const classified=effectiveValues(draft).tournament;
+      if(classified.kind!=='regular' || classified.year!==2027){
+        throw Error('The private test leaderboard supports only 2027 REG events. Championship and 2028 events are previewed in Upload Results; official publication is not enabled.');
+      }
+      if(!classified.seasonId || classified.seasonId!==`s${season}`){
+        throw Error('The test season must match the calendar-derived season in the reviewed tournament.');
+      }
       const n=Number(rounds),s=Number(season);
       if(!Number.isSafeInteger(n)||n<1||n>20||!seasonIds[s-1])throw new Error('Choose a season and Swiss round count.');
       if(!mappingReviewed)throw new Error('Confirm that you reviewed the identities and results.');
@@ -205,7 +215,9 @@ export function TestWorkspacePage({editMode=false}:{editMode?:boolean}) {
         {editMode&&draft&&<button type="button" onClick={()=>{navigate("/edit-tournaments",{replace:true});setDraft(null);setMessage("");setError("");}} disabled={busy}>Back to saved tournaments</button>}
         {(!editMode||draft)&&draft&&<div className="sandbox-event-editor">
           <label>Test event name (date added automatically)<input value={eventName} maxLength={200} onChange={e=>{setEventName(e.target.value);setMappingReviewed(false)}}/></label>
-          <label>Simulated 2027 season<select value={season} onChange={e=>{setSeason(e.target.value);setMappingReviewed(false)}}>{seasonIds.map((v,i)=><option key={v} value={String(i+1)}>Season {i+1}</option>)}</select></label>
+          <label>Calendar-assigned test season<input readOnly value={draft?effectiveValues(draft).tournament.seasonId??'Unassigned':'Unassigned'}/></label>
+          {draft && (effectiveValues(draft).tournament.kind!=='regular'||effectiveValues(draft).tournament.year!==2027)&&
+            <p role="alert" className="import-error">This sandbox leaderboard supports regular 2027 tournaments only. Championship points are previewed in Upload Results; no championship will be silently scored as regular Modern.</p>}
           <label>Scheduled Swiss rounds<input type="number" min={1} max={20} value={rounds} onChange={e=>{setRounds(e.target.value);setMappingReviewed(false)}}/></label>
           <div className="sandbox-table sandbox-match-table"><table><thead><tr><th>Companion name</th><th>W</th><th>L</th><th>D</th><th>Place</th><th>Projected points</th><th>Test player / display name</th></tr></thead><tbody>
           {entries.map((entry,i)=><tr key={entry.row.rowId}>
