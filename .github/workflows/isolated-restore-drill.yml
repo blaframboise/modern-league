@@ -43,7 +43,7 @@ jobs:
           age-keygen -o "$RUNNER_TEMP/recovery/identity.txt" 2>/dev/null
           recipient=$(grep '^# public key:' "$RUNNER_TEMP/recovery/identity.txt" | awk '{print $4}')
           supabase db dump --db-url="$SUPABASE_DB_URL" --data-only --use-copy \
-            -x 'storage.buckets_vectors' -x 'storage.vector_indexes' \
+            -x 'storage.buckets' -x 'storage.buckets_vectors' -x 'storage.vector_indexes' \
             -f "$RUNNER_TEMP/recovery/data.sql" > /dev/null
           test -s "$RUNNER_TEMP/recovery/data.sql"
           age -r "$recipient" -o "$RUNNER_TEMP/recovery/encrypted.age" "$RUNNER_TEMP/recovery/data.sql"
@@ -57,12 +57,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # Local migrations seed this calendar row and private Storage bucket.
-          # Remove ONLY these disposable local seed records; never disable
-          # immutable audit triggers or modify the remote/source database.
+          # The migration already seeds this local calendar row. Storage buckets
+          # are managed by the Storage API: retain the migrated test bucket and
+          # omit only bucket metadata from this disposable data-only restore.
           psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 54322 -U postgres -d postgres \
-            -c 'TRUNCATE TABLE public.proposed_calendar_settings' \
-            -c "DELETE FROM storage.buckets WHERE id = 'tournament-sources'" > /dev/null
+            -c 'TRUNCATE TABLE public.proposed_calendar_settings' > /dev/null
           if ! psql -X --single-transaction -v ON_ERROR_STOP=1 \
             -h 127.0.0.1 -p 54322 -U postgres -d postgres \
             -c 'SET session_replication_role = replica' \
