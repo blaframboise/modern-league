@@ -10,7 +10,7 @@ This draft distinguishes scoring rules already encoded and tested in the applica
 - The nominal planning windows are January–March, April–June, July–September and October–December. **These are not automatic cutoffs.**
 - A regular tournament is assigned to a season using its confirmed start and the actual start of the season's championship. A tournament at or after that championship start belongs to the next season.
 - Following the Season 4 or annual championship cutoff, regular tournaments belong to the next league year's first season when its schedule is configured. This can happen in December.
-- Official calendar dates and venues are not yet approved. The tentative league start is January 4, 2027, not a confirmed event announcement.
+- Official calendar dates and venues are not yet approved. The tentative league start is **Friday, January 1, 2027**, subject to Eternal Games confirming holiday hours and whether Modern runs that night. Monday/Friday Modern is shown in the store's standing weekly schedule at 6:00 p.m. The proposed event dates and championship dates live in the unlisted calendar preview and are not yet official announcements.
 
 ## B. Regular tournament points — implemented and tested
 
