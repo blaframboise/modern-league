@@ -57,10 +57,27 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # Schema migrations seed a default 2027 calendar row in LOCAL only.
-          # Remove that row so the source snapshot can supply its own revision.
-          psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 54322 -U postgres -d postgres \
-            -c 'TRUNCATE TABLE public.proposed_calendar_settings' > /dev/null
+          # Clear only app-owned PUBLIC tables in this disposable local database.
+          # Migrations seed defaults, whereas a real restore supplies source rows.
+          # Never run this statement against SUPABASE_DB_URL.
+          psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 54322 -U postgres -d postgres > /dev/null <<'LOCAL_ONLY_SQL'
+          DO $$
+          DECLARE targets text;
+          BEGIN
+            SELECT string_agg(format('%I.%I', n.nspname, c.relname), ', ')
+              INTO targets
+            FROM pg_class c
+            JOIN pg_namespace n ON n.oid=c.relnamespace
+            WHERE n.nspname='public' AND c.relkind='r'
+              AND NOT EXISTS (
+                SELECT 1 FROM pg_depend d
+                WHERE d.objid=c.oid AND d.deptype='e'
+              );
+            IF targets IS NOT NULL THEN
+              EXECUTE 'TRUNCATE TABLE ' || targets || ' CASCADE';
+            END IF;
+          END $$;
+          LOCAL_ONLY_SQL
           if ! psql -X --single-transaction -v ON_ERROR_STOP=1 \
             -h 127.0.0.1 -p 54322 -U postgres -d postgres \
             -c 'SET session_replication_role = replica' \
