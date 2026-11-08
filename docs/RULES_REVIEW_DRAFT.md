@@ -1,84 +1,44 @@
-# Modern League — 2027 Competition Rules (review draft)
+# Modern League — 2027 Rules policy decisions
 
-**Status: DRAFT FOR LEAGUE OWNER APPROVAL. NOT PUBLISHED RULES.**
+**Status:** Adopted operational policies. The authoritative public wording appears in `src/pages/RulesPage.tsx` at `/#/rules`. The scoring implementation is in `src/scoring/`. This file documents administrative decisions and implementation implications, not a separate conflicting rules draft.
 
-This draft distinguishes scoring rules already encoded and tested in the application from league policies that still need an explicit decision. It must not be displayed as the league's official Rules page until adopted.
+## Tournament authority and inclusion
 
-## A. Competition structure — implemented in scoring/calendar model
+- Eternal Games determines event admission, capacity, registration, player participation, disqualifications, byes, match outcomes, event rankings and official results.
+- No additional Modern League registration or admission requirement is imposed for participation. Eligibility for **cumulative league titles** is separate: six regular-event appearances in the season, or twenty across the year for the annual cumulative title.
+- Only designated Eternal Games Modern League events count; results from unrelated stores are outside this league's scoring.
+- The organizer's editable 2027 working calendar is published on the Events page. Any calendar dates marked TBD remain unresolved.
 
-- Four competitive seasons make up the league year, with a seasonal championship for each season and a separate annual championship.
-- The nominal planning windows are January–March, April–June, July–September and October–December. **These are not automatic cutoffs.**
-- A regular tournament is assigned to a season using its confirmed start and the actual start of the season's championship. A tournament at or after that championship start belongs to the next season.
-- Following the Season 4 championship cutoff, regular tournaments belong to the next league year's first season when its schedule is configured. For the proposed 2027 schedule, Season 4 championship is Friday, December 10; Modern beginning Monday, December 13 counts toward 2028 Season 1. The annual championship is a separate 2027 event proposed for Friday, December 17; regular events after it still count toward 2028 Season 1.
-- Official calendar dates and venues are not yet approved. The tentative league start is **Friday, January 1, 2027**, subject to Eternal Games confirming holiday hours and whether Modern runs that night. Monday/Friday Modern is shown in the store's standing weekly schedule at 6:00 p.m. The proposed event dates and championship dates live in the unlisted calendar preview and are not yet official announcements.
+## Rounds and scoring
 
-## B. Regular tournament points — implemented and tested
+- Official event records supplied by the store determine the number of rounds in the tournament. Store-canceled rounds are already reflected in that official count; the league does not independently subtract canceled rounds.
+- For a player who drops, rounds not played earn zero except for any win or draw officially recorded by the store. Store-recorded disqualifications are taken as supplied, without independent penalties invented by the league.
+- Regular points = `10 * (3W + D) / (3R)`. Best eight regular events count toward seasonal points; all attended events count toward participation and weighted-match tiebreaks.
+- Seasonal championships award up to 40 points and the League Championship up to 120, with Swiss 75% / final placement 25%; separate tournament-winner and cumulative titles are preserved.
 
-For a tournament with `R` scheduled Swiss rounds, `W` official wins and `D` official draws:
+## Results and corrections
 
-**League points = 10 × (3W + D) / (3R)**
+- Players report disputes to Eternal Games, and notify the Modern League administrator **within seven calendar days after the tournament**.
+- Only store-verified corrections alter league records.
+- A store-verified error discovered after a week may still be corrected by the administrator, including recalculating affected standings. The week is a reporting expectation, not a ban on fixing known factual errors.
+- The official results publication pipeline and audit history still need implementation; existing screenshot and sandbox workflows do not publish results.
 
-- Maximum ten points per event.
-- Losses and unplayed rounds earn zero; the scheduled number of rounds remains the denominator.
-- Officially recorded byes and intentional draws count as recorded; no inferred adjustments.
-- Points retain full precision for standings, with two decimal places displayed.
-- Only the best eight regular-tournament scores in each season count toward that season's cumulative point total; maximum 80 regular points per season.
-- **Every attended regular tournament** still counts for the attendance minimum and cumulative tiebreaker statistics, including events outside the best eight.
+## Privacy and records
 
-## C. Participation minima for cumulative titles — implemented and tested
+- Maintain only data necessary to identify players, associate official results and calculate standings. A private canonical name or alias can be retained for identity matching.
+- Public leaderboard display can use a requested nickname without altering the underlying identity or points.
+- Data is not sold or shared for advertising.
+- Historical tournament results and league standings may be retained to maintain correct records. Remove unnecessary personal information and source screenshots once no longer required for verification, corrections or recordkeeping.
+- Players can request display-name changes, personal-data corrections and removal of unnecessary personal information; verified tournament history may be preserved where required for accuracy.
+- The actual retention/deletion workflow must be designed and tested before activating public player records.
 
-- **Regular Season Champion**: highest-ranked *eligible* player in cumulative regular-season standings before the seasonal championship, requiring at least six regular events in that season.
-- **Overall Season Champion**: highest-ranked *eligible* player in cumulative standings after the seasonal championship, using the same seasonal six-event minimum.
-- **Annual Overall Champion**: highest-ranked *eligible* player in annual cumulative standings, requiring at least twenty regular events across the year.
-- Players who have not met the minimum retain their earned points and leaderboard rank; they cannot be awarded these cumulative titles while ineligible.
-- These attendance minimums **do not determine who may enter championship tournaments**.
+## Season and annual recognition
 
-## D. Championship tournament scoring — implemented and tested
+- Four seasonal cumulative **Overall Season Champions** will eventually receive numbered crown badges on the public leaderboard, assigned only after the relevant championship and published results are final.
+- The **Annual Overall Champion** will receive a glowing reigning-champion crown during the following league year. Historical titles remain recorded.
+- Tournament champions and cumulative points champions are distinct titles. Crown assignment is deferred until official results and title-recipient computations are published.
+- A tied eligible cumulative title remains shared under the current tiebreak rules, and any badge assignment should support more than one qualifying recipient.
 
-- Maximum additional points: **40** per seasonal championship, **120** for the annual championship.
-- For a championship with `R` scheduled Swiss rounds, `W` wins, `D` draws, `N` competitors and official final competition placement `P`:
+## Remaining implementation work
 
-  - Swiss match component = maximum × 75% × (3W + D) / (3R).
-  - Placement component = maximum × 25% × (N − P) / (N − 1).
-  - Total = match component + placement component.
-
-- Final placement uses official competition ranks. For ties, the points from the occupied positions are averaged.
-- All recorded official competitors must be supplied; fewer than two competitors do not produce championship scores.
-- The scoring model uses Swiss matches for the match component, not elimination match results.
-- The **Seasonal Tournament Champion** and **Annual Tournament Champion** are the winner(s) recorded in the official event standings; these are separate from the cumulative season/annual titles.
-- Maximum possible season total is **120** points (80 regular + 40 seasonal championship); maximum annual total is **600** points (four seasons × 120 + annual championship 120).
-
-## E. Cumulative standings tiebreakers — implemented and tested
-
-For players on equal *unrounded* cumulative points, compare in order:
-
-1. Total championship points.
-2. Number of perfect regular-event finishes (winning every scheduled round with no draws).
-3. Weighted regular match-point percentage over **all** attended regular events, including those beyond the best eight.
-4. If still tied, share the cumulative rank and eligible title unless a separate playoff rule is adopted.
-
-Eligibility does not remove or reorder players from rankings.
-
-## F. Required decisions before approval — currently **unresolved**
-
-| Policy | Approval needed |
-|---|---|
-| Championship entry | Admission criteria, registration limits, invitations, alternates and deadlines |
-| Player membership | Official player identity enrollment, aliases, name disputes and guest eligibility |
-| Event inclusion | Participating stores, qualifying formats and minimum event conditions |
-| Attendance edge cases | Drops, disqualifications, canceled rounds and no-shows |
-| Standings disputes | Error reporting deadlines, corrections after publication, appeals and administrator authority |
-| Finality | When regular season and annual results become final; whether playoff tiebreaks can supersede shared cumulative titles |
-| Championship procedures | Swiss/top-cut policy, unusual finishes and official standings handling |
-| Awards | How non-scoring community awards are nominated and determined |
-| Scheduling | Confirmed start date, event calendar, championship dates and time zones |
-| Personal information | Player-name display consent, record retention and public leaderboard privacy |
-
-## G. Publication controls — not yet implemented
-
-- Current screenshot imports and test standings are private preseason simulations.
-- An official registry/calendar/approval/publication pipeline must validate identities, event assignments, duplicate records, and current rules before making any standings public.
-- Changes to published results require a separate audited correction/republication policy; the sandbox correction button is not a public publication mechanism.
-- Until the required decisions above are approved and the official pipeline tested, public leaderboards and schedules must remain in their explicit pending states.
-
-**Approval gate:** Adopt the unresolved policies, reconcile them with the code, review for internal consistency, and only then replace the website's Rules placeholder with an authorized version of this document.
+Admin nickname requests and privacy processes; official event-to-results linking; auditing and publishing verified result corrections; leaderboard title-recipient badge rendering; screenshot/data retention procedures; and final operational validation. These are implementation tasks, not reasons to keep the already-adopted policies labeled unresolved.
