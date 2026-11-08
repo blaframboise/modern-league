@@ -6,6 +6,7 @@ import { LeaderboardPage } from '../pages/LeaderboardPage';
 import { HomePage } from '../pages/HomePage';
 import { TypographyPreviewPage } from '../pages/TypographyPreviewPage';
 import { CalendarPreviewPage } from '../pages/CalendarPreviewPage';
+import { CalendarSchedulerPage } from '../pages/CalendarSchedulerPage';
 import { PlaceholderPage, sectionContent } from '../pages/PlaceholderPage';
 import { EventsPage, SeasonsPage } from '../pages/CalendarPages';
 import { ResultsReviewPage } from '../pages/ResultsReviewPage';
@@ -65,6 +66,7 @@ export function App() {
       <Route path="/" element={<HomePage />} />
       <Route path="/type-compare" element={<TypographyPreviewPage />} />
       <Route path="/calendar-preview" element={<CalendarPreviewPage />} />
+      <Route path="/calendar-scheduler" element={<CalendarSchedulerPage />} />
       <Route path="/official-import" element={<OfficialImportPage />} />
       <Route path="/admin" element={<AdminPage />} />
       <Route path="/test-workspace" element={<TestWorkspacePage />} />

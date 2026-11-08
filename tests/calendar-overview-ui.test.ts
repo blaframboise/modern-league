@@ -23,7 +23,7 @@ test('four-column proposal renders each regular and prerelease tile once, with c
     assert.ok(html.includes(dateLabel(slot.date)),slot.date);
   }
   assert.match(html,/SEASON CHAMPIONSHIP/);
-  assert.match(html,/Annual Championship/);
+  assert.match(html,/League Championship/);
   assert.match(html,/2028 Season 1 begins in December/);
   assert.match(html,/Dec 10, 2027/);
   assert.match(html,/Dec 17, 2027/);

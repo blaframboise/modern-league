@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { proposedCalendar2027, proposedChampionships2027 } from '../calendar/proposed2027';
 import type { ProposedSlot } from '../calendar/proposed2027';
+import { calendarFromOverrides, parseCalendarOverrides } from '../calendar/scheduler';
+import { supabaseConfiguration } from '../data/client';
 import { proposedCalendarReviewCsv } from '../calendar/reviewExport';
 
 const monthNames=['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -11,9 +12,9 @@ const weekday=(date:string)=>new Intl.DateTimeFormat('en-US',{weekday:'long',tim
 
 function slotDescription(slot:ProposedSlot){
   if(slot.kind==='prerelease')return `${slot.title}. Possible prerelease night, not a confirmed store event; regular Modern is not assumed.`;
-  if(slot.kind==='tbd')return 'TBD — Friday Modern on this holiday has not been confirmed. If held, results count toward 2028 Season 1.';
+  if(slot.kind==='tbd')return `TBD — no event is confirmed for this date. If Modern is held, results count toward ${slot.season===5?'2028 Season 1':`2027 Season ${slot.season}`}.`;
   if(slot.kind==='seasonal')return `Proposed 2027 Season ${slot.season} Championship, replacing regular Friday Modern. Not confirmed.`;
-  if(slot.kind==='annual')return 'Proposed 2027 Annual Championship, replacing regular Friday Modern. Not confirmed.';
+  if(slot.kind==='annual')return 'Proposed 2027 League Championship, replacing regular Friday Modern. Not confirmed.';
   return `Proposed Eternal Games Modern, 6:00 p.m. America/Detroit; counted toward ${slot.season===5?'2028 Season 1':`2027 Season ${slot.season}`}. Store date not independently confirmed.`;
 }
 function byMonth(slots:ProposedSlot[]) {
@@ -76,7 +77,7 @@ function DetailedCalendar({slots,onSelect}:{slots:ProposedSlot[];onSelect:(slot:
 }
 export function CalendarPreviewPage(){
   function downloadReviewSheet(){
-    const csv=proposedCalendarReviewCsv();
+    const csv=proposedCalendarReviewCsv(slots);
     const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
     const link=document.createElement('a');
     link.href=url;
@@ -88,21 +89,38 @@ export function CalendarPreviewPage(){
   }
   const [selected,setSelected]=useState<ProposedSlot|null>(null);
   const [view,setView]=useState<'overview'|'details'>('overview');
-  const slots=useMemo(()=>proposedCalendar2027(),[]);
+  const [slots,setSlots]=useState<ProposedSlot[]>(()=>calendarFromOverrides({}));
+  const [loadStatus,setLoadStatus]=useState('Loading saved planning schedule…');
+  useEffect(()=>{
+    const client=supabaseConfiguration.client;
+    if(!client){setSlots(calendarFromOverrides({}));setLoadStatus('Default planning schedule. Live calendar settings unavailable.');return;}
+    let alive=true;
+    async function load(){
+      try{
+        const {data,error}=await client!.from('proposed_calendar_settings').select('year,revision,overrides').eq('year',2027).single();
+        if(error||!data)throw Error('Could not load current saved calendar.');
+        const planned=calendarFromOverrides(parseCalendarOverrides(data.overrides));
+        if(alive){setSlots(planned);setLoadStatus('Planning calendar · Revision '+data.revision);}
+      }catch{if(alive){setSlots([]);setLoadStatus('Unable to load calendar. No dates are shown until saved settings can be retrieved.');}}
+    }
+    void load();
+    return ()=>{alive=false;};
+  },[]);
   const seasons=[1,2,3,4];
   const annual=slots.find(s=>s.kind==='annual');
   const rollover=slots.filter(s=>s.season===5&&(s.kind==='modern'||s.kind==='tbd'));
   const regularCount=slots.filter(s=>s.kind==='modern').length;
   const exclusionCount=slots.filter(s=>s.kind==='prerelease').length;
   const tbdCount=slots.filter(s=>s.kind==='tbd').length;
-  const championshipCount=proposedChampionships2027.length;
+  const championshipCount=slots.filter(s=>s.kind==='seasonal'||s.kind==='annual').length;
   const choose=(slot:ProposedSlot)=>setSelected(current=>current?.date===slot.date?null:slot);
   return <div className="container season-overview-page">
     <div className="season-overview-intro">
       <p className="eyebrow">2027 / ETERNAL GAMES / WORKING PROPOSAL</p>
       <h1>The Modern calendar<span className="gold">.</span></h1>
-      <p>Four competitive seasons. Every Monday and Friday at 6:00 p.m., subject to store confirmation. Tap a numbered date for details.</p>
-      <div className="calendar-export-tools"><button type="button" className="button button-secondary" onClick={downloadReviewSheet}>Download date verification CSV</button><span className="muted">105 rows · All dates marked UNVERIFIED · No changes to official calendar</span></div>
+      <p>Four competitive seasons. Administrator-managed proposed dates, subject to store confirmation. Tap a numbered date for details.</p>
+      <p role="status" className="season-calendar-load-status">{loadStatus}</p>
+      <div className="calendar-export-tools"><button type="button" className="button button-secondary" onClick={downloadReviewSheet}>Download date verification CSV</button><span className="muted">Current visible dates · All marked UNVERIFIED · No official changes</span></div>
       <div className="season-overview-toolbar">
         <div className="season-overview-legend" aria-label="Event color key">
           <span><i className="season-key-modern"/>Regular Modern</span>
@@ -129,12 +147,12 @@ export function CalendarPreviewPage(){
         onClick={()=>choose(annual)} aria-pressed={selected?.date===annual.date}
         aria-label={`${format(annual.date)}: ${slotDescription(annual)}`}>
         <span className="season-annual-kicker">2027 GRAND FINALE</span>
-        <strong>Annual Championship</strong>
+        <strong>League Championship</strong>
         <span className="season-annual-date">{format(annual.date)} <span>· Friday</span></span>
       </button>}
       <section className="season-rollover" aria-label="December rollover into 2028">
         <div><span className="eyebrow">NEXT COMPETITIVE YEAR</span><h2>2028 Season 1 begins in December.</h2>
-          <p>Regular Modern starting December 13 earns 2028 points. December 24 and 31 are TBD, not assumed events. The December 17 annual championship still belongs to 2027.</p></div>
+          <p>Regular events after the fourth seasonal championship count toward 2028 Season 1. The league championship remains a separate 2027 event. Holiday dates can be marked TBD or removed in the scheduler.</p></div>
         <div className="season-rollover-tiles">{rollover.map(slot=><Tile key={slot.date} slot={slot} active={selected?.date===slot.date} onSelect={choose}/>)}</div>
       </section>
     </>:<DetailedCalendar slots={slots} onSelect={choose}/>}
