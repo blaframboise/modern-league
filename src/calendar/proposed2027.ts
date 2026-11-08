@@ -24,7 +24,7 @@ export function proposedCalendar2027():ProposedSlot[] {
     const when=new Date(set.date+'T12:00:00Z');when.setUTCDate(when.getUTCDate()-7);
     return [when.toISOString().slice(0,10),set] as const;
   }));
-  const champs=new Map(proposedChampionships2027.map(s=>[s.date,s] as const));
+  const champs=new Map<string,(typeof proposedChampionships2027)[number]>(proposedChampionships2027.map(s=>[s.date,s]));
   const slots:ProposedSlot[]=[];
   for(let i=0;i<365;i++){
     const date=new Date(Date.UTC(2027,0,1+i));
