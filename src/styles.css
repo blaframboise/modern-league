@@ -195,3 +195,19 @@ h1, h2, h3, p { margin: 0; }h1 { font-size: clamp(42px, 4.6vw, 64px); font-weigh
 .sandbox-success{color:#c9e2c0}
 .sandbox-note{font-size:.88rem;color:#c1c6bc}
 @media(max-width:600px){.admin-tools{flex-direction:column}.sandbox-section{padding:1rem}}
+
+/* Keep the desktop review table; switch to labeled, readable player cards on phones. */
+@media (max-width: 700px) {
+  .sandbox-match-table { overflow-x: visible; min-width: 0; }
+  .sandbox-match-table table { display: block; width: 100%; min-width: 0; }
+  .sandbox-match-table thead { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+  .sandbox-match-table tbody { display: grid; gap: 1rem; }
+  .sandbox-match-table tr { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: .75rem .55rem; min-width: 0; padding: 1rem; border: 1px solid #515b50; border-radius: .7rem; background: #202620; }
+  .sandbox-match-table td { min-width: 0; padding: 0; border: 0; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+  .sandbox-match-table td::before { content: attr(data-label); display: block; margin-bottom: .3rem; color: #c7cbbf; font-size: .76rem; font-weight: 600; }
+  .sandbox-match-table td.match-player-name, .sandbox-match-table td.match-player-select { grid-column: 1 / -1; }
+  .sandbox-match-table td.match-player-name { font-weight: 700; font-size: 1.05rem; padding-bottom: .45rem; border-bottom: 1px solid #515b50; }
+  .sandbox-match-table td.match-player-name::before { display: none; }
+  .sandbox-match-table td.match-player-select select, .sandbox-match-table td.match-player-select input { box-sizing: border-box; display: block; width: 100%; min-width: 0; max-width: 100%; margin-top: .4rem; }
+  .sandbox-match-table td.match-player-select select { font-size: 16px; }
+}
