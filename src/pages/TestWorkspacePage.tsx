@@ -222,7 +222,12 @@ export function TestWorkspacePage({editMode=false}:{editMode?:boolean}) {
           <button disabled={busy||!entries.length||!mappingReviewed} onClick={()=>void saveEvent()}>Save tournament and update test standings</button>
           <p className="sandbox-note">No official approvals or published results are created.</p>
         </div>}
-        {events.length>0&&(!editMode||!draft)&&<div className="sandbox-table"><h3>{editMode?"Choose a tournament to edit":"Matched test tournaments"}</h3><table><thead><tr><th>Test event</th><th>Season</th><th>Rounds</th><th>Players</th><th>Actions</th></tr></thead><tbody>
+        {editMode&&!draft&&<div className="sandbox-event-list" aria-label="Saved tournaments">
+          {events.length===0?<p>No saved test tournaments yet.</p>:events.map(ev=><button key={ev.id} type="button" disabled={busy} onClick={()=>navigate(`/official-import?draft=${encodeURIComponent(ev.draft_id)}&return=edit-tournaments`)}>
+            <strong>{ev.event_name}</strong><span>{savedResults.filter(r=>r.tournament_id===ev.id).length} participants · Saved {new Date(ev.created_at).toLocaleString()}</span>
+          </button>)}
+        </div>}
+        {!editMode&&events.length>0&&<div className="sandbox-table"><h3>Matched test tournaments</h3><table><thead><tr><th>Test event</th><th>Season</th><th>Rounds</th><th>Players</th><th>Actions</th></tr></thead><tbody>
           {events.map(ev=><tr key={ev.id}><td>{editMode?<button type="button" className="sandbox-event-link" disabled={busy} onClick={()=>void loadDraft(ev.draft_id)}>{ev.event_name}</button>:ev.event_name}</td><td>{ev.season_ordinal}</td><td>{ev.scheduled_rounds}</td><td>{savedResults.filter(r=>r.tournament_id===ev.id).length}</td><td><button type="button" disabled={busy} onClick={()=>void loadDraft(ev.draft_id)}>Edit test tournament</button></td></tr>)}
         </tbody></table></div>}
       </div>}
