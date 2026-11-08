@@ -12,7 +12,7 @@ const weekday=(date:string)=>new Intl.DateTimeFormat('en-US',{weekday:'long',tim
 
 function slotDescription(slot:ProposedSlot){
   if(slot.kind==='prerelease')return `${slot.title}. Possible prerelease night, not a confirmed store event; regular Modern is not assumed.`;
-  if(slot.kind==='tbd')return 'TBD — Friday Modern on this holiday has not been confirmed. If held, results count toward 2028 Season 1.';
+  if(slot.kind==='tbd')return `TBD — no event is confirmed for this date. If Modern is held, results count toward ${slot.season===5?'2028 Season 1':`2027 Season ${slot.season}`}.`;
   if(slot.kind==='seasonal')return `Proposed 2027 Season ${slot.season} Championship, replacing regular Friday Modern. Not confirmed.`;
   if(slot.kind==='annual')return 'Proposed 2027 League Championship, replacing regular Friday Modern. Not confirmed.';
   return `Proposed Eternal Games Modern, 6:00 p.m. America/Detroit; counted toward ${slot.season===5?'2028 Season 1':`2027 Season ${slot.season}`}. Store date not independently confirmed.`;
@@ -77,7 +77,7 @@ function DetailedCalendar({slots,onSelect}:{slots:ProposedSlot[];onSelect:(slot:
 }
 export function CalendarPreviewPage(){
   function downloadReviewSheet(){
-    const csv=proposedCalendarReviewCsv();
+    const csv=proposedCalendarReviewCsv(slots);
     const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
     const link=document.createElement('a');
     link.href=url;
@@ -120,7 +120,7 @@ export function CalendarPreviewPage(){
       <h1>The Modern calendar<span className="gold">.</span></h1>
       <p>Four competitive seasons. Administrator-managed proposed dates, subject to store confirmation. Tap a numbered date for details.</p>
       <p role="status" className="season-calendar-load-status">{loadStatus}</p>
-      <div className="calendar-export-tools"><button type="button" className="button button-secondary" onClick={downloadReviewSheet}>Download date verification CSV</button><span className="muted">105 rows · All dates marked UNVERIFIED · No changes to official calendar</span></div>
+      <div className="calendar-export-tools"><button type="button" className="button button-secondary" onClick={downloadReviewSheet}>Download date verification CSV</button><span className="muted">Current visible dates · All marked UNVERIFIED · No official changes</span></div>
       <div className="season-overview-toolbar">
         <div className="season-overview-legend" aria-label="Event color key">
           <span><i className="season-key-modern"/>Regular Modern</span>
@@ -147,12 +147,12 @@ export function CalendarPreviewPage(){
         onClick={()=>choose(annual)} aria-pressed={selected?.date===annual.date}
         aria-label={`${format(annual.date)}: ${slotDescription(annual)}`}>
         <span className="season-annual-kicker">2027 GRAND FINALE</span>
-        <strong>Annual Championship</strong>
+        <strong>League Championship</strong>
         <span className="season-annual-date">{format(annual.date)} <span>· Friday</span></span>
       </button>}
       <section className="season-rollover" aria-label="December rollover into 2028">
         <div><span className="eyebrow">NEXT COMPETITIVE YEAR</span><h2>2028 Season 1 begins in December.</h2>
-          <p>Regular Modern starting December 13 earns 2028 points. December 24 and 31 are TBD, not assumed events. The December 17 annual championship still belongs to 2027.</p></div>
+          <p>Regular events after the fourth seasonal championship count toward 2028 Season 1. The league championship remains a separate 2027 event. Holiday dates can be marked TBD or removed in the scheduler.</p></div>
         <div className="season-rollover-tiles">{rollover.map(slot=><Tile key={slot.date} slot={slot} active={selected?.date===slot.date} onSelect={choose}/>)}</div>
       </section>
     </>:<DetailedCalendar slots={slots} onSelect={choose}/>}
