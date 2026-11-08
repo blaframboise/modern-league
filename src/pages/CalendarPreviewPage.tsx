@@ -9,7 +9,8 @@ const format=(date:string)=>new Intl.DateTimeFormat('en-US',{month:'short',day:'
 const weekday=(date:string)=>new Intl.DateTimeFormat('en-US',{weekday:'long',timeZone:'UTC'}).format(new Date(date+'T12:00:00Z'));
 
 function slotDescription(slot:ProposedSlot){
-  if(slot.kind==='prerelease')return `${slot.title}. Tentative exclusion; store event not verified.`;
+  if(slot.kind==='prerelease')return `${slot.title}. Possible prerelease night, not a confirmed store event; regular Modern is not assumed.`;
+  if(slot.kind==='tbd')return 'TBD — Friday Modern on this holiday has not been confirmed. If held, results count toward 2028 Season 1.';
   if(slot.kind==='seasonal')return `Proposed 2027 Season ${slot.season} Championship, replacing regular Friday Modern. Not confirmed.`;
   if(slot.kind==='annual')return 'Proposed 2027 Annual Championship, replacing regular Friday Modern. Not confirmed.';
   return `Proposed Eternal Games Modern, 6:00 p.m. America/Detroit; counted toward ${slot.season===5?'2028 Season 1':`2027 Season ${slot.season}`}. Store date not independently confirmed.`;
@@ -31,7 +32,7 @@ function Tile({slot,active,onSelect}:{slot:ProposedSlot;active:boolean;onSelect:
     className={`season-date-tile season-date-${slot.kind}${active?' is-selected':''}`}>
     <span className="season-date-day">{Number(slot.date.slice(8,10))}</span>
     <span className="season-date-weekday" aria-hidden="true">{weekday(slot.date)==='Monday'?'M':'F'}</span>
-    {slot.kind==='prerelease'&&<span className="season-date-slash" aria-hidden="true">/</span>}
+
   </button>;
 }
 function SeasonColumn({season,slots,selected,onSelect}:{
@@ -63,7 +64,7 @@ function DetailedCalendar({slots,onSelect}:{slots:ProposedSlot[];onSelect:(slot:
   return <section className="season-detail-list" aria-label="Detailed proposed calendar">
     <div className="calendar-filters">
       <label>Month<select value={month} onChange={e=>setMonth(e.target.value)}><option value="all">All months</option>{monthNames.map((name,i)=><option key={name} value={String(i+1).padStart(2,'0')}>{name}</option>)}</select></label>
-      <label>Type<select value={category} onChange={e=>setCategory(e.target.value)}><option value="all">All events</option><option value="modern">Modern</option><option value="prerelease">Prerelease hold</option><option value="seasonal">Seasonal championship</option><option value="annual">Annual championship</option></select></label>
+      <label>Type<select value={category} onChange={e=>setCategory(e.target.value)}><option value="all">All events</option><option value="modern">Modern</option><option value="prerelease">Prerelease</option><option value="tbd">TBD / Holiday</option><option value="seasonal">Seasonal championship</option><option value="annual">Annual championship</option></select></label>
     </div>
     <p className="muted">Showing {filtered.length} of {slots.length} proposed slots.</p>
     <div className="calendar-proposal-list">{filtered.map(slot=><button key={slot.date} type="button" onClick={()=>onSelect(slot)} className={`season-detail-row calendar-proposal-${slot.kind}`}>
@@ -78,9 +79,10 @@ export function CalendarPreviewPage(){
   const slots=useMemo(()=>proposedCalendar2027(),[]);
   const seasons=[1,2,3,4];
   const annual=slots.find(s=>s.kind==='annual');
-  const rollover=slots.filter(s=>s.season===5&&s.kind==='modern');
+  const rollover=slots.filter(s=>s.season===5&&(s.kind==='modern'||s.kind==='tbd'));
   const regularCount=slots.filter(s=>s.kind==='modern').length;
   const exclusionCount=slots.filter(s=>s.kind==='prerelease').length;
+  const tbdCount=slots.filter(s=>s.kind==='tbd').length;
   const championshipCount=proposedChampionships2027.length;
   const choose=(slot:ProposedSlot)=>setSelected(current=>current?.date===slot.date?null:slot);
   return <div className="container season-overview-page">
@@ -91,7 +93,8 @@ export function CalendarPreviewPage(){
       <div className="season-overview-toolbar">
         <div className="season-overview-legend" aria-label="Event color key">
           <span><i className="season-key-modern"/>Regular Modern</span>
-          <span><i className="season-key-prerelease"/>Prerelease hold</span>
+          <span><i className="season-key-prerelease"/>Prerelease</span>
+          <span><i className="season-key-tbd"/>TBD / Holiday</span>
           <span><i className="season-key-championship"/>Season championship</span>
         </div>
         <div className="season-view-toggle" role="group" aria-label="Calendar presentation">
@@ -118,12 +121,12 @@ export function CalendarPreviewPage(){
       </button>}
       <section className="season-rollover" aria-label="December rollover into 2028">
         <div><span className="eyebrow">NEXT COMPETITIVE YEAR</span><h2>2028 Season 1 begins in December.</h2>
-          <p>Regular Modern starting December 13 earns 2028 points. The December 17 annual championship still belongs to 2027.</p></div>
+          <p>Regular Modern starting December 13 earns 2028 points. December 24 and 31 are TBD, not assumed events. The December 17 annual championship still belongs to 2027.</p></div>
         <div className="season-rollover-tiles">{rollover.map(slot=><Tile key={slot.date} slot={slot} active={selected?.date===slot.date} onSelect={choose}/>)}</div>
       </section>
     </>:<DetailedCalendar slots={slots} onSelect={choose}/>}
     <footer className="season-overview-footer">
-      <p>{regularCount} provisional regular nights · {exclusionCount} likely prerelease holds · {championshipCount} proposed championships. Numbers show dates of the month; M/F indicates Monday or Friday.</p>
+      <p>{regularCount} proposed regular nights · {exclusionCount} provisional prereleases · {tbdCount} holiday dates TBD · {championshipCount} proposed championships. Numbers show dates of the month; M/F indicates Monday or Friday.</p>
       <p>These are planning assumptions, not confirmed store events. The public official events page remains unchanged. <a href="https://eternalgamesllc.com/events" target="_blank" rel="noreferrer">Eternal Games schedule</a> · <a href="https://magic.wizards.com/en/news/announcements/everything-announced-for-the-magic-multiverse-in-2027" target="_blank" rel="noreferrer">2027 release announcements</a>.</p>
       <Link className="back-link" to="/">Return to Modern League</Link>
     </footer>
