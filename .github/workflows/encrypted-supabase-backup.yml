@@ -48,9 +48,9 @@ jobs:
           set -euo pipefail
           umask 077
           mkdir -m 700 "$RUNNER_TEMP/modern-league-backup"
-          supabase db dump --remote="$SUPABASE_DB_URL" -f "$RUNNER_TEMP/modern-league-backup/roles.sql" --role-only
-          supabase db dump --remote="$SUPABASE_DB_URL" -f "$RUNNER_TEMP/modern-league-backup/schema.sql"
-          supabase db dump --remote="$SUPABASE_DB_URL" -f "$RUNNER_TEMP/modern-league-backup/data.sql" --data-only --use-copy -x "storage.buckets_vectors" -x "storage.vector_indexes"
+          supabase db dump --db-url="$SUPABASE_DB_URL" -f "$RUNNER_TEMP/modern-league-backup/roles.sql" --role-only
+          supabase db dump --db-url="$SUPABASE_DB_URL" -f "$RUNNER_TEMP/modern-league-backup/schema.sql"
+          supabase db dump --db-url="$SUPABASE_DB_URL" -f "$RUNNER_TEMP/modern-league-backup/data.sql" --data-only --use-copy -x "storage.buckets_vectors" -x "storage.vector_indexes"
           test -s "$RUNNER_TEMP/modern-league-backup/roles.sql"
           test -s "$RUNNER_TEMP/modern-league-backup/schema.sql"
           test -s "$RUNNER_TEMP/modern-league-backup/data.sql"
