@@ -327,6 +327,19 @@ export function OfficialImportPage() {
         {error && <strong className="import-error">{error}</strong>}
         {notice && <span>{notice}</span>}
       </div>}
+      {step==='select' && drafts.length>0 && <section className="admin-resume-panel" aria-label="Resume an earlier upload">
+        <h2>Resume an earlier upload</h2>
+        <p>Reviews and screenshots are saved securely. Resume player matching, or reopen the screenshot to make corrections.</p>
+        <div className="admin-resume-list">
+          {drafts.slice(-5).reverse().map(item=><div className="admin-resume-entry" key={item.id}>
+            <strong>{draftLabels[item.id]??`Saved upload · ${item.id.slice(0,8)}`}</strong>
+            <div className="admin-resume-actions">
+              <Link className="admin-link-button" to={`/publish-results?draft=${encodeURIComponent(item.id)}`}>Resume player matching</Link>
+              <button type="button" disabled={busy} onClick={()=>void loadDraft(item.id)}>Edit screenshot review</button>
+            </div>
+          </div>)}
+        </div>
+      </section>}
       {step==='select' && <div className="import-panel">
         <h2>Choose a tournament screenshot</h2>
         <label className="import-file">Upload Results
