@@ -17,6 +17,8 @@ type Alias={player_id:string;alias:string};
 type Linked={rowId:string;playerId:string;displayName:string};
 type SavedCalendar={revision:number;overrides:ReturnType<typeof parseCalendarOverrides>};
 type MatchRegistry='official'|'test';
+type SavedTest={id:string;draft_id:string;event_name:string;revision:number};
+const mappingKey=(id:string,revision:number)=>`modern-league:player-matches:${id}:r${revision}`;
 
 /** This is the only entry point for official publication; sandbox records never enter this flow. */
 export function PublishResultsPage(){
@@ -34,6 +36,8 @@ export function PublishResultsPage(){
   const [testPlayers,setTestPlayers]=useState<OfficialPlayer[]>([]);
   const [testAliases,setTestAliases]=useState<Alias[]>([]);
   const [rehearsalDone,setRehearsalDone]=useState(false);
+  const [savedTests,setSavedTests]=useState<SavedTest[]>([]);
+  const [savedTestId,setSavedTestId]=useState('');
   const [linked,setLinked]=useState<Linked[]>([]);
   const [calendar,setCalendar]=useState<SavedCalendar|null>(null);
   const [reason,setReason]=useState('Administrator verified store results and all player identities.');
@@ -87,20 +91,21 @@ export function PublishResultsPage(){
       try{
         const {data:identity}=await client.auth.getUser();
         if(!identity.user||!(await leagueRepository(client).isAdministrator()))throw Error('Administrator sign-in required.');
-        const [ds,pr,al,cal,testPr,testAl]=await Promise.all([
+        const [ds,pr,al,cal,testPr,testAl,previousTests]=await Promise.all([
           leagueRepository(client).drafts(),
           client.from('players').select('id,display_name').order('display_name'),
           client.from('player_identities').select('player_id,alias'),
           client.from('proposed_calendar_settings').select('revision,overrides').eq('year',2027).single(),
           client.from('sandbox_players').select('id,display_name').order('display_name'),
           client.from('sandbox_player_aliases').select('player_id,alias'),
+          client.from('sandbox_tournaments').select('id,draft_id,event_name,revision'),
         ]);
-        if(pr.error||al.error||cal.error||!cal.data||testPr.error||testAl.error)
+        if(pr.error||al.error||cal.error||!cal.data||testPr.error||testAl.error||previousTests.error)
           throw Error('Unable to load the saved calendar and player registries.');
         const parsed=parseCalendarOverrides(cal.data.overrides);
         if(active){
           setAuthorized(true);setDrafts(ds??[]);setPlayers(pr.data??[]);setAliases(al.data??[]);
-          setTestPlayers(testPr.data??[]);setTestAliases(testAl.data??[]);
+          setTestPlayers(testPr.data??[]);setTestAliases(testAl.data??[]);setSavedTests(previousTests.data??[]);
           setCalendar({revision:cal.data.revision,overrides:parsed});
           setStatus('Private administrator review · Nothing is published automatically.');
         }
@@ -127,7 +132,7 @@ export function PublishResultsPage(){
 
   async function loadDraft(id:string){
     if(!client)return;
-    setBusy(true);setError('');setDraft(null);setConfirmed(false);setPublishedId('');setRehearsalDone(false);
+    setBusy(true);setError('');setDraft(null);setConfirmed(false);setPublishedId('');setRehearsalDone(false);setSavedTestId('');
     try{
       const incoming=await leagueRepository(client).loadDraft(id);
       if(!incoming.corrections.length)throw Error('This screenshot has not been reviewed and saved.');
@@ -142,14 +147,32 @@ export function PublishResultsPage(){
         if(playerId)seen.add(playerId);
         return {rowId:row.rowId,playerId,displayName:suggestDisplayName(row.importedName)};
       });
-      setLinked(initial);
+      // Keep incomplete selections on this device so an interrupted Home Screen
+      // session can resume; actual test records are saved server-side on approval.
+      try {
+        const cached=JSON.parse(localStorage.getItem(mappingKey(id,incoming.corrections.length))||'null');
+        if(Array.isArray(cached) && cached.length===initial.length &&
+           initial.every(row=>cached.some((entry:Linked)=>entry.rowId===row.rowId)) &&
+           cached.every((entry:Linked)=>typeof entry.playerId==='string' && typeof entry.displayName==='string')) {
+          setLinked(initial.map(row=>cached.find((entry:Linked)=>entry.rowId===row.rowId)??row));
+        } else setLinked(initial);
+      } catch {setLinked(initial);}
+      const saved=savedTests.find(t=>t.draft_id===id);
+      if(saved)setStatus('Saved test tournament found. You can review the matching and test standings again.');
+      else setStatus('Saved screenshot review loaded. Confirm each player match before saving a test event.');
     }catch(e){setError(e instanceof Error?e.message:'Unable to load review.');}
     finally{setBusy(false);}
   }
 
   function setPlayer(rowId:string,patch:Partial<Linked>){
     setConfirmed(false);
-    setLinked(old=>old.map(item=>item.rowId===rowId?{...item,...patch}:item));
+    setLinked(old=>{
+      const next=old.map(item=>item.rowId===rowId?{...item,...patch}:item);
+      if(draft) {
+        try {localStorage.setItem(mappingKey(draft.importId,draft.corrections.length),JSON.stringify(next));}catch{/* device storage disabled */}
+      }
+      return next;
+    });
   }
   let points:string[]=[];
   try{
@@ -186,18 +209,49 @@ export function PublishResultsPage(){
     finally{setBusy(false);}
   }
 
+  async function saveRehearsal(){
+    if(!client||!draft||!values||!canCompleteRehearsal)return;
+    setBusy(true);setError('');
+    try {
+      const response=await client.rpc('import_sandbox_tournament_with_players',{
+        p_draft:draft.importId,
+        p_revision:draft.corrections.length,
+        p_name:`${values.tournament.name.trim()} - ${values.tournament.date}`,
+        p_season:1,
+        p_rounds:rounds!,
+        p_links:linked.map(entry=>{
+          const result=values.results.find(row=>row.rowId===entry.rowId)!;
+          return {row_id:entry.rowId,player_id:entry.playerId||null,
+            display_name:entry.playerId?null:entry.displayName.trim(),
+            wins:result.wins,losses:result.losses,draws:result.draws};
+        }) as unknown as Json,
+      });
+      if(response.error)throw Error(response.error.message);
+      setSavedTestId(response.data);
+      setRehearsalDone(true);setConfirmed(false);
+      try {localStorage.removeItem(mappingKey(draft.importId,draft.corrections.length));}catch{/* ignored */}
+      setStatus('Saved to private TEST TOURNAMENTS. Player registrations, matches and results persist across sessions. Nothing was published officially.');
+    }catch(e){setError(e instanceof Error?e.message:'Test save failed. No official results were changed.');}
+    finally{setBusy(false);}
+  }
+
   return <section className="container admin-page official-publication">
     <p className="eyebrow">ADMINISTRATION / OFFICIAL LEAGUE</p>
-    <h1>Publish Results</h1>
-    <p>Step 2 of 3: Match each reviewed screenshot name to a player, verify the complete roster, then approve the final step. Nothing publishes automatically.</p>
+    <h1>Match and Publish Results</h1>
+    <p>Step 2 of 3: Confirm player identities and then save the event. Preseason rehearsals save to private test standings; eligible 2027 events publish only after explicit approval.</p>
     <p role="status">{status}</p>
     {!authorized?loading?<p>Checking access…</p>:<Link to="/admin">Administrator sign in</Link>:<>
-      <label>Reviewed tournament
-        <select value={draft?.importId??''} disabled={busy} onChange={e=>void loadDraft(e.target.value)}>
+      <section className="admin-resume-panel" aria-label="Resume saved tournament">
+        <h2>Resume a tournament</h2>
+        <p>Saved screenshot reviews remain available after closing the app. Choose the event by name and date.</p>
+        <label htmlFor="reviewed-tournament-picker">Choose a saved event</label>
+        <select id="reviewed-tournament-picker" aria-label="Reviewed tournament" value={draft?.importId??''} disabled={busy} onChange={e=>void loadDraft(e.target.value)}>
           <option value="">Select saved screenshot review</option>
           {drafts.map(d=><option key={d.id} value={d.id}>{draftLabels[d.id]??`Loading saved event · ${d.id.slice(0,8)}`}</option>)}
         </select>
-      </label>
+        <p className="admin-resume-note">{draft?'Review loaded. Player selections on this device are retained until you save.':'Tap the selection box above to open your previous work.'}</p>
+        {draft&&<div className="admin-resume-actions"><Link to={`/official-import?draft=${encodeURIComponent(draft.importId)}`}>Edit screenshot review</Link><Link to={`/test-workspace?view=standings`}>View test standings</Link></div>}
+      </section>
       {error&&<p className="import-error" role="alert">{error}</p>}
       {draft&&values&&<>
         <div className="publication-summary">
@@ -206,7 +260,7 @@ export function PublishResultsPage(){
           <p>Calendar: {match?.status==='matched'? `${match.code} · ${match.description}`:match?.status==='blocked'?match.message:'Calendar unavailable'}</p>
           <p>{rounds??'Unknown'} official Swiss rounds · {values.results.length} player results · Review revision {draft.corrections.length}</p>
           {future&&<p className="import-error">Future events cannot be published before the tournament takes place.</p>}
-          {rehearsal&&<p className="calendar-notice" role="status"><strong>2026 preseason rehearsal.</strong> This draft cannot become an official 2027 result. Match against existing TEST players and complete the review below without publishing or registering official players.</p>}
+          {rehearsal&&<p className="calendar-notice" role="status"><strong>2026 preseason rehearsal.</strong> This date is outside the official 2027 league. Matching and approval will SAVE an actual TEST tournament, register new TEST players and update private TEST standings. Official records remain untouched.</p>}
           {!rehearsal&&!classMatches&&<p className="import-error">This event does not match an eligible 2027 league event. <Link to={`/official-import?draft=${draft.importId}`}>Review the tournament again</Link> before publishing.</p>}
         </div>
         <div className="sandbox-table publication-table"><table>
@@ -229,7 +283,7 @@ export function PublishResultsPage(){
             </tr>;
           })}</tbody>
         </table></div>
-        <p className="import-hint">{roster.length} existing {registry} players available. Matching names are suggested but must be verified. Choosing a new player does not merge identities. {rehearsal?'This rehearsal does not create or save player identities.':'New players are registered only when the official event is successfully published.'}</p>
+        <p className="import-hint">{roster.length} existing {registry} players available. Matching names are suggested but must be verified. Choosing a new player does not merge identities. {rehearsal?'New test players and matching results are saved to the private TEST registry when you approve.':'New players are registered only when the official event is successfully published.'}</p>
         <label>{rehearsal?'Rehearsal review note':'Publication reason'} <textarea rows={2} maxLength={2000} disabled={busy} value={reason} onChange={e=>{setReason(e.target.value);setConfirmed(false);setRehearsalDone(false)}}/></label>
         {blocker&&<p className="import-error" role="alert">{blocker}</p>}
         <label className="sandbox-confirm"><input type="checkbox"
@@ -240,9 +294,10 @@ export function PublishResultsPage(){
             :'I verified the store\'s results, date, scheduled rounds, final placements when applicable, and every player identity. Publish these records as official league results.'}
         </label>
         {rehearsal
-          ?<button type="button" disabled={!canCompleteRehearsal} onClick={()=>{setRehearsalDone(true);setConfirmed(false);setStatus('Preseason matching rehearsal completed in this session. No official results or players were created.');}}>Complete matching rehearsal</button>
+          ?<button type="button" disabled={!canCompleteRehearsal} onClick={()=>void saveRehearsal()}>Save test tournament and update standings</button>
           :<button disabled={!canPublish} onClick={()=>void publish()}>{busy?'Publishing…':'Publish Results'}</button>}
-        {rehearsalDone&&<p className="sandbox-success" role="status">Matching rehearsal finished. Nothing was published or saved to official standings.</p>}
+        {rehearsalDone&&<p className="sandbox-success" role="status">Test tournament saved. Test-player registrations and standings are persistent; nothing was published officially.</p>}
+        {savedTestId&&<p className="sandbox-success" role="status">Private test tournament saved: {savedTestId}. <Link to="/test-workspace?view=standings">Open updated test standings</Link>. To correct it, use <Link to="/edit-tournaments">Edit a Tournament’s Results</Link>.</p>}
         {publishedId&&<p className="sandbox-success" role="status">Published official tournament result {publishedId}. The event is now part of the official records.</p>}
         <p className="import-hint">Published results can be corrected only through the audited official correction workflow. Original publication history remains immutable.</p>
       </>}

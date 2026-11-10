@@ -50,7 +50,7 @@ export function TestWorkspacePage({editMode=false}:{editMode?:boolean}) {
   const [busy,setBusy]=useState(false);
   const [error,setError]=useState('');
   const [message,setMessage]=useState('');
-  const [tab,setTab]=useState<'players'|'events'|'standings'>(editMode||incomingDraft?'events':'players');
+  const [tab,setTab]=useState<'players'|'events'|'standings'>(searchParams.get('view')==='standings'&&!editMode?'standings':editMode||incomingDraft?'events':'players');
   const [mappingReviewed,setMappingReviewed]=useState(false);
 
   async function refresh() {
