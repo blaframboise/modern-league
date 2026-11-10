@@ -94,7 +94,7 @@ const assert = require('node:assert/strict');
    const publish=page.getByRole('button',{name:'Publish Results',exact:true});
    assert.equal(await publish.isEnabled(),true);
    await publish.click();
-   await page.getByText('Published official tournament result',{exact:false}).waitFor();
+   await page.getByRole('heading',{name:'Official tournament published'}).waitFor();
    assert.equal(publishes,1);
    await page.getByRole('heading',{name:'Official tournament published'}).waitFor();
    const officialPrimary=page.getByRole('link',{name:'1. View official standings'});
