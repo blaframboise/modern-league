@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { supabaseConfiguration } from '../data/client';
 import { leagueRepository } from '../data/repository';
@@ -32,6 +32,7 @@ export function PublishResultsPage(){
   const [status,setStatus]=useState('Checking administrator access…');
   const [drafts,setDrafts]=useState<{id:string;created_at?:string;original?:unknown}[]>([]);
   const [draftLabels,setDraftLabels]=useState<Record<string,string>>({});
+  const autoResumeAttempted=useRef(false);
   const [draft,setDraft]=useState<ImportDraft|null>(null);
   const [players,setPlayers]=useState<OfficialPlayer[]>([]);
   const [aliases,setAliases]=useState<Alias[]>([]);
@@ -156,6 +157,20 @@ export function PublishResultsPage(){
   // eslint-disable-next-line react-hooks/exhaustive-deps
   },[authorized,requestedDraft,drafts,client]);
 
+  // When entering from Administration without a draft link, reopen the most recent
+  // REVIEWED event. Never guess from an unfinished screenshot or repeatedly
+  // override the administrator's manual selection.
+  useEffect(()=>{
+    if(!authorized||requestedDraft||autoResumeAttempted.current||!drafts.length||!Object.keys(draftLabels).length)return;
+    autoResumeAttempted.current=true;
+    const reviewed=[...drafts].reverse().find(item=>{
+      const label=draftLabels[item.id];
+      return label && !label.startsWith('Unreviewed screenshot');
+    });
+    if(reviewed)void loadDraft(reviewed.id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[authorized,requestedDraft,drafts,draftLabels]);
+
   async function loadDraft(id:string){
     if(!client)return;
     setBusy(true);setError('');setDraft(null);setConfirmed(false);setPublishedId('');setRehearsalDone(false);setSavedTestId('');setRoundsOverride('');
@@ -265,19 +280,19 @@ export function PublishResultsPage(){
   return <section className="container admin-page official-publication">
     <p className="eyebrow">ADMINISTRATION / OFFICIAL LEAGUE</p>
     <h1>{rehearsal?'Test Tournament — Player Matching':'Match and Publish Results'}</h1>
-    {authorized&&<ImportProgress stage={publishedId||rehearsalDone?6:draft&&recordsValid&&rosterValid?5:draft?4:3} draftId={draft?.importId} />}
-    <p>Step 2 of 3: Confirm player identities and then save the event. Preseason rehearsals save to private test standings; eligible 2027 events publish only after explicit approval.</p>
+    {authorized&&<ImportProgress stage={publishedId||rehearsalDone?6:confirmed&&recordsValid&&rosterValid?5:4} draftId={draft?.importId} />}
+    <p className="workflow-intro">Match the names from the reviewed screenshot to players. Check any missing event details, then use the final confirmation to save. Preseason events save to private test standings; eligible 2027 events use official publication.</p>
     <p role="status">{status}</p>
     {!authorized?loading?<p>Checking access…</p>:<Link to="/admin">Administrator sign in</Link>:<>
       <section className="admin-resume-panel" aria-label="Resume saved tournament">
         <h2>Resume a tournament</h2>
         <p>Saved screenshot reviews remain available after closing the app. Choose the event by name and date.</p>
-        <label htmlFor="reviewed-tournament-picker">Choose a saved event</label>
+        <label htmlFor="reviewed-tournament-picker">Choose a saved event <span className="control-hint">Tap the bordered box to select a tournament</span></label>
         <select id="reviewed-tournament-picker" aria-label="Reviewed tournament" value={draft?.importId??''} disabled={busy} onChange={e=>void loadDraft(e.target.value)}>
           <option value="">Select saved screenshot review</option>
           {drafts.map(d=><option key={d.id} value={d.id}>{draftLabels[d.id]??`Loading saved event · ${d.id.slice(0,8)}`}</option>)}
         </select>
-        <p className="admin-resume-note">{draft?'Review loaded. Player selections on this device are retained until you save.':'Tap the selection box above to open your previous work.'}</p>
+        <p className="admin-resume-note">{draft?'Review loaded. Player selections are retained on this device until saved.':busy?'Opening your most recent review…':'Select the event above to continue matching players.'}</p>
         {draft&&<div className="admin-resume-actions"><Link to={`/official-import?draft=${encodeURIComponent(draft.importId)}`}>Edit screenshot review</Link><Link to={`/test-workspace?view=standings`}>View test standings</Link></div>}
       </section>
       {error&&<p className="import-error" role="alert">{error}</p>}

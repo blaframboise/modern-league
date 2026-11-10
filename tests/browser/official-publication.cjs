@@ -76,6 +76,17 @@ const assert = require('node:assert/strict');
    });
    await page.goto((process.env.SECURE_BASE_URL||'http://127.0.0.1:5174')+'/publish-results');
    await page.getByRole('heading',{name:'Match and Publish Results'}).waitFor();
+   // Native iPhone controls must be unmistakably interactive, not plain text.
+   const selector=page.getByLabel('Reviewed tournament');
+   await selector.waitFor();
+   const appearance=await selector.evaluate(element=>{
+     const css=getComputedStyle(element);
+     return {border:parseFloat(css.borderTopWidth),background:css.backgroundColor,height:element.getBoundingClientRect().height};
+   });
+   assert.ok(appearance.border>=2,'Saved-event selector must have a visible border');
+   assert.ok(appearance.height>=48,'Saved-event selector needs a full touch target');
+   assert.notEqual(appearance.background,'rgba(0, 0, 0, 0)','Select must have a contrasting background');
+   await page.getByText('Step 4 of 5',{exact:false}).waitFor();
    await page.getByLabel('Reviewed tournament').selectOption(draft);
    await page.getByText('Synthetic FNM',{exact:true}).first().waitFor();
    await page.getByLabel('Publication reason').fill('Reviewed original result');
