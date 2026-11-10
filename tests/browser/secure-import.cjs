@@ -31,6 +31,8 @@ const assert = require('node:assert/strict');
           if (request.method()==='POST') { sandboxAliases.push(request.postDataJSON()); return reply([],201); }
           return reply(sandboxAliases);
         }
+        if (url.pathname === '/rest/v1/players') return reply([]);
+        if (url.pathname === '/rest/v1/player_identities') return reply([]);
         if (url.pathname === '/rest/v1/sandbox_tournaments') return reply(sandboxTournaments);
         if (url.pathname === '/rest/v1/sandbox_results') return reply(sandboxResults);
         if (url.pathname === '/rest/v1/rpc/correct_sandbox_tournament_results') {
@@ -128,14 +130,15 @@ const assert = require('node:assert/strict');
       await page.getByLabel('Player 1 draws').fill('0');
       await page.getByRole('checkbox',{name:/I checked the tournament date/}).check();
       await page.getByRole('button',{name:'Save reviewed results'}).click();
-      await page.getByRole('heading',{name:'Review saved'}).waitFor({timeout:6000}).catch(async failure=>{throw new Error(`Second correction failed: ${await page.locator('.import-feedback').allTextContents()} ${String(failure)}`)});
+      await page.getByRole('heading',{name:'Publish Results'}).waitFor({timeout:6000}).catch(async failure=>{throw new Error(`Automatic transition to matching failed: ${await page.locator('.import-feedback').allTextContents()} ${String(failure)}`)});
       assert.equal(corrections.length,1);
       assert.equal(corrections[0].snapshot.values.tournament.name,'Human-checked result');
       assert.equal(corrections[0].snapshot.values.tournament.year,2027);
       assert.equal(corrections[0].snapshot.values.tournament.kind,'regular');
       assert.equal(corrections[0].snapshot.values.tournament.seasonId,'s1');
       assert.equal(corrections[0].snapshot.values.results[0].playerId,null);
-      await page.getByRole('button',{name:'Continue to player matching (test only)'}).click();
+      // The official matching step is automatic. Enter the separate sandbox only for simulation.
+      await page.goto(`${process.env.SECURE_BASE_URL || 'http://127.0.0.1:5174'}/test-workspace?draft=${drafts[0].id}`);
       await page.getByRole('heading',{name:'Test workspace'}).waitFor();
       await page.getByRole('heading',{name:'Confirm players and test results'}).waitFor();
       await page.getByLabel('Match Verified player').waitFor();

@@ -331,7 +331,10 @@ export function OfficialImportPage() {
       const loaded = await leagueRepository(client!).loadDraft(draft.importId);
       setDraft(loaded);setValues(effectiveValues(loaded));setStep('saved');setCorrecting(false);
       setDraftLabelRefresh(previous=>previous+1);
-      setNotice(matched.status==='historical'?'Historical review saved privately. This tournament cannot be published to the 2027 league.':'Review saved. Continue to official player matching and publication, or use the private test workspace. Nothing is published automatically.');
+      setNotice('Review saved. Opening player matching; nothing is published automatically.');
+      if (!returnToEditor) {
+        navigate(`/publish-results?draft=${encodeURIComponent(draft.importId)}`,{replace:true});
+      }
     });
   }
   const canReview = !!values && !!draft && !!assets.length && (readyToMatch || historicalTest) && !!values.tournament.name.trim();
@@ -432,7 +435,7 @@ export function OfficialImportPage() {
           </>}
           {step==='saved' && <div className="import-actions">
             {draft?.corrections.length ? <>
-              {!historicalTest&&<button type="button" disabled={busy} onClick={()=>navigate(`/publish-results?draft=${encodeURIComponent(draft.importId)}`)}>Continue to official player matching and publication</button>}
+              <button type="button" disabled={busy} onClick={()=>navigate(`/publish-results?draft=${encodeURIComponent(draft.importId)}`)}>{historicalTest?'Continue to preseason player matching (rehearsal only)':'Continue to official player matching and publication'}</button>
               {!historicalTest&&<button type="button" disabled={busy} onClick={()=>navigate(`${returnToEditor?'/edit-tournaments':'/test-workspace'}?draft=${encodeURIComponent(draft.importId)}`)}>Continue to player matching (test only)</button>}
             </> : null}
             <button type="button" disabled={busy} onClick={() => {setStep('review');setCorrecting(true);setReviewed(false);setNotice('Editing a saved test draft will append another review revision; the previous version remains in the audit trail.');}}>Edit saved draft</button>
