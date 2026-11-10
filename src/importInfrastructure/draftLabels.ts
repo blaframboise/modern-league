@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '../data/database';
+import type { Database } from '../data/database.ts';
 
 export type DraftSummary = { id: string; original?: unknown; created_at?: string };
 type CorrectionSummary = { draft_id: string; revision: number; snapshot: unknown };
