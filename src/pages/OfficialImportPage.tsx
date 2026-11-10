@@ -17,6 +17,7 @@ import { parseCalendarOverrides } from '../calendar/scheduler';
 import type { CalendarOverrides } from '../calendar/scheduler';
 import { calculateRegularEventPoints } from '../scoring/regular';
 import { calculateChampionshipPoints } from '../scoring/championship';
+import { ImportProgress } from '../components/ImportProgress';
 
 type Asset = { id: string; object_path: string; sha256: string; byte_size: number };
 type Step = 'select' | 'confirm' | 'processing' | 'review' | 'saved';
@@ -318,10 +319,7 @@ export function OfficialImportPage() {
       <Link to="/admin">Administrator access</Link>
     </div>
     {!authorized ? <p role="status">{client ? authStatus : configurationError ?? 'Supabase is unavailable.'}</p> : <>
-      <nav className="import-progress" aria-label="Import progress">
-        {(['Upload','Confirm','Analyze','Review'] as const).map((label,index) =>
-          <span key={label} className={['select','confirm','processing','review','saved'].indexOf(step)>=index?'current':''}>{index+1}. {label}</span>)}
-      </nav>
+      <ImportProgress stage={step==='select'||step==='confirm'?1:step==='processing'?2:step==='review'?3:4} draftId={draft?.importId} />
       {(error || notice || busy) && <div className="import-feedback" role="status" aria-live="polite">
         {busy && <span className="import-spinner" aria-hidden="true" />}
         {error && <strong className="import-error">{error}</strong>}

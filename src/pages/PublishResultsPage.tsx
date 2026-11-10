@@ -10,6 +10,7 @@ import { resolveScheduledEvent } from '../calendar/importMatch';
 import { parseCalendarOverrides } from '../calendar/scheduler';
 import { calculateRegularEventPoints } from '../scoring/regular';
 import { calculateChampionshipPoints } from '../scoring/championship';
+import { ImportProgress } from '../components/ImportProgress';
 import type { Json } from '../data/database';
 
 type OfficialPlayer={id:string;display_name:string};
@@ -41,6 +42,7 @@ export function PublishResultsPage(){
   const [linked,setLinked]=useState<Linked[]>([]);
   const [calendar,setCalendar]=useState<SavedCalendar|null>(null);
   const [reason,setReason]=useState('Administrator verified store results and all player identities.');
+  const [roundsOverride,setRoundsOverride]=useState('');
   const [confirmed,setConfirmed]=useState(false);
   const [busy,setBusy]=useState(false);
   const [error,setError]=useState('');
@@ -68,17 +70,40 @@ export function PublishResultsPage(){
   const rosterValid=!!linked.length&&linked.length===values?.results.length &&
     distinctExisting.length===new Set(distinctExisting).size &&
     linked.every(x=>x.playerId||x.displayName.trim().length>=2);
-  const rounds=values?.tournament.scheduledRounds;
-  const recordsValid=!!rounds&&Number.isSafeInteger(rounds)&&rounds>0&&!!values?.results.length&&
+  const enteredRounds=/^\d+$/.test(roundsOverride)?Number(roundsOverride):null;
+  const rounds=values?.tournament.scheduledRounds ?? (rehearsal?enteredRounds:null);
+  const recordsValid=!!rounds&&Number.isSafeInteger(rounds)&&rounds>0&&rounds<=20&&!!values?.results.length&&
     values.results.every(row=>row.importedName.trim()&&row.wins!==null&&row.losses!==null&&row.draws!==null&&
       Number.isSafeInteger(row.wins)&&Number.isSafeInteger(row.losses)&&Number.isSafeInteger(row.draws)&&
       row.wins>=0&&row.losses>=0&&row.draws>=0&&row.wins+row.losses+row.draws<=rounds&&
       (match?.status!=='matched'||match.kind==='regular'||!!row.finalPosition));
+  const validationIssues:string[]=[];
+  if(draft && values){
+    if(!rounds || !Number.isSafeInteger(rounds) || rounds<1 || rounds>20)
+      validationIssues.push('Swiss rounds: select the total rounds played (1–20) before continuing.');
+    if(!values.results.length)validationIssues.push('No player results are saved. Return to screenshot review.');
+    values.results.forEach((row,index)=>{
+      const label=row.importedName.trim()||`Player ${index+1}`;
+      const missing=[
+        row.wins===null?'wins':null,row.losses===null?'losses':null,row.draws===null?'draws':null,
+      ].filter(Boolean);
+      if(missing.length)validationIssues.push(`${label}: missing ${missing.join(', ')}.`);
+      else if(rounds && Number.isSafeInteger(rounds) &&
+        row.wins!+row.losses!+row.draws!>rounds)
+        validationIssues.push(`${label}: match record exceeds ${rounds} Swiss rounds.`);
+      if(match?.status==='matched' && match.kind!=='regular' && !row.finalPosition)
+        validationIssues.push(`${label}: championship final placement is missing.`);
+    });
+  }
+  const duplicateIds=linked.filter(x=>x.playerId).map(x=>x.playerId);
+  if(duplicateIds.length!==new Set(duplicateIds).size)validationIssues.push('Two rows are matched to the same registered player. Correct the selections below.');
+  if(linked.some(x=>!x.playerId&&x.displayName.trim().length<2))
+    validationIssues.push('Some new players have no display name. Enter at least two characters for every new player.');
   const canPublish=authorized&&!busy&&!publishedId&&confirmed&&!!reason.trim()&&
     !!draft?.corrections.length&&classMatches&&!future&&rosterValid&&recordsValid;
   const canCompleteRehearsal=authorized&&!busy&&rehearsal&&!rehearsalDone&&confirmed&&
     !!draft?.corrections.length&&!!reason.trim()&&rosterValid&&recordsValid;
-  const blocker=!draft?'':future?'This event is in the future. Publication is not yet available.':
+  const blocker=!draft?'':validationIssues.length?validationIssues[0]:future?'This event is in the future. Publication is not yet available.':
     !recordsValid?'Some player results or scheduled rounds are missing or invalid. Return to screenshot review to correct them.':
     !rosterValid?'Resolve duplicate player selections and fill in every new player name (at least two characters).':
     !classMatches&&!rehearsal?'This event is not eligible for official 2027 publication. Check its date and calendar classification.':
@@ -132,7 +157,7 @@ export function PublishResultsPage(){
 
   async function loadDraft(id:string){
     if(!client)return;
-    setBusy(true);setError('');setDraft(null);setConfirmed(false);setPublishedId('');setRehearsalDone(false);setSavedTestId('');
+    setBusy(true);setError('');setDraft(null);setConfirmed(false);setPublishedId('');setRehearsalDone(false);setSavedTestId('');setRoundsOverride('');
     try{
       const incoming=await leagueRepository(client).loadDraft(id);
       if(!incoming.corrections.length)throw Error('This screenshot has not been reviewed and saved.');
@@ -237,7 +262,8 @@ export function PublishResultsPage(){
 
   return <section className="container admin-page official-publication">
     <p className="eyebrow">ADMINISTRATION / OFFICIAL LEAGUE</p>
-    <h1>Match and Publish Results</h1>
+    <h1>{rehearsal?'Test Tournament — Player Matching':'Match and Publish Results'}</h1>
+    {authorized&&<ImportProgress stage={publishedId||rehearsalDone?6:draft&&recordsValid&&rosterValid?5:draft?4:3} draftId={draft?.importId} />}
     <p>Step 2 of 3: Confirm player identities and then save the event. Preseason rehearsals save to private test standings; eligible 2027 events publish only after explicit approval.</p>
     <p role="status">{status}</p>
     {!authorized?loading?<p>Checking access…</p>:<Link to="/admin">Administrator sign in</Link>:<>
@@ -258,7 +284,16 @@ export function PublishResultsPage(){
           <strong>{values.tournament.name||'Unnamed tournament'}</strong>
           <p>Date: <time dateTime={values.tournament.date}>{values.tournament.date||'Missing'}</time></p>
           <p>Calendar: {match?.status==='matched'? `${match.code} · ${match.description}`:match?.status==='blocked'?match.message:'Calendar unavailable'}</p>
-          <p>{rounds??'Unknown'} official Swiss rounds · {values.results.length} player results · Review revision {draft.corrections.length}</p>
+          <p>{values.results.length} player results · Review revision {draft.corrections.length}</p>
+          {rehearsal&&<label className="required-rounds" htmlFor="verified-rounds">
+            <strong>Swiss rounds played {values.tournament.scheduledRounds?'(from screenshot)':'— REQUIRED'}</strong>
+            <span>Confirm the number of Swiss rounds from the store's results. This was not captured in tonight's saved screenshot review.</span>
+            <select id="verified-rounds" aria-label="Swiss rounds played" disabled={busy||!!values.tournament.scheduledRounds}
+              value={rounds?String(rounds):''} onChange={e=>{setRoundsOverride(e.target.value);setConfirmed(false);}}>
+              <option value="">Select number of rounds…</option>
+              {Array.from({length:20},(_,i)=>i+1).map(n=><option value={n} key={n}>{n} round{n===1?'':'s'}</option>)}
+            </select>
+          </label>}
           {future&&<p className="import-error">Future events cannot be published before the tournament takes place.</p>}
           {rehearsal&&<p className="calendar-notice" role="status"><strong>2026 preseason rehearsal.</strong> This date is outside the official 2027 league. Matching and approval will SAVE an actual TEST tournament, register new TEST players and update private TEST standings. Official records remain untouched.</p>}
           {!rehearsal&&!classMatches&&<p className="import-error">This event does not match an eligible 2027 league event. <Link to={`/official-import?draft=${draft.importId}`}>Review the tournament again</Link> before publishing.</p>}
@@ -285,7 +320,12 @@ export function PublishResultsPage(){
         </table></div>
         <p className="import-hint">{roster.length} existing {registry} players available. Matching names are suggested but must be verified. Choosing a new player does not merge identities. {rehearsal?'New test players and matching results are saved to the private TEST registry when you approve.':'New players are registered only when the official event is successfully published.'}</p>
         <label>{rehearsal?'Rehearsal review note':'Publication reason'} <textarea rows={2} maxLength={2000} disabled={busy} value={reason} onChange={e=>{setReason(e.target.value);setConfirmed(false);setRehearsalDone(false)}}/></label>
-        {blocker&&<p className="import-error" role="alert">{blocker}</p>}
+        {validationIssues.length>0&&<section className="validation-issues" role="alert">
+          <h2>Complete these fields before saving</h2>
+          <ul>{validationIssues.map((issue,i)=><li key={i}>{issue}</li>)}</ul>
+          <p>Missing or incorrect screenshot values can be fixed in <Link to={`/official-import?draft=${encodeURIComponent(draft.importId)}`}>screenshot review</Link>.</p>
+        </section>}
+        {blocker&&!validationIssues.length&&<p className="import-error" role="alert">{blocker}</p>}
         <label className="sandbox-confirm"><input type="checkbox"
           disabled={busy||future||(!classMatches&&!rehearsal)||!recordsValid||!rosterValid||!!publishedId||rehearsalDone}
           checked={confirmed} onChange={e=>setConfirmed(e.target.checked)}/>
