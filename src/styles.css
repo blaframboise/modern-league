@@ -678,3 +678,13 @@ h1{font-size:clamp(38px,4.5vw,61px);letter-spacing:.02em;font-weight:400}
 .import-linked-warning p{margin:8px 0}
 .import-linked-warning a{font-weight:700;text-decoration:underline;text-underline-offset:3px}
 @media(max-width:600px){.admin-shortcuts{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin;padding-bottom:12px}.admin-shortcuts a{flex:0 0 auto;white-space:nowrap}}
+
+/* Production build identification and installable Home Screen update controls. */
+.app-version { margin: 35px 0 45px; padding: 20px 24px; border: 1px solid #444a3b; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap; background: #161a15; }
+.app-version p { margin: 5px 0; font-size: 13px; }
+.app-version strong { color: #dec38b; }
+.app-version-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.app-version-actions button { border: 1px solid #7b816f; color: #f0f0e9; background: #22281e; border-radius: 6px; padding: 10px 13px; min-height: 44px; }
+.app-version-actions button:last-child { background: #dec38b; color: #101210; font-weight: 800; }
+.app-version-actions button:disabled { opacity: 0.55; cursor: not-allowed; }
+@media (max-width: 600px) { .app-version { padding: 16px; } .app-version-actions { width: 100%; } .app-version-actions button { flex: 1; } }

@@ -5,6 +5,7 @@ import { leagueRepository } from '../data/repository';
 import { effectiveValues, potentialPlayers } from '../results';
 import type { ImportDraft, ImportedResult } from '../results';
 import { suggestDisplayName } from '../importInfrastructure/displayNames';
+import { fetchDraftLabels } from '../importInfrastructure/draftLabels';
 import { calculateStandings } from '../scoring/standings';
 import { calculateRegularEventPoints } from '../scoring/regular';
 import type { StandingsInput } from '../scoring/standings';
@@ -33,7 +34,8 @@ export function TestWorkspacePage({editMode=false}:{editMode?:boolean}) {
   const [allowed,setAllowed]=useState(false);
   const [people,setPeople]=useState<Person[]>([]);
   const [aliases,setAliases]=useState<Alias[]>([]);
-  const [draftOptions,setDraftOptions]=useState<{id:string}[]>([]);
+  const [draftOptions,setDraftOptions]=useState<{id:string;original?:unknown;created_at?:string}[]>([]);
+  const [draftLabels,setDraftLabels]=useState<Record<string,string>>({});
   const [events,setEvents]=useState<Tournament[]>([]);
   const [savedResults,setSavedResults]=useState<Result[]>([]);
   const [draft,setDraft]=useState<ImportDraft|null>(null);
@@ -82,6 +84,14 @@ export function TestWorkspacePage({editMode=false}:{editMode?:boolean}) {
     const {data:{subscription}}=client.auth.onAuthStateChange(()=>setTimeout(()=>{if(active)void verify();},0));
     return ()=>{active=false;generation++;subscription.unsubscribe();};
   },[client]);
+  useEffect(()=>{
+    if(!client||!allowed||!draftOptions.length){setDraftLabels({});return;}
+    let active=true;
+    void fetchDraftLabels(client,draftOptions).then(labels=>{if(active)setDraftLabels(labels);})
+      .catch(()=>{if(active)setError('Saved event labels could not be loaded.');});
+    return()=>{active=false;};
+  },[client,allowed,draftOptions]);
+
   async function action(job:()=>Promise<void>) {
     if(busy)return;
     setError('');setMessage('');setBusy(true);
@@ -210,7 +220,7 @@ export function TestWorkspacePage({editMode=false}:{editMode?:boolean}) {
         <h2>{editMode ? (draft ? "Review and save corrections" : "Saved tournaments") : "Confirm players and test results"}</h2>
         {!editMode&&<p>Select a saved screenshot review. Unrecognized players are registered automatically on save. Verify suggested existing matches.</p>}
         {!editMode&&<label>Reviewed screenshot <select value={draftId} disabled={busy} onChange={e=>{const id=e.target.value;if(id)void loadDraft(id);}}>
-          <option value="">Select a private review</option>{draftOptions.map(d=><option key={d.id} value={d.id}>{events.find(e=>e.draft_id===d.id)?.event_name??`Reviewed draft ${d.id.slice(0,8)}`}</option>)}
+          <option value="">Select a private review</option>{draftOptions.map(d=><option key={d.id} value={d.id}>{draftLabels[d.id]??events.find(e=>e.draft_id===d.id)?.event_name??`Reviewed draft ${d.id.slice(0,8)}`}</option>)}
         </select></label>}
         {editMode&&draft&&<button type="button" onClick={()=>{navigate("/edit-tournaments",{replace:true});setDraft(null);setMessage("");setError("");}} disabled={busy}>Back to saved tournaments</button>}
         {(!editMode||draft)&&draft&&<div className="sandbox-event-editor">

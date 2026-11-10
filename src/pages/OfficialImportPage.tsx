@@ -8,6 +8,7 @@ import { SOURCE_BUCKET } from '../importInfrastructure/validation';
 import { validateImageFiles } from '../extraction';
 import { suggestedImportValues } from '../importInfrastructure/suggestions';
 import { suggestDisplayName } from '../importInfrastructure/displayNames';
+import { fetchDraftLabels } from '../importInfrastructure/draftLabels';
 import { parseImportValues } from '../data/reconstruction';
 import { effectiveValues } from '../results';
 import type { ImportDraft, ImportValues, ImportedResult, Tournament } from '../results';
@@ -25,20 +26,6 @@ const blankResult = (): ImportedResult => ({
   wins: null, losses: null, draws: null, finalPosition: null,
 });
 const numberOrNull = (text: string) => text.trim() === '' ? null : Number.isSafeInteger(Number(text)) && Number(text) >= 0 ? Number(text) : null;
-
-/** A human-readable label only; the UUID remains the option value and database key. */
-function draftEventLabel(raw:unknown):string|null {
-  if(!raw || typeof raw!=='object' || Array.isArray(raw))return null;
-  const record=raw as Record<string,unknown>;
-  const values=('values' in record ? record.values : raw);
-  if(!values || typeof values!=='object' || Array.isArray(values))return null;
-  const tournament=(values as Record<string,unknown>).tournament;
-  if(!tournament || typeof tournament!=='object' || Array.isArray(tournament))return null;
-  const t=tournament as Record<string,unknown>;
-  const name=typeof t.name==='string'?t.name.trim():'';
-  const date=typeof t.date==='string' && /^\d{4}-\d{2}-\d{2}$/.test(t.date)?t.date:'';
-  return name && date?`${name} — ${date}`:name||date||null;
-}
 
 export function OfficialImportPage() {
   const navigate=useNavigate();
@@ -154,27 +141,11 @@ export function OfficialImportPage() {
   useEffect(()=>{
     if(!client || !authorized || !drafts.length){setDraftLabels({});return;}
     let active=true;
-    const labels:Record<string,string>={};
-    for(const item of drafts){
-      const initial=draftEventLabel(item.original);
-      if(initial)labels[item.id]=initial;
-    }
-    const ids=drafts.map(item=>item.id);
-    void client.from('import_corrections').select('draft_id,revision,snapshot')
-      .in('draft_id',ids).order('revision',{ascending:false})
-      .then(({data,error})=>{
-        if(!active)return;
-        if(!error && data){
-          const seen=new Set<string>();
-          for(const row of data){
-            if(seen.has(row.draft_id))continue;
-            seen.add(row.draft_id);
-            const revised=draftEventLabel(row.snapshot);
-            if(revised)labels[row.draft_id]=revised;
-          }
-        }
-        setDraftLabels(labels);
-      });
+    void fetchDraftLabels(client,drafts).then(labels=>{
+      if(active)setDraftLabels(labels);
+    }).catch(()=>{
+      if(active)setDraftLabels(Object.fromEntries(drafts.map(d=>[d.id,`Unreviewed screenshot · ${d.id.slice(0,8)}`])));
+    });
     return ()=>{active=false;};
   },[client,authorized,drafts,draftLabelRefresh]);
 

@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Opening Modern League…</title></head>
+<body>
+<p>Opening Modern League… <a href="/modern-league/">Open the home page</a></p>
+<script>
+  // GitHub Pages does not route deep links to index.html. Recover previously
+  // shared /modern-league/publish-results?draft=... links into HashRouter URLs.
+  (function () {
+    var base = '/modern-league/';
+    if (!window.location.pathname.startsWith(base)) return;
+    var route = window.location.pathname.slice(base.length);
+    if (!route) route = '';
+    var target = base + '#/' + route + window.location.search;
+    window.location.replace(target);
+  }());
+</script>
+</body>
+</html>
