@@ -792,3 +792,50 @@ h1{font-size:clamp(38px,4.5vw,61px);letter-spacing:.02em;font-weight:400}
   .official-publication .admin-resume-panel { padding: 16px !important; }
   .official-publication .admin-resume-actions a { width: 100%; }
 }
+
+/* Post-submission action hierarchy; do not show navigation as bare text. */
+.official-publication .submission-complete {
+  margin: 28px 0 22px; padding: clamp(20px,4vw,32px);
+  border: 2px solid #c7b17b; border-radius: 16px;
+  background: #1d271c; color: #f4f2e9; max-width: 960px;
+}
+.submission-complete-marker {
+  width: 52px; height: 52px; display: grid; place-items: center;
+  border: 2px solid #c3dfb8; border-radius: 50%;
+  background: #a6cf9d; color: #122217; font-size: 30px; font-weight: 800;
+  margin-bottom: 14px;
+}
+.official-publication .submission-complete h2 { font-size: clamp(26px,4vw,36px); margin: 8px 0 12px; line-height: 1.15; }
+.official-publication .submission-complete h3 { font-size: 20px; margin: 28px 0 12px; color: #e8d3a0; }
+.official-publication .submission-complete > p { max-width: 680px; line-height: 1.55; }
+.official-publication .submission-complete-note { font-size: 14px; color: #c5cdbd; margin-top: 16px; }
+.official-publication .submission-next-actions,
+.official-publication .submission-footer-actions {
+  display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px;
+  margin: 20px 0 28px; max-width: 850px;
+}
+.official-publication a.submission-action {
+  display: flex !important; align-items: center; justify-content: center;
+  min-width: 0; min-height: 56px;
+  padding: 14px 18px; border: 2px solid #d1ba7e; border-radius: 11px;
+  background: #303828; color: #f7e9c9;
+  font-size: 16px; font-weight: 750; text-align: center;
+  text-decoration: none !important; line-height: 1.35;
+}
+.official-publication a.submission-action-primary {
+  background: #e4c986; color: #121a11; border-color: #e4c986;
+}
+.official-publication a.submission-action:hover,
+.official-publication a.submission-action:focus-visible {
+  outline: 3px solid #f3d88d; outline-offset: 3px;
+  background: #49563b; color: #fff7df;
+}
+.official-publication a.submission-action-primary:hover,
+.official-publication a.submission-action-primary:focus-visible {
+  background: #f6dda0; color: #121a11;
+}
+@media(max-width:600px) {
+  .official-publication .submission-next-actions,
+  .official-publication .submission-footer-actions { grid-template-columns: minmax(0,1fr); gap: 12px; }
+  .official-publication a.submission-action { width: 100%; }
+}
