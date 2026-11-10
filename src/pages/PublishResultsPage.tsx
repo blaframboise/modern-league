@@ -315,7 +315,7 @@ export function PublishResultsPage(){
         </select>
         <p className="admin-resume-note">{draft?'Review loaded. Player selections are retained on this device until saved.':busy?'Opening your most recent review…':'Select the event above to continue matching players.'}</p>
         {draft&&<div className="admin-resume-actions"><Link to={`/official-import?draft=${encodeURIComponent(draft.importId)}`}>Edit screenshot review</Link><Link to={`/test-workspace?view=standings`}>View test standings</Link></div>}
-      </section>
+      </section>}
       {error&&<p className="import-error" role="alert">{error}</p>}
       {!publishedId&&!savedTestId&&draft&&values&&<>
         <div className="publication-summary">
