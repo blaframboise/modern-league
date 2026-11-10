@@ -15,6 +15,7 @@ type OfficialPlayer={id:string;display_name:string};
 type Alias={player_id:string;alias:string};
 type Linked={rowId:string;playerId:string;displayName:string};
 type SavedCalendar={revision:number;overrides:ReturnType<typeof parseCalendarOverrides>};
+type MatchRegistry='official'|'test';
 
 /** This is the only entry point for official publication; sandbox records never enter this flow. */
 export function PublishResultsPage(){
@@ -28,6 +29,9 @@ export function PublishResultsPage(){
   const [draft,setDraft]=useState<ImportDraft|null>(null);
   const [players,setPlayers]=useState<OfficialPlayer[]>([]);
   const [aliases,setAliases]=useState<Alias[]>([]);
+  const [testPlayers,setTestPlayers]=useState<OfficialPlayer[]>([]);
+  const [testAliases,setTestAliases]=useState<Alias[]>([]);
+  const [rehearsalDone,setRehearsalDone]=useState(false);
   const [linked,setLinked]=useState<Linked[]>([]);
   const [calendar,setCalendar]=useState<SavedCalendar|null>(null);
   const [reason,setReason]=useState('Administrator verified store results and all player identities.');
@@ -35,12 +39,16 @@ export function PublishResultsPage(){
   const [busy,setBusy]=useState(false);
   const [error,setError]=useState('');
   const [publishedId,setPublishedId]=useState('');
-  const roster=useMemo(()=>players.map(p=>({
-    playerId:p.id,displayName:p.display_name,
-    aliases:aliases.filter(a=>a.player_id===p.id).map(a=>a.alias),
-  })),[players,aliases]);
   const values=draft?effectiveValues(draft):null;
   const match=calendar&&values?resolveScheduledEvent(values.tournament.date,calendar.overrides):null;
+  const rehearsal=match?.status==='historical';
+  const registry:MatchRegistry=rehearsal?'test':'official';
+  const availablePlayers=rehearsal?testPlayers:players;
+  const availableAliases=rehearsal?testAliases:aliases;
+  const roster=useMemo(()=>availablePlayers.map(p=>({
+    playerId:p.id,displayName:p.display_name,
+    aliases:availableAliases.filter(a=>a.player_id===p.id).map(a=>a.alias),
+  })),[availablePlayers,availableAliases]);
   const classMatches=match?.status==='matched' &&
     values?.tournament.kind===match.kind &&
     values?.tournament.year===match.competitionYear &&
@@ -62,6 +70,13 @@ export function PublishResultsPage(){
       (match?.status!=='matched'||match.kind==='regular'||!!row.finalPosition));
   const canPublish=authorized&&!busy&&!publishedId&&confirmed&&!!reason.trim()&&
     !!draft?.corrections.length&&classMatches&&!future&&rosterValid&&recordsValid;
+  const canCompleteRehearsal=authorized&&!busy&&rehearsal&&!rehearsalDone&&confirmed&&
+    !!draft?.corrections.length&&!!reason.trim()&&rosterValid&&recordsValid;
+  const blocker=!draft?'':future?'This event is in the future. Publication is not yet available.':
+    !recordsValid?'Some player results or scheduled rounds are missing or invalid. Return to screenshot review to correct them.':
+    !rosterValid?'Resolve duplicate player selections and fill in every new player name (at least two characters).':
+    !classMatches&&!rehearsal?'This event is not eligible for official 2027 publication. Check its date and calendar classification.':
+    !reason.trim()?'Enter a verification reason.':'';
 
   useEffect(()=>{
     if(!client){setLoading(false);setStatus('Supabase is unavailable.');return;}
@@ -70,16 +85,20 @@ export function PublishResultsPage(){
       try{
         const {data:identity}=await client.auth.getUser();
         if(!identity.user||!(await leagueRepository(client).isAdministrator()))throw Error('Administrator sign-in required.');
-        const [ds,pr,al,cal]=await Promise.all([
+        const [ds,pr,al,cal,testPr,testAl]=await Promise.all([
           leagueRepository(client).drafts(),
           client.from('players').select('id,display_name').order('display_name'),
           client.from('player_identities').select('player_id,alias'),
           client.from('proposed_calendar_settings').select('revision,overrides').eq('year',2027).single(),
+          client.from('sandbox_players').select('id,display_name').order('display_name'),
+          client.from('sandbox_player_aliases').select('player_id,alias'),
         ]);
-        if(pr.error||al.error||cal.error||!cal.data)throw Error('Unable to load official players or the saved schedule.');
+        if(pr.error||al.error||cal.error||!cal.data||testPr.error||testAl.error)
+          throw Error('Unable to load the saved calendar and player registries.');
         const parsed=parseCalendarOverrides(cal.data.overrides);
         if(active){
           setAuthorized(true);setDrafts(ds??[]);setPlayers(pr.data??[]);setAliases(al.data??[]);
+          setTestPlayers(testPr.data??[]);setTestAliases(testAl.data??[]);
           setCalendar({revision:cal.data.revision,overrides:parsed});
           setStatus('Private administrator review · Nothing is published automatically.');
         }
@@ -98,14 +117,17 @@ export function PublishResultsPage(){
 
   async function loadDraft(id:string){
     if(!client)return;
-    setBusy(true);setError('');setDraft(null);setConfirmed(false);setPublishedId('');
+    setBusy(true);setError('');setDraft(null);setConfirmed(false);setPublishedId('');setRehearsalDone(false);
     try{
       const incoming=await leagueRepository(client).loadDraft(id);
       if(!incoming.corrections.length)throw Error('This screenshot has not been reviewed and saved.');
       setDraft(incoming);
       const seen=new Set<string>();
       const initial=effectiveValues(incoming).results.map(row=>{
-        const candidates=potentialPlayers(row.importedName,roster);
+        const selectedRoster=incoming.original.tournament.date.slice(0,4)<'2027'
+          ? testPlayers.map(p=>({playerId:p.id,displayName:p.display_name,aliases:testAliases.filter(a=>a.player_id===p.id).map(a=>a.alias)}))
+          : roster;
+        const candidates=potentialPlayers(row.importedName,selectedRoster);
         const playerId=candidates.length===1&&!seen.has(candidates[0].playerId)?candidates[0].playerId:'';
         if(playerId)seen.add(playerId);
         return {rowId:row.rowId,playerId,displayName:suggestDisplayName(row.importedName)};
@@ -157,7 +179,7 @@ export function PublishResultsPage(){
   return <section className="container admin-page official-publication">
     <p className="eyebrow">ADMINISTRATION / OFFICIAL LEAGUE</p>
     <h1>Publish Results</h1>
-    <p>Choose an already reviewed tournament. Confirm each player against the official registry, then explicitly publish the store's results. This action is separate from the private test workspace.</p>
+    <p>Step 2 of 3: Match each reviewed screenshot name to a player, verify the complete roster, then approve the final step. Nothing publishes automatically.</p>
     <p role="status">{status}</p>
     {!authorized?loading?<p>Checking access…</p>:<Link to="/admin">Administrator sign in</Link>:<>
       <label>Reviewed tournament
@@ -174,10 +196,11 @@ export function PublishResultsPage(){
           <p>Calendar: {match?.status==='matched'? `${match.code} · ${match.description}`:match?.status==='blocked'?match.message:'Calendar unavailable'}</p>
           <p>{rounds??'Unknown'} official Swiss rounds · {values.results.length} player results · Review revision {draft.corrections.length}</p>
           {future&&<p className="import-error">Future events cannot be published before the tournament takes place.</p>}
-          {!classMatches&&<p className="import-error">The reviewed classification no longer matches the saved calendar. <Link to={`/official-import?draft=${draft.importId}`}>Review the tournament again</Link> before publishing.</p>}
+          {rehearsal&&<p className="calendar-notice" role="status"><strong>2026 preseason rehearsal.</strong> This draft cannot become an official 2027 result. Match against existing TEST players and complete the review below without publishing or registering official players.</p>}
+          {!rehearsal&&!classMatches&&<p className="import-error">This event does not match an eligible 2027 league event. <Link to={`/official-import?draft=${draft.importId}`}>Review the tournament again</Link> before publishing.</p>}
         </div>
         <div className="sandbox-table publication-table"><table>
-          <thead><tr><th>Store player</th><th>W-L-D</th><th>Place</th><th>Points preview</th><th>Official player</th></tr></thead>
+          <thead><tr><th>Store player</th><th>W-L-D</th><th>Place</th><th>Points preview</th><th>{rehearsal?'Test player':'Official player'}</th></tr></thead>
           <tbody>{values.results.map((row,i)=>{
             const selection=linked.find(x=>x.rowId===row.rowId);
             return <tr key={row.rowId}>
@@ -187,8 +210,8 @@ export function PublishResultsPage(){
               <td>{points[i]??'—'}</td>
               <td><select aria-label={`Match ${row.importedName}`} disabled={busy} value={selection?.playerId??''}
                   onChange={e=>setPlayer(row.rowId,{playerId:e.target.value})}>
-                <option value="">Register new player</option>
-                {players.map(player=><option value={player.id} key={player.id}>{player.display_name}</option>)}
+                <option value="">{rehearsal?'New test player (rehearsal only)':'Register new player'}</option>
+                {availablePlayers.map(player=><option value={player.id} key={player.id}>Existing: {player.display_name}</option>)}
               </select>
               {!selection?.playerId&&<input aria-label={`Name for ${row.importedName}`} maxLength={120}
                 disabled={busy} value={selection?.displayName??''} onChange={e=>setPlayer(row.rowId,{displayName:e.target.value})}/>}
@@ -196,13 +219,20 @@ export function PublishResultsPage(){
             </tr>;
           })}</tbody>
         </table></div>
-        <p className="import-hint">Existing player matches are suggestions only. Verify the dropdown for every player. “Register new player” creates an official player only if publication succeeds.</p>
-        <label>Publication reason <textarea rows={2} maxLength={2000} disabled={busy} value={reason} onChange={e=>{setReason(e.target.value);setConfirmed(false)}}/></label>
-        <label className="sandbox-confirm"><input type="checkbox" disabled={busy||future||!classMatches||!recordsValid||!rosterValid||!!publishedId}
+        <p className="import-hint">{roster.length} existing {registry} players available. Matching names are suggested but must be verified. Choosing a new player does not merge identities. {rehearsal?'This rehearsal does not create or save player identities.':'New players are registered only when the official event is successfully published.'}</p>
+        <label>{rehearsal?'Rehearsal review note':'Publication reason'} <textarea rows={2} maxLength={2000} disabled={busy} value={reason} onChange={e=>{setReason(e.target.value);setConfirmed(false);setRehearsalDone(false)}}/></label>
+        {blocker&&<p className="import-error" role="alert">{blocker}</p>}
+        <label className="sandbox-confirm"><input type="checkbox"
+          disabled={busy||future||(!classMatches&&!rehearsal)||!recordsValid||!rosterValid||!!publishedId||rehearsalDone}
           checked={confirmed} onChange={e=>setConfirmed(e.target.checked)}/>
-          I verified the store's results, date, scheduled rounds, final placements when applicable, and every player identity. Publish these records as official league results.
+          {rehearsal
+            ?'I checked all 14-day rehearsal information and every test-player match. Complete the private rehearsal without publishing official results.'
+            :'I verified the store\'s results, date, scheduled rounds, final placements when applicable, and every player identity. Publish these records as official league results.'}
         </label>
-        <button disabled={!canPublish} onClick={()=>void publish()}>{busy?'Publishing…':'Publish Results'}</button>
+        {rehearsal
+          ?<button type="button" disabled={!canCompleteRehearsal} onClick={()=>{setRehearsalDone(true);setConfirmed(false);setStatus('Preseason matching rehearsal completed in this session. No official results or players were created.');}}>Complete matching rehearsal</button>
+          :<button disabled={!canPublish} onClick={()=>void publish()}>{busy?'Publishing…':'Publish Results'}</button>}
+        {rehearsalDone&&<p className="sandbox-success" role="status">Matching rehearsal finished. Nothing was published or saved to official standings.</p>}
         {publishedId&&<p className="sandbox-success" role="status">Published official tournament result {publishedId}. The event is now part of the official records.</p>}
         <p className="import-hint">Published results can be corrected only through the audited official correction workflow. Original publication history remains immutable.</p>
       </>}

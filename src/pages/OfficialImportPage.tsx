@@ -331,7 +331,10 @@ export function OfficialImportPage() {
       const loaded = await leagueRepository(client!).loadDraft(draft.importId);
       setDraft(loaded);setValues(effectiveValues(loaded));setStep('saved');setCorrecting(false);
       setDraftLabelRefresh(previous=>previous+1);
-      setNotice(matched.status==='historical'?'Historical review saved privately. This tournament cannot be published to the 2027 league.':'Review saved. Continue to official player matching and publication, or use the private test workspace. Nothing is published automatically.');
+      setNotice('Review saved. Opening player matching; nothing is published automatically.');
+      if (!returnToEditor) {
+        navigate(`/publish-results?draft=${encodeURIComponent(draft.importId)}`,{replace:true});
+      }
     });
   }
   const canReview = !!values && !!draft && !!assets.length && (readyToMatch || historicalTest) && !!values.tournament.name.trim();
