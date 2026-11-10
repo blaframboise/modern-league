@@ -226,7 +226,7 @@ export function PublishResultsPage(){
           disabled={busy||future||(!classMatches&&!rehearsal)||!recordsValid||!rosterValid||!!publishedId||rehearsalDone}
           checked={confirmed} onChange={e=>setConfirmed(e.target.checked)}/>
           {rehearsal
-            ?'I checked all 14-day rehearsal information and every test-player match. Complete the private rehearsal without publishing official results.'
+            ?'I verified the store results, event date, match records, and every test-player identity. Complete this rehearsal without publishing official results.'
             :'I verified the store\'s results, date, scheduled rounds, final placements when applicable, and every player identity. Publish these records as official league results.'}
         </label>
         {rehearsal
