@@ -435,7 +435,7 @@ export function OfficialImportPage() {
           </>}
           {step==='saved' && <div className="import-actions">
             {draft?.corrections.length ? <>
-              {!historicalTest&&<button type="button" disabled={busy} onClick={()=>navigate(`/publish-results?draft=${encodeURIComponent(draft.importId)}`)}>Continue to official player matching and publication</button>}
+              <button type="button" disabled={busy} onClick={()=>navigate(`/publish-results?draft=${encodeURIComponent(draft.importId)}`)}>{historicalTest?'Continue to preseason player matching (rehearsal only)':'Continue to official player matching and publication'}</button>
               {!historicalTest&&<button type="button" disabled={busy} onClick={()=>navigate(`${returnToEditor?'/edit-tournaments':'/test-workspace'}?draft=${encodeURIComponent(draft.importId)}`)}>Continue to player matching (test only)</button>}
             </> : null}
             <button type="button" disabled={busy} onClick={() => {setStep('review');setCorrecting(true);setReviewed(false);setNotice('Editing a saved test draft will append another review revision; the previous version remains in the audit trail.');}}>Edit saved draft</button>

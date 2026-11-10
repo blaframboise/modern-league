@@ -124,7 +124,7 @@ export function PublishResultsPage(){
       setDraft(incoming);
       const seen=new Set<string>();
       const initial=effectiveValues(incoming).results.map(row=>{
-        const selectedRoster=incoming.original.tournament.date.slice(0,4)<'2027'
+        const selectedRoster=effectiveValues(incoming).tournament.date.slice(0,4)<'2027'
           ? testPlayers.map(p=>({playerId:p.id,displayName:p.display_name,aliases:testAliases.filter(a=>a.player_id===p.id).map(a=>a.alias)}))
           : roster;
         const candidates=potentialPlayers(row.importedName,selectedRoster);
