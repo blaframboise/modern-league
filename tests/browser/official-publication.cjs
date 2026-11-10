@@ -31,6 +31,8 @@ const assert = require('node:assert/strict');
      if(url.pathname==='/rest/v1/import_corrections')return reply([{id:'00000000-0000-4000-8000-000000000003',draft_id:draft,revision:1,reason:'Verified fixture',snapshot:{values:original,reason:'Verified fixture'},created_at:'2027-01-06T00:00:00Z'}]);
      if(url.pathname==='/rest/v1/players')return reply([]);
      if(url.pathname==='/rest/v1/player_identities')return reply([]);
+     if(url.pathname==='/rest/v1/sandbox_players')return reply([{id:'00000000-0000-4000-8000-000000000031',display_name:'Chris Example'}]);
+     if(url.pathname==='/rest/v1/sandbox_player_aliases')return reply([]);
      if(url.pathname==='/rest/v1/proposed_calendar_settings')return reply({year:2027,revision:0,overrides:{}});
      if(url.pathname==='/rest/v1/effective_published_results')return reply(published);
      if(url.pathname==='/rest/v1/rpc/official_correction_history')return reply(history);
@@ -96,8 +98,25 @@ const assert = require('node:assert/strict');
      await page.getByText('Chris Example',{exact:true}).first().waitFor();
      assert.equal(await page.getByText('10.00',{exact:true}).count()>0,true,'Expected corrected winner points on '+path);
    }
+   // 2026 results are rehearsal-only: use existing test roster and never write official data.
+   original.tournament.date='2026-11-09';
+   original.tournament.year=2026;
+   original.tournament.name='Synthetic 2026 MNM';
+   const publishesBeforeRehearsal=publishes;
+   await page.goto((process.env.SECURE_BASE_URL||'http://127.0.0.1:5174')+'/publish-results?draft='+draft);
+   await page.getByText('2026 preseason rehearsal.',{exact:false}).waitFor();
+   await page.getByText('Synthetic 2026 MNM',{exact:true}).first().waitFor();
+   assert.equal(await page.getByLabel('Match Chris Example').inputValue(),'00000000-0000-4000-8000-000000000031');
+   assert.equal(await page.getByText('19 existing test players available.').count(),0);
+   await page.getByLabel('Rehearsal review note').fill('Store record and names checked');
+   const check=page.getByRole('checkbox',{name:/I verified the store results/});
+   assert.equal(await check.isEnabled(),true);
+   await check.check();
+   await page.getByRole('button',{name:'Complete matching rehearsal'}).click();
+   await page.getByText('Matching rehearsal finished.',{exact:false}).waitFor();
+   assert.equal(publishes,publishesBeforeRehearsal,'2026 rehearsal must never invoke official publication');
    assert.deepEqual(errors,[]);
-   console.log('PASS synthetic official publish, correction and three public leaderboards at viewport '+width);
+   console.log('PASS synthetic official publish, correction, 2026 test identity rehearsal and leaderboards at viewport '+width);
    await page.close();
   }
  }finally{await browser.close();}
