@@ -1,3 +1,4 @@
+import { AppVersionPanel } from '../components/AppVersionPanel';
 import { ArrowRight, ArrowUpRight, CalendarDays, Flag, Layers3, Trophy } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -16,5 +17,6 @@ export function HomePage() {
     <section className="season-strip" aria-label="Season overview"><div className="strip-label"><Flag size={20} /><div><span className="eyebrow">THE 2027 SERIES</span><strong>One league. A whole year of possibility.</strong></div></div><div className="strip-item"><span>FORMAT</span><strong>Modern</strong></div><div className="strip-item"><span>COMPETITION</span><strong>Seasonal & annual</strong></div><div className="strip-item"><span>SEASON STATUS</span><strong className="gold">Preparing for launch</strong></div></section>
     <section className="explore-section" aria-labelledby="explore-title"><div className="section-heading"><div><p className="eyebrow">YOUR LEAGUE, AT A GLANCE</p><h2 id="explore-title">Every match is part of a bigger story.</h2></div><span className="muted section-aside">Find your place in the series.</span></div><div className="destination-grid">{destinations.map(({ number, icon: Icon, title, text, label, to }) => <Link className="destination-card" to={to} key={to}><div className="card-top"><Icon size={23} strokeWidth={1.5} /><span>{number}</span></div><h3>{title}</h3><p>{text}</p><span className="card-link">{label}<ArrowRight size={16} /></span></Link>)}</div></section>
     <section className="launch-note"><div className="launch-icon"><Flag size={21} /></div><div><h2>A fresh season starts here.</h2><p>Events, player standings, and championship details will appear as the league takes shape.</p></div><span className="pill">PRESEASON</span></section>
+    <AppVersionPanel />
   </div>;
 }

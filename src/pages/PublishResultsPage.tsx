@@ -5,6 +5,7 @@ import { leagueRepository } from '../data/repository';
 import { effectiveValues, potentialPlayers } from '../results';
 import type { ImportDraft } from '../results';
 import { suggestDisplayName } from '../importInfrastructure/displayNames';
+import { fetchDraftLabels } from '../importInfrastructure/draftLabels';
 import { resolveScheduledEvent } from '../calendar/importMatch';
 import { parseCalendarOverrides } from '../calendar/scheduler';
 import { calculateRegularEventPoints } from '../scoring/regular';
@@ -25,7 +26,8 @@ export function PublishResultsPage(){
   const [authorized,setAuthorized]=useState(false);
   const [loading,setLoading]=useState(true);
   const [status,setStatus]=useState('Checking administrator access…');
-  const [drafts,setDrafts]=useState<{id:string}[]>([]);
+  const [drafts,setDrafts]=useState<{id:string;created_at?:string;original?:unknown}[]>([]);
+  const [draftLabels,setDraftLabels]=useState<Record<string,string>>({});
   const [draft,setDraft]=useState<ImportDraft|null>(null);
   const [players,setPlayers]=useState<OfficialPlayer[]>([]);
   const [aliases,setAliases]=useState<Alias[]>([]);
@@ -109,6 +111,14 @@ export function PublishResultsPage(){
   },[client]);
 
   useEffect(()=>{
+    if(!client||!authorized||!drafts.length){setDraftLabels({});return;}
+    let active=true;
+    void fetchDraftLabels(client,drafts).then(labels=>{if(active)setDraftLabels(labels);})
+      .catch(()=>{if(active)setError('Could not retrieve saved tournament names.');});
+    return()=>{active=false;};
+  },[client,authorized,drafts]);
+
+  useEffect(()=>{
     if(!client||!authorized||!requestedDraft||!drafts.some(d=>d.id===requestedDraft))return;
     void loadDraft(requestedDraft);
   // One-time preselection; further selections are handled by the native select.
@@ -185,7 +195,7 @@ export function PublishResultsPage(){
       <label>Reviewed tournament
         <select value={draft?.importId??''} disabled={busy} onChange={e=>void loadDraft(e.target.value)}>
           <option value="">Select saved screenshot review</option>
-          {drafts.map(d=><option key={d.id} value={d.id}>Draft {d.id.slice(0,8)}</option>)}
+          {drafts.map(d=><option key={d.id} value={d.id}>{draftLabels[d.id]??`Loading saved event · ${d.id.slice(0,8)}`}</option>)}
         </select>
       </label>
       {error&&<p className="import-error" role="alert">{error}</p>}
