@@ -281,10 +281,31 @@ export function PublishResultsPage(){
     <p className="eyebrow">ADMINISTRATION / OFFICIAL LEAGUE</p>
     <h1>{rehearsal?'Test Tournament — Player Matching':'Match and Publish Results'}</h1>
     {authorized&&<ImportProgress stage={publishedId||rehearsalDone?6:confirmed&&recordsValid&&rosterValid?5:4} draftId={draft?.importId} />}
-    <p className="workflow-intro">Match the names from the reviewed screenshot to players. Check any missing event details, then use the final confirmation to save. Preseason events save to private test standings; eligible 2027 events use official publication.</p>
+    {!publishedId&&!savedTestId&&<p className="workflow-intro">Match the names from the reviewed screenshot to players. Check any missing event details, then use the final confirmation to save. Preseason events save to private test standings; eligible 2027 events use official publication.</p>}
     <p role="status">{status}</p>
     {!authorized?loading?<p>Checking access…</p>:<Link to="/admin">Administrator sign in</Link>:<>
-      <section className="admin-resume-panel" aria-label="Resume saved tournament">
+      {(publishedId||savedTestId)&&<section className="submission-complete" role="status" aria-label="Tournament saved successfully">
+        <div className="submission-complete-marker" aria-hidden="true">✓</div>
+        <p className="eyebrow">{savedTestId?'PRIVATE TEST TOURNAMENT':'OFFICIAL TOURNAMENT'}</p>
+        <h2>{savedTestId?'Test tournament saved':'Official tournament published'}</h2>
+        <p><strong>{values?.tournament.name||'Tournament'}</strong> {values?.tournament.date? '· '+values.tournament.date:''}</p>
+        <p>{savedTestId
+          ?'Player matches and results are saved in the private test workspace. Official 2027 standings have not changed.'
+          :'The tournament is recorded in the official league ledger. Review the public standings to confirm the published result.'}</p>
+        <h3>Next: Review the saved results</h3>
+        <div className="submission-next-actions">
+          <Link className="submission-action submission-action-primary" to={savedTestId?'/test-workspace?view=standings':'/leaderboards'}>
+            {savedTestId?'1. View test standings':'1. View official standings'}
+          </Link>
+          <Link className="submission-action" to={savedTestId?'/edit-tournaments':'/correct-official-results'}>
+            {savedTestId?'2. Correct saved test results':'2. Correct official results'}
+          </Link>
+          <Link className="submission-action" to="/official-import">Upload another tournament</Link>
+          <Link className="submission-action" to="/admin">Return to administration</Link>
+        </div>
+        <p className="submission-complete-note">Your saved tournament remains available after you close this app.</p>
+      </section>}
+      {!publishedId&&!savedTestId&&<section className="admin-resume-panel" aria-label="Resume saved tournament">
         <h2>Resume a tournament</h2>
         <p>Saved screenshot reviews remain available after closing the app. Choose the event by name and date.</p>
         <label htmlFor="reviewed-tournament-picker">Choose a saved event <span className="control-hint">Tap the bordered box to select a tournament</span></label>
@@ -294,9 +315,9 @@ export function PublishResultsPage(){
         </select>
         <p className="admin-resume-note">{draft?'Review loaded. Player selections are retained on this device until saved.':busy?'Opening your most recent review…':'Select the event above to continue matching players.'}</p>
         {draft&&<div className="admin-resume-actions"><Link to={`/official-import?draft=${encodeURIComponent(draft.importId)}`}>Edit screenshot review</Link><Link to={`/test-workspace?view=standings`}>View test standings</Link></div>}
-      </section>
+      </section>}
       {error&&<p className="import-error" role="alert">{error}</p>}
-      {draft&&values&&<>
+      {!publishedId&&!savedTestId&&draft&&values&&<>
         <div className="publication-summary">
           <strong>{values.tournament.name||'Unnamed tournament'}</strong>
           <p>Date: <time dateTime={values.tournament.date}>{values.tournament.date||'Missing'}</time></p>
@@ -353,13 +374,13 @@ export function PublishResultsPage(){
         {rehearsal
           ?<button type="button" disabled={!canCompleteRehearsal} onClick={()=>void saveRehearsal()}>Save test tournament and update standings</button>
           :<button disabled={!canPublish} onClick={()=>void publish()}>{busy?'Publishing…':'Publish Results'}</button>}
-        {rehearsalDone&&<p className="sandbox-success" role="status">Test tournament saved. Test-player registrations and standings are persistent; nothing was published officially.</p>}
-        {savedTestId&&<p className="sandbox-success" role="status">Private test tournament saved: {savedTestId}. <Link to="/test-workspace?view=standings">Open updated test standings</Link>. To correct it, use <Link to="/edit-tournaments">Edit a Tournament’s Results</Link>.</p>}
-        {publishedId&&<p className="sandbox-success" role="status">Published official tournament result {publishedId}. The event is now part of the official records.</p>}
+
         <p className="import-hint">Published results can be corrected only through the audited official correction workflow. Original publication history remains immutable.</p>
       </>}
     </>}
-    <p><Link to="/correct-official-results">Correct already published official results</Link></p>
-    <p><Link to="/admin">Back to administration</Link></p>
+    {!publishedId&&!savedTestId&&<nav className="submission-footer-actions" aria-label="More administrator actions">
+      <Link className="submission-action" to="/correct-official-results">Correct already published official results</Link>
+      <Link className="submission-action" to="/admin">Back to administration</Link>
+    </nav>}
   </section>;
 }
