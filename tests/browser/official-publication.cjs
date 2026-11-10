@@ -137,7 +137,7 @@ const assert = require('node:assert/strict');
    await page.reload();
    await page.getByText('Synthetic 2026 MNM',{exact:true}).first().waitFor();
    assert.equal(await page.getByLabel('Name for Taylor Example').inputValue(),'Taylor New');
-   await page.getByLabel('Swiss rounds played').selectOption('3');
+   assert.equal(await page.getByLabel('Swiss rounds played').inputValue(),'3','Round count survives reloading an interrupted matching session');
    await page.getByRole('checkbox',{name:/I verified the store results/}).check();
    await page.getByRole('button',{name:'Save test tournament and update standings'}).click();
    await page.getByText('Private test tournament saved:',{exact:false}).waitFor();

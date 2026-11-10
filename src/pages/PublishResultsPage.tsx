@@ -18,6 +18,7 @@ type Alias={player_id:string;alias:string};
 type Linked={rowId:string;playerId:string;displayName:string};
 type SavedCalendar={revision:number;overrides:ReturnType<typeof parseCalendarOverrides>};
 type MatchRegistry='official'|'test';
+const roundsKey=(id:string,revision:number)=>`modern-league:swiss-rounds:${id}:r${revision}`;
 type SavedTest={id:string;draft_id:string;event_name:string;revision:number};
 const mappingKey=(id:string,revision:number)=>`modern-league:player-matches:${id}:r${revision}`;
 
@@ -162,6 +163,7 @@ export function PublishResultsPage(){
       const incoming=await leagueRepository(client).loadDraft(id);
       if(!incoming.corrections.length)throw Error('This screenshot has not been reviewed and saved.');
       setDraft(incoming);
+      try {setRoundsOverride(localStorage.getItem(roundsKey(id,incoming.corrections.length))||'');} catch {setRoundsOverride('');}
       const seen=new Set<string>();
       const initial=effectiveValues(incoming).results.map(row=>{
         const selectedRoster=effectiveValues(incoming).tournament.date.slice(0,4)<'2027'
@@ -254,7 +256,7 @@ export function PublishResultsPage(){
       if(response.error)throw Error(response.error.message);
       setSavedTestId(response.data);
       setRehearsalDone(true);setConfirmed(false);
-      try {localStorage.removeItem(mappingKey(draft.importId,draft.corrections.length));}catch{/* ignored */}
+      try {localStorage.removeItem(mappingKey(draft.importId,draft.corrections.length));localStorage.removeItem(roundsKey(draft.importId,draft.corrections.length));}catch{/* ignored */}
       setStatus('Saved to private TEST TOURNAMENTS. Player registrations, matches and results persist across sessions. Nothing was published officially.');
     }catch(e){setError(e instanceof Error?e.message:'Test save failed. No official results were changed.');}
     finally{setBusy(false);}
@@ -289,7 +291,7 @@ export function PublishResultsPage(){
             <strong>Swiss rounds played {values.tournament.scheduledRounds?'(from screenshot)':'— REQUIRED'}</strong>
             <span>Confirm the number of Swiss rounds from the store's results. This was not captured in tonight's saved screenshot review.</span>
             <select id="verified-rounds" aria-label="Swiss rounds played" disabled={busy||!!values.tournament.scheduledRounds}
-              value={rounds?String(rounds):''} onChange={e=>{setRoundsOverride(e.target.value);setConfirmed(false);}}>
+              value={rounds?String(rounds):''} onChange={e=>{setRoundsOverride(e.target.value);setConfirmed(false);if(draft)try{localStorage.setItem(roundsKey(draft.importId,draft.corrections.length),e.target.value);}catch{/* unavailable */}}}>
               <option value="">Select number of rounds…</option>
               {Array.from({length:20},(_,i)=>i+1).map(n=><option value={n} key={n}>{n} round{n===1?'':'s'}</option>)}
             </select>
